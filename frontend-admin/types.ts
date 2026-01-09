@@ -10,7 +10,7 @@ export enum TaskType {
 // ============================================
 
 // 用户角色
-export type UserRole = 'platform_admin' | 'brand_admin' | 'participant' | 'anonymous';
+export type UserRole = 'platform_admin' | 'participant' | 'anonymous';
 
 // 登录请求
 export interface LoginRequest {

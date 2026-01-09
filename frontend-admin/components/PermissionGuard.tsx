@@ -25,14 +25,6 @@ export const PermissionProvider = defineComponent({
       // 根据角色检查权限
       const rolePermissions: Record<UserRole, string[]> = {
         platform_admin: ['*'], // 所有权限
-        brand_admin: [
-          'brand:read', 'brand:update',
-          'campaign:read', 'campaign:create', 'campaign:update', 'campaign:delete',
-          'order:read', 'order:create', 'order:update',
-          'reward:read', 'reward:grant',
-          'withdrawal:apply',
-          'asset:read', 'asset:create', 'asset:update', 'asset:delete'
-        ],
         participant: [
           'campaign:read',
           'order:create',
@@ -68,10 +60,8 @@ export const PermissionProvider = defineComponent({
         return true;
       }
       
-      // 品牌管理员只能访问分配的品牌
-      if (hasRole('brand_admin')) {
-        return props.user.brandIds?.includes(brandId) || false;
-      }
+      // 其他角色无品牌访问权限
+      return false;
       
       return false;
     };

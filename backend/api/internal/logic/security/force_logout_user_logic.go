@@ -4,6 +4,7 @@ import (
 	"context"
 	"strconv"
 
+	"dmh/api/internal/service"
 	"dmh/api/internal/svc"
 	"dmh/api/internal/types"
 
@@ -45,9 +46,10 @@ func (l *ForceLogoutUserLogic) ForceLogoutUser(userId string, req *types.ForceLo
 	}
 
 	// 记录审计日志
+	currentUserID := l.ctx.Value("userId").(int64)
 	l.svcCtx.AuditService.LogUserAction(
-		&svc.AuditContext{
-			UserID:    &l.ctx.Value("userId").(int64),
+		&service.AuditContext{
+			UserID:    &currentUserID,
 			Username:  l.ctx.Value("username").(string),
 			ClientIP:  l.ctx.Value("clientIP").(string),
 			UserAgent: l.ctx.Value("userAgent").(string),

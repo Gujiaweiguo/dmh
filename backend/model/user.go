@@ -11,7 +11,7 @@ type User struct {
 	Email     string    `gorm:"column:email;type:varchar(100)" json:"email"`
 	Avatar    string    `gorm:"column:avatar;type:varchar(255)" json:"avatar"`
 	RealName  string    `gorm:"column:real_name;type:varchar(50)" json:"realName"`
-	Role      string    `gorm:"column:role;type:varchar(50);not null;default:participant;index" json:"role"` // platform_admin/brand_admin/participant
+	Role      string    `gorm:"column:role;type:varchar(50);not null;default:participant;index" json:"role"` // platform_admin/participant
 	Status    string    `gorm:"column:status;type:varchar(20);not null;default:active;index" json:"status"` // active/disabled/locked
 	LoginAttempts int   `gorm:"column:login_attempts;default:0" json:"loginAttempts"`
 	LockedUntil   *time.Time `gorm:"column:locked_until" json:"lockedUntil"`
@@ -27,7 +27,7 @@ func (User) TableName() string {
 type Role struct {
 	ID          int64     `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	Name        string    `gorm:"column:name;type:varchar(50);not null" json:"name"`
-	Code        string    `gorm:"column:code;type:varchar(50);not null;uniqueIndex" json:"code"` // platform_admin/brand_admin/participant/anonymous
+	Code        string    `gorm:"column:code;type:varchar(50);not null;uniqueIndex" json:"code"` // platform_admin/participant/anonymous
 	Description string    `gorm:"column:description;type:varchar(200)" json:"description"`
 	CreatedAt   time.Time `gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP" json:"createdAt"`
 	UpdatedAt   time.Time `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP" json:"updatedAt"`

@@ -62,7 +62,7 @@ const fetchCampaign = async () => {
   }
 
   try {
-    const response = await fetch(`/api/v1/campaigns/detail?id=${campaignId}`)
+    const response = await fetch(`/api/v1/h5/campaigns/${campaignId}`)
     if (response.ok) {
       campaign.value = await response.json()
     }

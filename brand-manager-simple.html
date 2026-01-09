@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>品牌管理端 - DMH</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container { 
+            background: white; 
+            border-radius: 20px; 
+            padding: 40px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+        .logo { 
+            text-align: center; 
+            margin-bottom: 30px; 
+        }
+        .logo h1 { 
+            color: #667eea; 
+            font-size: 28px; 
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        .logo p { 
+            color: #666; 
+            font-size: 14px; 
+        }
+        .info-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+        }
+        .info-card h3 {
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .info-card p {
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+        .access-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .access-info h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .access-info p {
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .link-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+        .link-btn:hover {
+            transform: translateY(-2px);
+        }
+        .note {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .note strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>DMH 品牌管理</h1>
+            <p>数字营销中台 - 品牌管理端</p>
+        </div>
+
+        <div class="info-card">
+            <h3>🎯 品牌管理员访问指南</h3>
+            <p>由于系统架构调整，品牌管理员现在通过以下方式访问系统：</p>
+        </div>
+
+        <div class="access-info">
+            <h4>📱 推荐访问方式</h4>
+            <p><strong>管理后台：</strong> http://localhost:3000</p>
+            <p><strong>用户名：</strong> brand_manager</p>
+            <p><strong>密码：</strong> 123456</p>
+            <p><strong>说明：</strong> 使用管理后台的活动管理功能</p>
+        </div>
+
+        <div class="access-info">
+            <h4>🔧 技术说明</h4>
+            <p>• 品牌管理员功能已整合到统一管理后台</p>
+            <p>• 支持活动查看、数据统计等功能</p>
+            <p>• 无需单独的H5端，直接使用管理后台</p>
+        </div>
+
+        <div style="text-align: center;">
+            <a href="http://localhost:3000" class="link-btn" target="_blank">
+                🚀 访问管理后台
+            </a>
+        </div>
+
+        <div class="note">
+            <strong>⚠️ 重要提示：</strong>
+            由于CORS安全策略，H5端直接调用API可能会遇到跨域问题。建议直接使用管理后台进行品牌管理操作，功能更完整且稳定。
+        </div>
+
+        <div class="access-info">
+            <h4>📊 可用功能</h4>
+            <p>✅ 查看活动列表和统计数据</p>
+            <p>✅ 创建新活动</p>
+            <p>✅ 查看活动详情</p>
+            <p>✅ 删除活动</p>
+            <p>✅ 用户管理</p>
+            <p>✅ 品牌管理</p>
+        </div>
+    </div>
+
+    <script>
+        // 自动跳转到管理后台（可选）
+        function goToAdmin() {
+            if (confirm('是否直接跳转到管理后台？')) {
+                window.open('http://localhost:3000', '_blank');
+            }
+        }
+        
+        // 5秒后提示跳转
+        setTimeout(() => {
+            if (confirm('检测到您可能需要访问管理功能，是否跳转到管理后台？')) {
+                window.open('http://localhost:3000', '_blank');
+            }
+        }, 5000);
+    </script>
+</body>
+</html>

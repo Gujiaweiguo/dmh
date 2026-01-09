@@ -51,11 +51,3 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		SessionService:  sessionService,
 	}
 }
-
-// AuditContext 审计上下文
-type AuditContext struct {
-	UserID    *int64
-	Username  string
-	ClientIP  string
-	UserAgent string
-}

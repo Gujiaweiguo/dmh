@@ -27,11 +27,6 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 		[]rest.Route{
 			{
 				Method:  http.MethodPost,
-				Path:    "/admin/brand-admin-relations",
-				Handler: admin.ManageBrandAdminRelationHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodPost,
 				Path:    "/admin/users",
 				Handler: admin.CreateUserHandler(serverCtx),
 			},
@@ -81,6 +76,23 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Method:  http.MethodPost,
 				Path:    "/auth/register",
 				Handler: auth.RegisterHandler(serverCtx),
+			},
+		},
+		rest.WithPrefix("/api/v1"),
+	)
+
+	// 公开的H5活动路由（无需认证）
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodGet,
+				Path:    "/h5/campaigns",
+				Handler: campaign.GetCampaignsHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/h5/campaigns/:id",
+				Handler: campaign.GetCampaignHandler(serverCtx),
 			},
 		},
 		rest.WithPrefix("/api/v1"),

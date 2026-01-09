@@ -4,6 +4,7 @@ import (
 	"context"
 	"strconv"
 
+	"dmh/api/internal/service"
 	"dmh/api/internal/svc"
 	"dmh/api/internal/types"
 
@@ -44,7 +45,7 @@ func (l *HandleSecurityEventLogic) HandleSecurityEvent(eventId string, req *type
 
 	// 记录审计日志
 	l.svcCtx.AuditService.LogUserAction(
-		&svc.AuditContext{
+		&service.AuditContext{
 			UserID:    &handlerID,
 			Username:  l.ctx.Value("username").(string),
 			ClientIP:  l.ctx.Value("clientIP").(string),

@@ -10,6 +10,7 @@ import (
 	"dmh/api/internal/svc"
 	"dmh/api/internal/types"
 	"github.com/zeromicro/go-zero/rest/httpx"
+	"github.com/zeromicro/go-zero/rest/pathvar"
 )
 
 func ForceLogoutUserHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
@@ -21,7 +22,7 @@ func ForceLogoutUserHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		l := security.NewForceLogoutUserLogic(r.Context(), svcCtx)
-		resp, err := l.ForceLogoutUser(&req)
+		resp, err := l.ForceLogoutUser(pathvar.Vars(r)["userId"], &req)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {

@@ -280,8 +280,7 @@ export const LoginView = defineComponent({
             !isLogin.value ? null : h('div', { class: 'mb-4 p-4 bg-amber-50 border border-amber-200 rounded-2xl' }, [
               h('p', { class: 'text-amber-800 font-bold mb-2' }, '⚠️ 测试账号'),
               h('div', { class: 'text-amber-700 text-xs space-y-1' }, [
-                h('p', '管理员: admin / 123456'),
-                h('p', '品牌管理员: brand_manager / 123456')
+                h('p', '管理员: admin / 123456')
               ]),
               h('div', { class: 'flex gap-2 mt-3' }, [
                 h('button', {
@@ -290,16 +289,8 @@ export const LoginView = defineComponent({
                     loginForm.username = 'admin';
                     loginForm.password = '123456';
                   },
-                  class: 'flex-1 px-3 py-2 bg-amber-100 text-amber-800 rounded-xl text-xs font-bold hover:bg-amber-200 transition-colors'
-                }, '填充管理员'),
-                h('button', {
-                  type: 'button',
-                  onClick: () => {
-                    loginForm.username = 'brand_manager';
-                    loginForm.password = '123456';
-                  },
-                  class: 'flex-1 px-3 py-2 bg-amber-100 text-amber-800 rounded-xl text-xs font-bold hover:bg-amber-200 transition-colors'
-                }, '填充品牌管理员')
+                  class: 'w-full px-3 py-2 bg-amber-100 text-amber-800 rounded-xl text-xs font-bold hover:bg-amber-200 transition-colors'
+                }, '填充管理员')
               ])
             ]),
             h('p', { class: 'mb-2' }, '注册即表示您同意我们的服务条款和隐私政策'),

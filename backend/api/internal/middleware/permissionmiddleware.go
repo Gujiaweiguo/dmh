@@ -211,61 +211,24 @@ func (m *PermissionMiddleware) loadUserPermissionsFromDB(userID int64) (*UserPer
 		userPerms.Permissions[permCode] = true
 	}
 
-	// 如果是品牌管理员，查询管理的品牌ID
-	for _, role := range roles {
-		if role == "brand_admin" {
-			brandIDs, err := m.getUserBrandIDs(userID)
-			if err != nil {
-				return nil, fmt.Errorf("查询品牌管理员品牌失败: %v", err)
-			}
-			userPerms.BrandIDs = brandIDs
-			break
-		}
-	}
-
 	return userPerms, nil
 }
 
-// getUserBrandIDs 获取用户管理的品牌ID列表
+// getUserBrandIDs 获取用户管理的品牌ID列表（已废弃，保留兼容性）
 func (m *PermissionMiddleware) getUserBrandIDs(userID int64) ([]int64, error) {
-	query := `SELECT brand_id FROM brand_admins WHERE user_id = ? AND status = 'active'`
-	rows, err := m.db.Query(query, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var brandIDs []int64
-	for rows.Next() {
-		var brandID int64
-		if err := rows.Scan(&brandID); err != nil {
-			return nil, err
-		}
-		brandIDs = append(brandIDs, brandID)
-	}
-
-	return brandIDs, nil
+	return []int64{}, nil
 }
 
-// checkDataLevelPermission 检查数据级权限
+// checkDataLevelPermission 检查数据级权限（已简化，只有平台管理员可以访问所有数据）
 func (m *PermissionMiddleware) checkDataLevelPermission(ctx context.Context, r *http.Request) error {
-	// 只有品牌管理员需要数据级权限检查
-	if !IsBrandAdmin(ctx) {
-		return nil
+	// 只有平台管理员可以访问所有数据
+	if !IsPlatformAdmin(ctx) {
+		// 从URL中提取品牌ID
+		brandID := m.extractBrandIDFromPath(r.URL.Path)
+		if brandID != 0 {
+			return fmt.Errorf("只有平台管理员可以访问品牌数据")
+		}
 	}
-
-	// 从URL中提取品牌ID
-	brandID := m.extractBrandIDFromPath(r.URL.Path)
-	if brandID == 0 {
-		// 如果URL中没有品牌ID，可能是列表查询，允许通过（在业务逻辑中过滤）
-		return nil
-	}
-
-	// 检查用户是否可以访问该品牌
-	if !CanAccessBrand(ctx, brandID) {
-		return fmt.Errorf("无权限访问品牌 %d 的数据", brandID)
-	}
-
 	return nil
 }
 

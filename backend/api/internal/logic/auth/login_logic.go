@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"dmh/api/internal/middleware"
+	"dmh/api/internal/service"
 	"dmh/api/internal/svc"
 	"dmh/api/internal/types"
 	"dmh/model"
@@ -122,7 +123,7 @@ func (l *LoginLogic) Login(req *types.LoginReq) (resp *types.LoginResp, err erro
 
 	// 记录审计日志
 	l.svcCtx.AuditService.LogUserAction(
-		&svc.AuditContext{
+		&service.AuditContext{
 			UserID:    &user.Id,
 			Username:  user.Username,
 			ClientIP:  clientIP,

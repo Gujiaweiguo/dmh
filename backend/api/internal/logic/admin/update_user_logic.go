@@ -76,7 +76,6 @@ func (l *UpdateUserLogic) UpdateUser(req *types.AdminUpdateUserReq, userId int64
 		// 验证角色
 		validRoles := map[string]bool{
 			"platform_admin": true,
-			"brand_admin":    true,
 			"participant":    true,
 		}
 		if !validRoles[req.Role] {
@@ -95,37 +94,6 @@ func (l *UpdateUserLogic) UpdateUser(req *types.AdminUpdateUserReq, userId int64
 		}
 	}
 
-	// 处理品牌关联更新
-	if req.BrandIds != nil {
-		// 删除现有的品牌关联
-		if err := tx.Where("user_id = ?", userId).Delete(&model.UserBrand{}).Error; err != nil {
-			tx.Rollback()
-			l.Logger.Errorf("删除用户品牌关联失败: %v", err)
-			return nil, fmt.Errorf("更新用户品牌关联失败")
-		}
-
-		// 创建新的品牌关联
-		for _, brandId := range req.BrandIds {
-			// 验证品牌是否存在
-			var brand model.Brand
-			if err := tx.Where("id = ?", brandId).First(&brand).Error; err != nil {
-				tx.Rollback()
-				l.Logger.Errorf("品牌不存在: %d", brandId)
-				return nil, fmt.Errorf("品牌不存在: %d", brandId)
-			}
-
-			userBrand := model.UserBrand{
-				UserId:  userId,
-				BrandId: brandId,
-			}
-			if err := tx.Create(&userBrand).Error; err != nil {
-				tx.Rollback()
-				l.Logger.Errorf("创建用户品牌关联失败: %v", err)
-				return nil, fmt.Errorf("创建用户品牌关联失败")
-			}
-		}
-	}
-
 	// 提交事务
 	if err := tx.Commit().Error; err != nil {
 		l.Logger.Errorf("提交事务失败: %v", err)
@@ -138,17 +106,6 @@ func (l *UpdateUserLogic) UpdateUser(req *types.AdminUpdateUserReq, userId int64
 		return nil, fmt.Errorf("查询用户信息失败")
 	}
 
-	// 获取用户品牌关联
-	var userBrands []model.UserBrand
-	l.svcCtx.DB.Where("user_id = ?", userId).Find(&userBrands)
-	
-	brandIds := make([]int64, len(userBrands))
-	for i, ub := range userBrands {
-		brandIds[i] = ub.BrandId
-	}
-
-	l.Logger.Infof("管理员更新用户成功: %s", user.Username)
-
 	return &types.UserInfoResp{
 		Id:        user.Id,
 		Username:  user.Username,
@@ -157,7 +114,6 @@ func (l *UpdateUserLogic) UpdateUser(req *types.AdminUpdateUserReq, userId int64
 		RealName:  user.RealName,
 		Status:    user.Status,
 		Roles:     []string{user.Role},
-		BrandIds:  brandIds,
 		CreatedAt: user.CreatedAt.Format("2006-01-02 15:04:05"),
 	}, nil
 }

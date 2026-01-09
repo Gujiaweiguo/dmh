@@ -1,6 +1,6 @@
 Name: dmh-api
 Host: 0.0.0.0
-Port: 8888
+Port: 8889
 
 # CORS配置
 CorsConf:
@@ -12,7 +12,7 @@ CorsConf:
 
 # 数据库配置
 Mysql:
-  DataSource: root:#Admin168@tcp(localhost:3306)/dmh?charset=utf8mb4&parseTime=true&loc=Local
+  DataSource: root:#Admin168@tcp(172.25.8.12:3306)/dmh?charset=utf8mb4&parseTime=true&loc=Local
 
 # Redis配置
 Redis:

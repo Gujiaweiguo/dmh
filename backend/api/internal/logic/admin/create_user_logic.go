@@ -40,16 +40,10 @@ func (l *CreateUserLogic) CreateUser(req *types.AdminCreateUserReq) (resp *types
 	// 验证角色
 	validRoles := map[string]bool{
 		"platform_admin": true,
-		"brand_admin":    true,
 		"participant":    true,
 	}
 	if !validRoles[req.Role] {
 		return nil, fmt.Errorf("无效的用户角色: %s", req.Role)
-	}
-
-	// 品牌管理员必须指定品牌ID
-	if req.Role == "brand_admin" && len(req.BrandIds) == 0 {
-		return nil, fmt.Errorf("品牌管理员必须指定至少一个品牌")
 	}
 
 	// 检查用户名是否已存在
@@ -106,30 +100,6 @@ func (l *CreateUserLogic) CreateUser(req *types.AdminCreateUserReq) (resp *types
 		return nil, fmt.Errorf("创建用户失败")
 	}
 
-	// 如果是品牌管理员，创建品牌关联关系
-	if req.Role == "brand_admin" && len(req.BrandIds) > 0 {
-		for _, brandId := range req.BrandIds {
-			// 验证品牌是否存在
-			var brand model.Brand
-			if err := tx.Where("id = ?", brandId).First(&brand).Error; err != nil {
-				tx.Rollback()
-				l.Logger.Errorf("品牌不存在: %d", brandId)
-				return nil, fmt.Errorf("品牌不存在: %d", brandId)
-			}
-
-			// 创建用户品牌关联
-			userBrand := model.UserBrand{
-				UserId:  user.Id,
-				BrandId: brandId,
-			}
-			if err := tx.Create(&userBrand).Error; err != nil {
-				tx.Rollback()
-				l.Logger.Errorf("创建用户品牌关联失败: %v", err)
-				return nil, fmt.Errorf("创建用户品牌关联失败")
-			}
-		}
-	}
-
 	// 提交事务
 	if err := tx.Commit().Error; err != nil {
 		l.Logger.Errorf("提交事务失败: %v", err)
@@ -147,7 +117,6 @@ func (l *CreateUserLogic) CreateUser(req *types.AdminCreateUserReq) (resp *types
 		RealName:  user.RealName,
 		Status:    user.Status,
 		Roles:     []string{user.Role},
-		BrandIds:  req.BrandIds,
 		CreatedAt: user.CreatedAt.Format("2006-01-02 15:04:05"),
 	}, nil
 }

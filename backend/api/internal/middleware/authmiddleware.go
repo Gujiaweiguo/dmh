@@ -307,38 +307,13 @@ func IsPlatformAdmin(ctx context.Context) bool {
 	return HasRole(ctx, "platform_admin")
 }
 
-// IsBrandAdmin 检查是否为品牌管理员
-func IsBrandAdmin(ctx context.Context) bool {
-	return HasRole(ctx, "brand_admin")
-}
-
-// GetUserBrandIDs 从context中获取用户管理的品牌ID列表
+// GetUserBrandIDs 从context中获取用户管理的品牌ID列表（已废弃，保留兼容性）
 func GetUserBrandIDs(ctx context.Context) ([]int64, error) {
-	brandIDs, ok := ctx.Value("brandIds").([]int64)
-	if !ok {
-		return []int64{}, nil // 返回空列表而不是错误
-	}
-	return brandIDs, nil
+	return []int64{}, nil // 返回空列表
 }
 
 // CanAccessBrand 检查用户是否可以访问指定品牌
 func CanAccessBrand(ctx context.Context, brandID int64) bool {
-	// 平台管理员可以访问所有品牌
-	if IsPlatformAdmin(ctx) {
-		return true
-	}
-	
-	// 检查品牌管理员是否管理该品牌
-	brandIDs, err := GetUserBrandIDs(ctx)
-	if err != nil {
-		return false
-	}
-	
-	for _, id := range brandIDs {
-		if id == brandID {
-			return true
-		}
-	}
-	
-	return false
+	// 只有平台管理员可以访问所有品牌
+	return IsPlatformAdmin(ctx)
 }

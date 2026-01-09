@@ -9,7 +9,7 @@ type AdminCreateUserReq struct {
 	Phone    string  `json:"phone"`
 	Email    string  `json:"email,optional"`
 	RealName string  `json:"realName,optional"`
-	Role     string  `json:"role"`              // platform_admin, brand_admin, participant
+	Role     string  `json:"role"`              // platform_admin, participant
 	BrandIds []int64 `json:"brandIds,optional"` // 品牌管理员的品牌ID列表
 }
 

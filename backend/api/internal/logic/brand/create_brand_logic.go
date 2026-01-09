@@ -29,10 +29,15 @@ func NewCreateBrandLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Creat
 }
 
 func (l *CreateBrandLogic) CreateBrand(req *types.CreateBrandReq) (resp *types.BrandResp, err error) {
+	// 获取用户信息
+	userInfo, err := GetUserInfoFromContext(l.ctx)
+	if err != nil {
+		l.Logger.Errorf("获取用户信息失败: %v", err)
+		return nil, fmt.Errorf("用户信息获取失败")
+	}
+	
 	// 只有平台管理员可以创建品牌
-	userInfo := l.ctx.Value("userInfo").(map[string]interface{})
-	role := userInfo["role"].(string)
-	if role != "platform_admin" {
+	if userInfo.Role != "platform_admin" {
 		return nil, fmt.Errorf("权限不足，只有平台管理员可以创建品牌")
 	}
 

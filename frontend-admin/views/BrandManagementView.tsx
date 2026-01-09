@@ -53,11 +53,8 @@ export const BrandManagementView = defineComponent({
         return brands.value;
       }
       
-      // 品牌管理员只能看到分配的品牌
-      if (user.value.roles.includes('brand_admin')) {
-        return brands.value.filter(brand => 
-          user.value?.brandIds?.includes(brand.id)
-        );
+      // 其他角色无权限查看品牌
+      return [];
       }
       
       return [];
@@ -207,7 +204,6 @@ export const BrandManagementView = defineComponent({
         ];
         
         availableUsers.value = [
-          { id: 2, username: 'brand_manager', realName: '品牌经理', roles: ['brand_admin'] },
           { id: 4, username: 'user002', realName: '李四', roles: ['participant'] }
         ];
       } catch (error) {
@@ -348,7 +344,7 @@ export const BrandManagementView = defineComponent({
       loadBrandRelations();
     });
 
-    return () => h(PermissionGuard, { roles: ['platform_admin', 'brand_admin'] }, () => [
+    return () => h(PermissionGuard, { roles: ['platform_admin'] }, () => [
       h('div', { class: 'space-y-8 animate-in fade-in' }, [
         // 页面标题
         h('div', { class: 'flex justify-between items-end' }, [
@@ -442,19 +438,6 @@ export const BrandManagementView = defineComponent({
             }, [
               h(LucideIcons.BarChart3, { size: 18, class: 'inline mr-2' }),
               '数据统计'
-            ]),
-            h(PermissionGuard, { permission: 'user:update' }, () => [
-              h('button', {
-                onClick: () => activeTab.value = 'relations',
-                class: `flex-1 py-3 px-6 rounded-2xl font-bold text-sm transition-all ${
-                  activeTab.value === 'relations'
-                    ? 'bg-indigo-600 text-white shadow-lg'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`
-              }, [
-                h(LucideIcons.Users, { size: 18, class: 'inline mr-2' }),
-                '管理员关系'
-              ])
             ])
           ])
         ]),
@@ -625,72 +608,6 @@ export const BrandManagementView = defineComponent({
           
           h('div', { class: 'bg-slate-50 rounded-2xl p-4 text-sm text-slate-600' }, [
             `数据更新时间：${brandStats.value.lastUpdated}`
-          ])
-        ]),
-
-        // 管理员关系标签页
-        activeTab.value === 'relations' && h(PermissionGuard, { permission: 'user:update' }, () => [
-          h('div', { class: 'space-y-6' }, [
-            h('div', { class: 'flex justify-between items-center' }, [
-              h('div', [
-                h('h3', { class: 'text-2xl font-black text-slate-900' }, '品牌管理员关系'),
-                h('p', { class: 'text-slate-500 mt-1' }, '管理品牌管理员的品牌访问权限')
-              ]),
-              h('button', {
-                onClick: () => {
-                  selectedUsers.value = [];
-                  showRelationDialog.value = true;
-                },
-                class: 'bg-indigo-600 text-white px-6 py-3 rounded-2xl font-bold shadow-lg flex items-center gap-2 hover:bg-indigo-500 transition-colors'
-              }, [
-                h(LucideIcons.UserPlus, { size: 18 }),
-                '分配管理员'
-              ])
-            ]),
-            
-            brandRelations.value.length === 0
-              ? h('div', { class: 'text-center py-20 text-slate-400' }, '暂无品牌管理员关系')
-              : h('div', { class: 'bg-white rounded-3xl border border-slate-100 overflow-hidden' }, [
-                  h('table', { class: 'w-full' }, [
-                    h('thead', { class: 'bg-slate-50 border-b border-slate-100' }, [
-                      h('tr', {}, [
-                        h('th', { class: 'px-6 py-4 text-left text-xs font-black text-slate-500 uppercase tracking-wider' }, '管理员'),
-                        h('th', { class: 'px-6 py-4 text-left text-xs font-black text-slate-500 uppercase tracking-wider' }, '管理品牌'),
-                        h('th', { class: 'px-6 py-4 text-left text-xs font-black text-slate-500 uppercase tracking-wider' }, '分配时间'),
-                        h('th', { class: 'px-6 py-4 text-right text-xs font-black text-slate-500 uppercase tracking-wider' }, '操作'),
-                      ])
-                    ]),
-                    h('tbody', { class: 'divide-y divide-slate-100' }, 
-                      brandRelations.value.map(relation => 
-                        h('tr', { class: 'hover:bg-slate-50 transition-colors' }, [
-                          h('td', { class: 'px-6 py-4' }, [
-                            h('div', [
-                              h('div', { class: 'font-medium text-slate-900' }, relation.realName),
-                              h('div', { class: 'text-sm text-slate-500' }, relation.username)
-                            ])
-                          ]),
-                          h('td', { class: 'px-6 py-4' }, [
-                            h('div', { class: 'flex flex-wrap gap-1' }, 
-                              relation.brandIds.map((brandId: number) => {
-                                const brand = brands.value.find(b => b.id === brandId);
-                                return brand ? h('span', { 
-                                  class: 'px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-medium' 
-                                }, brand.name) : null;
-                              })
-                            )
-                          ]),
-                          h('td', { class: 'px-6 py-4 text-sm text-slate-600' }, relation.createdAt),
-                          h('td', { class: 'px-6 py-4 text-right' }, [
-                            h('button', {
-                              class: 'p-2 hover:bg-slate-100 rounded-lg transition-colors',
-                              title: '编辑关系'
-                            }, h(LucideIcons.Edit, { size: 16, class: 'text-blue-600' }))
-                          ])
-                        ])
-                      )
-                    )
-                  ])
-                ])
           ])
         ]),
 

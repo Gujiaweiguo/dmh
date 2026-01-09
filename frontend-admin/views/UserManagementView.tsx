@@ -24,14 +24,10 @@ export const UserManagementView = defineComponent({
     const roleUser = ref<any>(null);
     const availableRoles = ref([
       { code: 'platform_admin', name: '平台管理员', description: '拥有系统最高权限' },
-      { code: 'brand_admin', name: '品牌管理员', description: '管理指定品牌的活动和数据' },
       { code: 'participant', name: '活动参与者', description: '可参与活动、分享和提现' },
     ]);
     const selectedRoles = ref<string[]>([]);
     
-    // 品牌选择（仅当选择品牌管理员时）
-    const showBrandSelector = ref(false);
-    const selectedBrands = ref<number[]>([]);
     const availableBrands = ref<any[]>([]);
 
     // 加载用户列表
@@ -56,17 +52,6 @@ export const UserManagementView = defineComponent({
             roles: ['platform_admin'],
             brandIds: [],
             createdAt: '2025-01-01 10:00:00',
-          },
-          {
-            id: 2,
-            username: 'brand_manager',
-            realName: '品牌经理',
-            phone: '13800000002',
-            email: 'brand@dmh.com',
-            status: 'active',
-            roles: ['brand_admin'],
-            brandIds: [1, 2],
-            createdAt: '2025-01-02 10:00:00',
           },
           {
             id: 3,
@@ -295,7 +280,6 @@ export const UserManagementView = defineComponent({
     const getRoleName = (roleCode: string) => {
       const names: Record<string, string> = {
         platform_admin: '平台管理员',
-        brand_admin: '品牌管理员',
         participant: '活动参与者',
       };
       return names[roleCode] || roleCode;
@@ -348,7 +332,6 @@ export const UserManagementView = defineComponent({
           }, [
             h('option', { value: 'all' }, '全部角色'),
             h('option', { value: 'platform_admin' }, '平台管理员'),
-            h('option', { value: 'brand_admin' }, '品牌管理员'),
             h('option', { value: 'participant' }, '活动参与者'),
           ]),
           
@@ -649,35 +632,6 @@ export const UserManagementView = defineComponent({
               )
             ]),
             
-            // 品牌选择（仅当选择了品牌管理员角色时显示）
-            selectedRoles.value.includes('brand_admin') && h('div', [
-              h('label', { class: 'block text-sm font-bold text-slate-700 mb-3' }, '管理的品牌'),
-              h('div', { class: 'grid grid-cols-2 gap-3' }, 
-                availableBrands.value.map(brand => 
-                  h('label', { 
-                    class: `flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                      selectedBrands.value.includes(brand.id)
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-slate-200 hover:border-blue-200'
-                    }`
-                  }, [
-                    h('input', {
-                      type: 'checkbox',
-                      checked: selectedBrands.value.includes(brand.id),
-                      onChange: (e: any) => {
-                        if (e.target.checked) {
-                          selectedBrands.value.push(brand.id);
-                        } else {
-                          selectedBrands.value = selectedBrands.value.filter((id: number) => id !== brand.id);
-                        }
-                      },
-                      class: 'w-5 h-5 rounded border-slate-300'
-                    }),
-                    h('span', { class: 'font-medium text-slate-900' }, brand.name)
-                  ])
-                )
-              )
-            ])
           ]),
           
           h('div', { class: 'flex gap-3 mt-8' }, [

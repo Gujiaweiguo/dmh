@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"dmh/api/internal/middleware"
+	"dmh/api/internal/service"
 	"dmh/api/internal/svc"
 	"dmh/api/internal/types"
 	"dmh/model"
@@ -109,7 +110,7 @@ func (l *RegisterLogic) Register(req *types.RegisterReq) (resp *types.LoginResp,
 
 	// 记录审计日志
 	l.svcCtx.AuditService.LogUserAction(
-		&svc.AuditContext{
+		&service.AuditContext{
 			UserID:    &userID,
 			Username:  req.Username,
 			ClientIP:  clientIP,

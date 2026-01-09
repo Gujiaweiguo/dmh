@@ -338,12 +338,10 @@ export const UserProfileView = defineComponent({
                 currentUser.value.roles.map((role: string) => {
                   const colors: Record<string, string> = {
                     platform_admin: 'bg-purple-100 text-purple-700 border-purple-200',
-                    brand_admin: 'bg-blue-100 text-blue-700 border-blue-200',
                     participant: 'bg-green-100 text-green-700 border-green-200',
                   };
                   const names: Record<string, string> = {
                     platform_admin: '平台管理员',
-                    brand_admin: '品牌管理员',
                     participant: '活动参与者',
                   };
                   return h('span', {

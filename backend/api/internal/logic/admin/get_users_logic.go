@@ -76,23 +76,6 @@ func (l *GetUsersLogic) GetUsers(req *types.AdminGetUsersReq) (resp *types.Admin
 		return nil, fmt.Errorf("获取用户列表失败")
 	}
 
-	// 获取用户的品牌关联信息
-	userIds := make([]int64, len(users))
-	for i, user := range users {
-		userIds[i] = user.Id
-	}
-
-	var userBrands []model.UserBrand
-	if len(userIds) > 0 {
-		l.svcCtx.DB.Where("user_id IN ?", userIds).Find(&userBrands)
-	}
-
-	// 构建用户品牌映射
-	userBrandMap := make(map[int64][]int64)
-	for _, ub := range userBrands {
-		userBrandMap[ub.UserId] = append(userBrandMap[ub.UserId], ub.BrandId)
-	}
-
 	// 转换为响应格式
 	userList := make([]types.UserInfoResp, len(users))
 	for i, user := range users {
@@ -104,7 +87,6 @@ func (l *GetUsersLogic) GetUsers(req *types.AdminGetUsersReq) (resp *types.Admin
 			RealName:  user.RealName,
 			Status:    user.Status,
 			Roles:     []string{user.Role},
-			BrandIds:  userBrandMap[user.Id],
 			CreatedAt: user.CreatedAt.Format("2006-01-02 15:04:05"),
 		}
 	}

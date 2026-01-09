@@ -1,12 +1,78 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>DMH H5 落地页</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DMH 品牌管理</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; min-height: 100vh; }
+        .login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .login-card { background: white; border-radius: 20px; padding: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); width: 100%; max-width: 380px; }
+        .logo { text-align: center; margin-bottom: 30px; }
+        .logo h1 { color: #667eea; font-size: 26px; font-weight: 700; margin-bottom: 5px; }
+        .logo p { color: #666; font-size: 14px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; color: #333; font-weight: 500; font-size: 14px; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px 14px; border: 2px solid #e1e5e9; border-radius: 10px; font-size: 15px; }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #667eea; }
+        .btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; }
+        .btn:disabled { opacity: 0.6; }
+        .btn-secondary { background: #6c757d; }
+        .btn-success { background: #10b981; }
+        .btn-danger { background: #ef4444; }
+        .btn-sm { padding: 8px 16px; font-size: 14px; width: auto; }
+        .error-msg { background: #fee; color: #c33; padding: 12px; border-radius: 8px; margin: 15px 0; font-size: 14px; }
+        .test-info { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 12px; margin-top: 20px; }
+        .test-info p { color: #856404; font-size: 13px; margin-bottom: 5px; }
+        .main-page { display: none; min-height: 100vh; padding-bottom: 70px; }
+        .main-page.active { display: block; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .header h2 { font-size: 18px; }
+        .logout-btn { padding: 8px 16px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; }
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 15px; margin-top: -30px; }
+        .stat-card { background: white; padding: 15px 10px; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .stat-card .number { font-size: 22px; font-weight: 700; }
+        .stat-card .label { font-size: 11px; color: #666; margin-top: 4px; }
+        .stat-card.purple .number { color: #667eea; }
+        .stat-card.green .number { color: #10b981; }
+        .stat-card.orange .number { color: #f59e0b; }
+        .stat-card.red .number { color: #ef4444; }
+        .section { padding: 15px; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .section-title { font-size: 16px; font-weight: 600; color: #333; }
+        .campaign-card { background: white; padding: 16px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+        .campaign-card h4 { font-size: 16px; color: #333; margin-bottom: 10px; }
+        .campaign-meta { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+        .campaign-meta span { font-size: 12px; color: #666; background: #f0f0f0; padding: 4px 8px; border-radius: 4px; }
+        .status { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+        .status.active { background: #d1fae5; color: #059669; }
+        .status.paused { background: #fef3c7; color: #d97706; }
+        .status.draft { background: #e5e7eb; color: #6b7280; }
+        .campaign-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .campaign-actions button { padding: 6px 12px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer; }
+        .btn-edit { background: #e0e7ff; color: #4f46e5; }
+        .btn-view { background: #d1fae5; color: #059669; }
+        .btn-publish { background: #fef3c7; color: #d97706; }
+        .btn-delete { background: #fee2e2; color: #dc2626; }
+        .empty-state { text-align: center; padding: 40px; color: #999; }
+        .login-page.hidden { display: none; }
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; border-radius: 16px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { font-size: 18px; color: #333; }
+        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #999; }
+        .modal-body { padding: 20px; }
+        .modal-footer { padding: 15px 20px; border-top: 1px solid #eee; display: flex; gap: 10px; justify-content: flex-end; }
+        .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }
+        .tab-item { flex: 1; padding: 12px; text-align: center; color: #999; font-size: 12px; cursor: pointer; }
+        .tab-item.active { color: #667eea; }
+        .tab-item .icon { font-size: 20px; margin-bottom: 4px; }
+    </style>
 </head>
 <body>
-  <div id="app"></div>
-  <script type="module" src="/src/main.js"></script>
+    <div id="app"></div>
+    <script src="app.js"></script>
 </body>
 </html>

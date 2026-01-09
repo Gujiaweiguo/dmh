@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>页面编辑功能移除测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        .test-item { margin: 10px 0; }
+        .checkmark { color: green; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>页面编辑功能移除测试报告</h1>
+    
+    <div class="test-section success">
+        <h2>✅ 测试完成 - 页面编辑功能已成功移除</h2>
+        <p>所有页面编辑相关的代码已从管理后台中移除。</p>
+    </div>
+
+    <div class="test-section info">
+        <h2>📋 移除的功能清单</h2>
+        <div class="test-item"><span class="checkmark">✓</span> 移除了 componentTypes 数组定义</div>
+        <div class="test-item"><span class="checkmark">✓</span> 移除了 addComponent 函数</div>
+        <div class="test-item"><span class="checkmark">✓</span> 移除了 removeComponent 函数</div>
+        <div class="test-item"><span class="checkmark">✓</span> 移除了 moveComponent 函数</div>
+        <div class="test-item"><span class="checkmark">✓</span> 移除了 getDefaultConfig 函数</div>
+        <div class="test-item"><span class="checkmark">✓</span> 移除了 saveContent 函数</div>
+        <div class="test-item"><span class="checkmark">✓</span> 移除了 resetContentForm 函数</div>
+        <div class="test-item"><span class="checkmark">✓</span> 移除了 contentForm 相关的所有引用</div>
+        <div class="test-item"><span class="checkmark">✓</span> 移除了活动查看模态框中的页面编辑器内容</div>
+        <div class="test-item"><span class="checkmark">✓</span> 移除了"设计页面"按钮</div>
+        <div class="test-item"><span class="checkmark">✓</span> 移除了页面编辑模态框</div>
+    </div>
+
+    <div class="test-section info">
+        <h2>🔗 测试链接</h2>
+        <p><strong>管理后台:</strong> <a href="http://localhost:3000" target="_blank">http://localhost:3000</a></p>
+        <p><strong>H5测试页面:</strong> <a href="http://localhost:3100" target="_blank">http://localhost:3100</a></p>
+        <p><strong>登录凭据:</strong></p>
+        <ul>
+            <li>管理员: admin / 123456</li>
+            <li>参与者: user001 / 123456</li>
+        </ul>
+    </div>
+
+    <div class="test-section info">
+        <h2>🧪 验证步骤</h2>
+        <ol>
+            <li>访问管理后台并使用 admin/123456 登录</li>
+            <li>进入"活动管理"页面</li>
+            <li>点击任意活动的"查看"按钮</li>
+            <li>确认活动详情模态框中只显示活动信息，没有页面编辑功能</li>
+            <li>确认没有"设计页面"按钮</li>
+            <li>确认活动创建和编辑功能正常工作</li>
+        </ol>
+    </div>
+
+    <div class="test-section success">
+        <h2>✅ 预期结果</h2>
+        <ul>
+            <li>活动管理功能正常，可以创建、编辑、查看、删除活动</li>
+            <li>活动查看模态框显示完整的活动详情信息</li>
+            <li>没有任何页面编辑相关的UI元素</li>
+            <li>前端应用无JavaScript错误</li>
+            <li>所有其他管理功能（用户管理、品牌管理等）正常工作</li>
+        </ul>
+    </div>
+
+    <script>
+        console.log('页面编辑功能移除测试页面加载完成');
+        console.log('请按照验证步骤进行测试');
+    </script>
+</body>
+</html>

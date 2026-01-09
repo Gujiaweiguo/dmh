@@ -10,6 +10,7 @@ import (
 	"dmh/api/internal/svc"
 	"dmh/api/internal/types"
 	"github.com/zeromicro/go-zero/rest/httpx"
+	"github.com/zeromicro/go-zero/rest/pathvar"
 )
 
 func HandleSecurityEventHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
@@ -21,7 +22,7 @@ func HandleSecurityEventHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		l := security.NewHandleSecurityEventLogic(r.Context(), svcCtx)
-		resp, err := l.HandleSecurityEvent(&req)
+		resp, err := l.HandleSecurityEvent(pathvar.Vars(r)["eventId"], &req)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {

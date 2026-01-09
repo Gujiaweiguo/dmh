@@ -29,18 +29,21 @@ func NewGetBrandsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetBran
 }
 
 func (l *GetBrandsLogic) GetBrands() (resp *types.BrandListResp, err error) {
-	userInfo := l.ctx.Value("userInfo").(map[string]interface{})
-	userId := int64(userInfo["userId"].(float64))
-	role := userInfo["role"].(string)
+	// 获取用户信息
+	userInfo, err := GetUserInfoFromContext(l.ctx)
+	if err != nil {
+		l.Logger.Errorf("获取用户信息失败: %v", err)
+		return nil, fmt.Errorf("用户信息获取失败")
+	}
 
 	var brands []model.Brand
 	query := l.svcCtx.DB.Model(&model.Brand{})
 
 	// 根据角色过滤品牌
-	if role == "brand_admin" {
-		// 品牌管理员只能看到自己管理的品牌
+	if userInfo.Role == "brand_admin" {
+		// 品牌管理员只能看到自己管理的品牌（已废弃，但保留兼容性）
 		var userBrands []model.UserBrand
-		if err = l.svcCtx.DB.Where("user_id = ?", userId).Find(&userBrands).Error; err != nil {
+		if err = l.svcCtx.DB.Where("user_id = ?", userInfo.UserID).Find(&userBrands).Error; err != nil {
 			l.Logger.Errorf("查询用户品牌关联失败: %v", err)
 			return nil, fmt.Errorf("查询品牌失败")
 		}
@@ -57,7 +60,7 @@ func (l *GetBrandsLogic) GetBrands() (resp *types.BrandListResp, err error) {
 			brandIds = append(brandIds, ub.BrandId)
 		}
 		query = query.Where("id IN ?", brandIds)
-	} else if role == "participant" {
+	} else if userInfo.Role == "participant" {
 		// 普通用户只能看到激活的品牌
 		query = query.Where("status = ?", "active")
 	}

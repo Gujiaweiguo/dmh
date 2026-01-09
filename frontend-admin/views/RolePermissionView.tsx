@@ -53,14 +53,6 @@ export const RolePermissionView = defineComponent({
             createdAt: '2025-01-01 10:00:00'
           },
           {
-            id: 2,
-            name: '品牌管理员',
-            code: 'brand_admin',
-            description: '管理品牌相关业务的管理员',
-            permissions: ['brand:read', 'brand:update', 'campaign:read', 'campaign:create', 'campaign:update', 'campaign:delete'],
-            createdAt: '2025-01-01 10:00:00'
-          },
-          {
             id: 3,
             name: '参与者',
             code: 'participant',
@@ -142,8 +134,8 @@ export const RolePermissionView = defineComponent({
             userId: 1,
             username: 'admin',
             action: '修改角色权限',
-            target: '品牌管理员',
-            details: '添加了"品牌删除"权限',
+            target: '参与者',
+            details: '添加了"订单查看"权限',
             ip: '192.168.1.100',
             userAgent: 'Mozilla/5.0...',
             createdAt: '2025-01-02 14:30:00'
@@ -292,7 +284,6 @@ export const RolePermissionView = defineComponent({
                     h('div', { class: 'flex items-center gap-4' }, [
                       h('div', { class: `w-12 h-12 rounded-2xl flex items-center justify-center ${
                         role.code === 'platform_admin' ? 'bg-purple-100 text-purple-600' :
-                        role.code === 'brand_admin' ? 'bg-blue-100 text-blue-600' :
                         role.code === 'participant' ? 'bg-green-100 text-green-600' :
                         'bg-gray-100 text-gray-600'
                       }` }, [
