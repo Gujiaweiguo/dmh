@@ -86,11 +86,33 @@ const UserManagementView = defineComponent({
 // 品牌管理视图
 const BrandManagementView = defineComponent({
   setup() {
-    const brands = ref([
-      { id: 1, name: '科技公司A', logo: 'https://api.dicebear.com/7.x/initials/svg?seed=TechA', status: 'ACTIVE' },
-      { id: 2, name: '教育机构B', logo: 'https://api.dicebear.com/7.x/initials/svg?seed=EduB', status: 'ACTIVE' },
-      { id: 3, name: '电商平台C', logo: 'https://api.dicebear.com/7.x/initials/svg?seed=EcomC', status: 'PAUSED' }
-    ]);
+    const brands = ref([]);
+    const loading = ref(true);
+
+    // 获取品牌列表
+    const fetchBrands = async () => {
+      try {
+        loading.value = true;
+        const token = localStorage.getItem('dmh_token');
+        const response = await fetch('/api/v1/brands', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          brands.value = data.brands || [];
+        }
+      } catch (error) {
+        console.error('获取品牌列表失败', error);
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    onMounted(() => {
+      fetchBrands();
+    });
 
     return () => h('div', { class: 'space-y-6' }, [
       h('div', { class: 'flex justify-between items-center' }, [
@@ -103,49 +125,89 @@ const BrandManagementView = defineComponent({
           '新增品牌'
         ])
       ]),
-      h('div', { class: 'grid grid-cols-1 md:grid-cols-3 gap-6' }, brands.value.map(brand => 
-        h('div', { class: 'bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-lg transition-all' }, [
-          h('div', { class: 'flex items-center gap-4 mb-4' }, [
-            h('img', { src: brand.logo, class: 'w-12 h-12 rounded-2xl border-2 border-slate-100' }),
-            h('div', { class: 'flex-1' }, [
-              h('h3', { class: 'text-lg font-black text-slate-900' }, brand.name)
-            ])
-          ]),
-          h('div', { class: 'flex items-center justify-between' }, [
-            h(Badge, { status: brand.status, label: brand.status === 'ACTIVE' ? '运营中' : '已暂停' }),
-            h('div', { class: 'flex gap-2' }, [
-              h('button', { class: 'p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors' }, 
-                h(LucideIcons.Edit3, { size: 16 })
-              ),
-              h('button', { class: 'p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors' }, 
-                h(LucideIcons.Trash2, { size: 16 })
-              )
+      loading.value ? 
+        h('div', { class: 'p-12 text-center' }, [
+          h('div', { class: 'inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600' }),
+          h('p', { class: 'mt-4 text-slate-500' }, '加载中...')
+        ]) :
+        h('div', { class: 'grid grid-cols-1 md:grid-cols-3 gap-6' }, brands.value.map(brand => 
+          h('div', { class: 'bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-lg transition-all' }, [
+            h('div', { class: 'flex items-center gap-4 mb-4' }, [
+              h('img', { 
+                src: brand.logo || `https://api.dicebear.com/7.x/initials/svg?seed=${brand.name}`, 
+                class: 'w-12 h-12 rounded-2xl border-2 border-slate-100' 
+              }),
+              h('div', { class: 'flex-1' }, [
+                h('h3', { class: 'text-lg font-black text-slate-900' }, brand.name),
+                h('p', { class: 'text-xs text-slate-500 mt-1' }, brand.description || '暂无描述')
+              ])
+            ]),
+            h('div', { class: 'flex items-center justify-between' }, [
+              h(Badge, { status: brand.status, label: brand.status === 'active' ? '运营中' : '已暂停' }),
+              h('div', { class: 'flex gap-2' }, [
+                h('button', { class: 'p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors' }, 
+                  h(LucideIcons.Edit3, { size: 16 })
+                ),
+                h('button', { class: 'p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors' }, 
+                  h(LucideIcons.Trash2, { size: 16 })
+                )
+              ])
             ])
           ])
-        ])
-      ))
+        ))
     ]);
   }
 });
 
-// 活动管理视图
+// 活动管理视图（平台监控版本 - 只查询不创建）
 const CampaignManagementView = defineComponent({
   setup() {
     const campaigns = ref([]);
     const loading = ref(true);
+    
+    // 筛选条件
+    const filters = reactive({
+      brandId: '',
+      status: '',
+      startDate: '',
+      endDate: '',
+      keyword: ''
+    });
 
+    // 动态品牌列表
+    const brands = computed(() => {
+      const uniqueBrands = new Map();
+      allCampaigns.value.forEach(campaign => {
+        if (!uniqueBrands.has(campaign.brandId)) {
+          uniqueBrands.set(campaign.brandId, {
+            id: campaign.brandId,
+            name: campaign.brandName || `品牌${campaign.brandId}`
+          });
+        }
+      });
+      const brandList = Array.from(uniqueBrands.values());
+      console.log('动态品牌列表:', brandList);
+      return brandList;
+    });
+
+    // 原始活动数据
+    const allCampaigns = ref([]);
+    
     // 获取活动列表
     const fetchCampaigns = async () => {
       try {
+        loading.value = true;
         const token = localStorage.getItem('dmh_token');
+        
         const response = await fetch('/api/v1/campaigns?page=1&pageSize=100', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
+        
         if (response.ok) {
           const data = await response.json();
-          campaigns.value = (data.campaigns || data.list || []).map(c => ({
+          allCampaigns.value = (data.campaigns || data.list || []).map(c => ({
             id: c.id,
             name: c.name,
             startTime: c.startTime?.substring(0, 10) || '',
@@ -154,11 +216,18 @@ const CampaignManagementView = defineComponent({
             participants: c.orderCount || 0,
             description: c.description,
             rewardRule: c.rewardRule,
-            brandId: c.brandId
+            brandId: c.brandId,
+            brandName: c.brandName || `品牌${c.brandId}`
           }));
+          
+          console.log('获取到的活动数据:', allCampaigns.value);
+          
+          // 应用筛选
+          applyFilters();
         }
       } catch (error) {
         console.error('获取活动列表失败', error);
+        campaigns.value = [];
       } finally {
         loading.value = false;
       }
@@ -168,111 +237,69 @@ const CampaignManagementView = defineComponent({
       fetchCampaigns();
     });
 
-    const showCreateModal = ref(false);
-    const showViewModal = ref(false);
-    const editingCampaign = ref(null);
-    
-    const campaignForm = reactive({
-      name: '',
-      description: '',
-      startTime: '',
-      endTime: '',
-      rewardRule: 0,
-      brandId: 1,
-      formFields: [
-        { type: 'text', name: 'name', label: '姓名', required: true, placeholder: '请输入姓名' },
-        { type: 'phone', name: 'phone', label: '手机号', required: true, placeholder: '请输入手机号' }
-      ]
+    // 监听筛选条件变化，自动应用筛选
+    watch([() => filters.keyword, () => filters.brandId, () => filters.status, () => filters.startDate, () => filters.endDate], () => {
+      if (allCampaigns.value.length > 0) {
+        applyFilters();
+      }
     });
 
+    const showViewModal = ref(false);
+    const viewingCampaign = ref(null);
 
-
-
-
-    const resetForm = () => {
-      campaignForm.name = '';
-      campaignForm.description = '';
-      campaignForm.startTime = '';
-      campaignForm.endTime = '';
-      campaignForm.rewardRule = 0;
-      campaignForm.brandId = 1;
-      campaignForm.formFields = [
-        { type: 'text', name: 'name', label: '姓名', required: true, placeholder: '请输入姓名' },
-        { type: 'phone', name: 'phone', label: '手机号', required: true, placeholder: '请输入手机号' }
-      ];
-    };
-
-    // 打开创建模态框
-    const openCreateModal = () => {
-      resetForm();
-      showCreateModal.value = true;
-    };
-
-    // 打开查看模态框
-    const openViewModal = (campaign) => {
-      editingCampaign.value = campaign;
-      showViewModal.value = true;
-    };
-
-    // 关闭模态框
-    const closeModals = () => {
-      showCreateModal.value = false;
-      showViewModal.value = false;
-      editingCampaign.value = null;
-      resetForm();
-    };
-
-    // 添加表单字段
-    const addFormField = () => {
-      campaignForm.formFields.push({
-        type: 'text',
-        name: `field_${Date.now()}`,
-        label: '新字段',
-        required: false,
-        placeholder: '请输入内容'
-      });
-    };
-
-    // 删除表单字段
-    const removeFormField = (index) => {
-      if (campaignForm.formFields.length > 1) {
-        campaignForm.formFields.splice(index, 1);
+    
+    // 应用筛选
+    const applyFilters = () => {
+      let filtered = [...allCampaigns.value];
+      
+      // 关键词筛选
+      if (filters.keyword.trim()) {
+        const keyword = filters.keyword.trim().toLowerCase();
+        filtered = filtered.filter(campaign => 
+          campaign.name.toLowerCase().includes(keyword) ||
+          (campaign.description && campaign.description.toLowerCase().includes(keyword))
+        );
       }
+      
+      // 品牌筛选
+      if (filters.brandId) {
+        filtered = filtered.filter(campaign => 
+          campaign.brandId.toString() === filters.brandId
+        );
+      }
+      
+      // 状态筛选
+      if (filters.status) {
+        filtered = filtered.filter(campaign => 
+          campaign.status === filters.status
+        );
+      }
+      
+      // 开始时间筛选
+      if (filters.startDate) {
+        filtered = filtered.filter(campaign => 
+          campaign.startTime >= filters.startDate
+        );
+      }
+      
+      // 结束时间筛选
+      if (filters.endDate) {
+        filtered = filtered.filter(campaign => 
+          campaign.endTime <= filters.endDate
+        );
+      }
+      
+      campaigns.value = filtered;
     };
 
-    // 创建活动
-    const createCampaign = async () => {
-      try {
-        const newCampaign = {
-          id: campaigns.value.length + 1,
-          name: campaignForm.name,
-          startTime: campaignForm.startTime,
-          endTime: campaignForm.endTime,
-          status: 'ACTIVE',
-          participants: 0
-        };
-        
-        campaigns.value.unshift(newCampaign);
-        closeModals();
-        alert('活动创建成功！');
-      } catch (error) {
-        alert('创建失败：' + error.message);
-      }
-    };
-
-
-
-
-
-    // 删除活动
-    const deleteCampaign = (campaign) => {
-      if (confirm(`确定要删除活动"${campaign.name}"吗？`)) {
-        const index = campaigns.value.findIndex(c => c.id === campaign.id);
-        if (index !== -1) {
-          campaigns.value.splice(index, 1);
-          alert('活动删除成功！');
-        }
-      }
+    // 重置筛选条件
+    const resetFilters = () => {
+      filters.brandId = '';
+      filters.status = '';
+      filters.startDate = '';
+      filters.endDate = '';
+      filters.keyword = '';
+      campaigns.value = [...allCampaigns.value];
     };
 
     // 暂停/恢复活动
@@ -303,6 +330,18 @@ const CampaignManagementView = defineComponent({
         console.error('操作失败:', error);
         alert(`活动${action}失败！`);
       }
+    };
+
+    // 打开查看模态框
+    const openViewModal = (campaign) => {
+      viewingCampaign.value = campaign;
+      showViewModal.value = true;
+    };
+
+    // 关闭模态框
+    const closeModal = () => {
+      showViewModal.value = false;
+      viewingCampaign.value = null;
     };
 
     // 模态框组件
@@ -353,217 +392,252 @@ const CampaignManagementView = defineComponent({
     return () => h('div', { class: 'space-y-6' }, [
       h('div', { class: 'flex justify-between items-center' }, [
         h('div', [
-          h('h2', { class: 'text-2xl font-black text-slate-900' }, '活动管理'),
-          h('p', { class: 'text-slate-400 text-sm mt-1' }, '创建和管理营销活动')
+          h('h2', { class: 'text-2xl font-black text-slate-900' }, '活动监控'),
+          h('p', { class: 'text-slate-400 text-sm mt-1' }, '查看和监控所有营销活动数据')
         ]),
-        h('button', { 
-          onClick: openCreateModal,
-          class: 'bg-emerald-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-emerald-700 transition-colors flex items-center gap-2' 
-        }, [
-          h(LucideIcons.Plus, { size: 18 }),
-          '创建活动'
-        ])
-      ]),
-      h('div', { class: 'bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm' }, [
-        h('table', { class: 'w-full text-left' }, [
-          h('thead', { class: 'bg-slate-50' }, [
-            h('tr', [
-              'ID', '活动名称', '时间范围', '参与数据', '转化数据', '状态', '操作'
-            ].map(th => h('th', { class: 'px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-widest' }, th)))
+        h('div', { class: 'flex items-center gap-3' }, [
+          h('button', { 
+            onClick: resetFilters,
+            class: 'px-4 py-2 text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors flex items-center gap-2' 
+          }, [
+            h(LucideIcons.RotateCcw, { size: 16 }),
+            '重置筛选'
           ]),
-          h('tbody', campaigns.value.map(campaign => h('tr', { class: 'border-b border-slate-50 last:border-0 hover:bg-slate-50/40' }, [
-            h('td', { class: 'px-6 py-4 text-sm text-slate-400 font-mono' }, String(campaign.id)),
-            h('td', { class: 'px-6 py-4' }, [
-              h('div', { class: 'text-sm font-bold text-slate-900' }, campaign.name),
-              h('div', { class: 'text-xs text-slate-500 mt-1' }, campaign.description || '暂无描述')
-            ]),
-            h('td', { class: 'px-6 py-4' }, [
-              h('div', { class: 'text-sm text-slate-600' }, `${campaign.startTime} 至`),
-              h('div', { class: 'text-sm text-slate-600' }, campaign.endTime)
-            ]),
-            h('td', { class: 'px-6 py-4' }, [
-              h('div', { class: 'flex items-center gap-4' }, [
-                h('div', { class: 'text-center' }, [
-                  h('div', { class: 'text-lg font-black text-indigo-600' }, String(campaign.participants || 0)),
-                  h('div', { class: 'text-xs text-slate-500' }, '总参与')
-                ]),
-                h('div', { class: 'text-center' }, [
-                  h('div', { class: 'text-lg font-black text-emerald-600' }, String(Math.floor((campaign.participants || 0) * 0.8))),
-                  h('div', { class: 'text-xs text-slate-500' }, '有效报名')
-                ])
-              ])
-            ]),
-            h('td', { class: 'px-6 py-4' }, [
-              h('div', { class: 'flex items-center gap-4' }, [
-                h('div', { class: 'text-center' }, [
-                  h('div', { class: 'text-lg font-black text-amber-600' }, String(Math.floor((campaign.participants || 0) * 0.15))),
-                  h('div', { class: 'text-xs text-slate-500' }, '转化成功')
-                ]),
-                h('div', { class: 'text-center' }, [
-                  h('div', { class: 'text-lg font-black text-rose-600' }, `${Math.floor((campaign.participants || 0) * 0.15 / Math.max(campaign.participants || 1, 1) * 100)}%`),
-                  h('div', { class: 'text-xs text-slate-500' }, '转化率')
-                ])
-              ])
-            ]),
-            h('td', { class: 'px-6 py-4' }, [h(Badge, { status: campaign.status, label: campaign.status === 'active' ? '进行中' : '已暂停' })]),
-            h('td', { class: 'px-6 py-4' }, [
-              h('div', { class: 'flex gap-2' }, [
-                campaign.status === 'active' ? 
-                  h('button', { 
-                    onClick: () => toggleCampaignStatus(campaign, 'paused'),
-                    class: 'px-3 py-1 text-xs bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100' 
-                  }, '暂停') :
-                  h('button', { 
-                    onClick: () => toggleCampaignStatus(campaign, 'active'),
-                    class: 'px-3 py-1 text-xs bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100' 
-                  }, '恢复'),
-                h('button', { 
-                  onClick: () => deleteCampaign(campaign),
-                  class: 'px-3 py-1 text-xs bg-red-50 text-red-600 rounded-lg hover:bg-red-100' 
-                }, '删除'),
-                h('button', { 
-                  onClick: () => openViewModal(campaign),
-                  class: 'px-3 py-1 text-xs bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100' 
-                }, '详情')
-              ])
-            ])
-          ])))
-        ])
-      ]),
-
-      // 创建活动模态框
-      h(Modal, { 
-        show: showCreateModal.value, 
-        title: '创建新活动',
-        onClose: closeModals
-      }, {
-        default: () => h('form', { 
-          onSubmit: (e) => { e.preventDefault(); createCampaign(); },
-          class: 'space-y-4'
-        }, [
-          h(FormField, {
-            label: '活动名称',
-            value: campaignForm.name,
-            placeholder: '请输入活动名称',
-            'onUpdate:value': (val) => campaignForm.name = val
-          }),
-          h('div', { class: 'mb-4' }, [
-            h('label', { class: 'block text-sm font-bold text-slate-700 mb-2' }, '活动描述'),
-            h('textarea', {
-              value: campaignForm.description,
-              placeholder: '请输入活动描述',
-              onInput: (e) => campaignForm.description = e.target.value,
-              class: 'w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent h-24 resize-none'
-            })
-          ]),
-          h('div', { class: 'grid grid-cols-2 gap-4' }, [
-            h(FormField, {
-              label: '开始时间',
-              type: 'date',
-              value: campaignForm.startTime,
-              'onUpdate:value': (val) => campaignForm.startTime = val
-            }),
-            h(FormField, {
-              label: '结束时间',
-              type: 'date',
-              value: campaignForm.endTime,
-              'onUpdate:value': (val) => campaignForm.endTime = val
-            })
-          ]),
-          h(FormField, {
-            label: '奖励金额（元）',
-            type: 'number',
-            value: campaignForm.rewardRule,
-            placeholder: '请输入奖励金额',
-            'onUpdate:value': (val) => campaignForm.rewardRule = Number(val)
-          }),
-          
-          // 动态表单字段配置
-          h('div', { class: 'border-t pt-4' }, [
-            h('div', { class: 'flex justify-between items-center mb-4' }, [
-              h('h4', { class: 'text-lg font-bold text-slate-900' }, '报名表单字段'),
-              h('button', {
-                type: 'button',
-                onClick: addFormField,
-                class: 'px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-sm font-bold hover:bg-blue-100'
-              }, '+ 添加字段')
-            ]),
-            h('div', { class: 'space-y-3' }, campaignForm.formFields.map((field, index) => 
-              h('div', { class: 'p-4 border border-slate-200 rounded-xl bg-slate-50' }, [
-                h('div', { class: 'grid grid-cols-4 gap-3 mb-2' }, [
-                  h('select', {
-                    value: field.type,
-                    onChange: (e) => field.type = e.target.value,
-                    class: 'px-3 py-2 border border-slate-200 rounded-lg text-sm'
-                  }, [
-                    h('option', { value: 'text' }, '文本'),
-                    h('option', { value: 'phone' }, '手机号'),
-                    h('option', { value: 'email' }, '邮箱'),
-                    h('option', { value: 'select' }, '选择')
-                  ]),
-                  h('input', {
-                    type: 'text',
-                    value: field.name,
-                    placeholder: '字段名称',
-                    onInput: (e) => field.name = e.target.value,
-                    class: 'px-3 py-2 border border-slate-200 rounded-lg text-sm'
-                  }),
-                  h('input', {
-                    type: 'text',
-                    value: field.label,
-                    placeholder: '显示标签',
-                    onInput: (e) => field.label = e.target.value,
-                    class: 'px-3 py-2 border border-slate-200 rounded-lg text-sm'
-                  }),
-                  h('div', { class: 'flex items-center gap-2' }, [
-                    h('label', { class: 'flex items-center gap-1 text-sm' }, [
-                      h('input', {
-                        type: 'checkbox',
-                        checked: field.required,
-                        onChange: (e) => field.required = e.target.checked,
-                        class: 'rounded'
-                      }),
-                      '必填'
-                    ]),
-                    h('button', {
-                      type: 'button',
-                      onClick: () => removeFormField(index),
-                      class: 'p-1 text-red-500 hover:bg-red-50 rounded'
-                    }, h(LucideIcons.Trash2, { size: 14 }))
-                  ])
-                ]),
-                h('input', {
-                  type: 'text',
-                  value: field.placeholder,
-                  placeholder: '占位符文本',
-                  onInput: (e) => field.placeholder = e.target.value,
-                  class: 'w-full px-3 py-2 border border-slate-200 rounded-lg text-sm'
-                })
-              ])
-            ))
-          ]),
-
-          h('div', { class: 'flex gap-4 pt-4' }, [
-            h('button', {
-              type: 'button',
-              onClick: closeModals,
-              class: 'flex-1 px-6 py-3 border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50'
-            }, '取消'),
-            h('button', {
-              type: 'submit',
-              class: 'flex-1 px-6 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700'
-            }, '创建活动')
+          h('div', { class: 'text-sm text-slate-500' }, [
+            `共找到 ${campaigns.value.length} 个活动`
           ])
         ])
-      }),
+      ]),
+      
+      // 筛选条件面板
+      h('div', { class: 'bg-white rounded-3xl border border-slate-100 p-6 shadow-sm' }, [
+        h('h3', { class: 'text-lg font-bold text-slate-900 mb-4 flex items-center gap-2' }, [
+          h(LucideIcons.Filter, { size: 20 }),
+          '实时筛选',
+          h('span', { class: 'text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full font-normal' }, '自动应用')
+        ]),
+        h('div', { class: 'grid grid-cols-1 md:grid-cols-5 gap-4' }, [
+          h('div', [
+            h('label', { class: 'block text-sm font-medium text-slate-700 mb-2' }, '关键词'),
+            h('input', {
+              type: 'text',
+              value: filters.keyword,
+              placeholder: '搜索活动名称',
+              onInput: (e) => filters.keyword = e.target.value,
+              class: 'w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm'
+            })
+          ]),
+          h('div', [
+            h('label', { class: 'block text-sm font-medium text-slate-700 mb-2' }, '品牌'),
+            h('select', {
+              value: filters.brandId,
+              onChange: (e) => filters.brandId = e.target.value,
+              class: 'w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm'
+            }, [
+              h('option', { value: '' }, '全部品牌'),
+              ...brands.value.map(brand => 
+                h('option', { value: brand.id.toString() }, brand.name)
+              )
+            ])
+          ]),
+          h('div', [
+            h('label', { class: 'block text-sm font-medium text-slate-700 mb-2' }, '状态'),
+            h('select', {
+              value: filters.status,
+              onChange: (e) => filters.status = e.target.value,
+              class: 'w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm'
+            }, [
+              h('option', { value: '' }, '全部状态'),
+              h('option', { value: 'active' }, '进行中'),
+              h('option', { value: 'paused' }, '已暂停'),
+              h('option', { value: 'ended' }, '已结束')
+            ])
+          ]),
+          h('div', [
+            h('label', { class: 'block text-sm font-medium text-slate-700 mb-2' }, '开始时间'),
+            h('input', {
+              type: 'date',
+              value: filters.startDate,
+              onInput: (e) => filters.startDate = e.target.value,
+              class: 'w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm'
+            })
+          ]),
+          h('div', [
+            h('label', { class: 'block text-sm font-medium text-slate-700 mb-2' }, '结束时间'),
+            h('input', {
+              type: 'date',
+              value: filters.endDate,
+              onInput: (e) => filters.endDate = e.target.value,
+              class: 'w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm'
+            })
+          ])
+        ])
+      ]),
+
+      // 活动统计卡片
+      h('div', { class: 'grid grid-cols-1 md:grid-cols-4 gap-6' }, [
+        { label: '总活动数', value: campaigns.value.length, icon: 'Target', color: 'bg-blue-600' },
+        { label: '进行中', value: campaigns.value.filter(c => c.status === 'active').length, icon: 'Play', color: 'bg-emerald-600' },
+        { label: '已暂停', value: campaigns.value.filter(c => c.status === 'paused').length, icon: 'Pause', color: 'bg-amber-600' },
+        { label: '总参与数', value: campaigns.value.reduce((sum, c) => sum + (c.participants || 0), 0), icon: 'Users', color: 'bg-purple-600' }
+      ].map(stat => h('div', { class: 'bg-white p-6 rounded-3xl border border-slate-100 shadow-sm' }, [
+        h('div', { class: `w-12 h-12 ${stat.color} text-white rounded-2xl flex items-center justify-center mb-4` }, h((LucideIcons as any)[stat.icon], { size: 24 })),
+        h('p', { class: 'text-[10px] font-black text-slate-400 uppercase tracking-widest' }, stat.label),
+        h('p', { class: 'text-2xl font-black text-slate-900 mt-1' }, String(stat.value))
+      ]))),
+
+      h('div', { class: 'bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm' }, [
+        loading.value ? 
+          h('div', { class: 'p-12 text-center' }, [
+            h('div', { class: 'inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600' }),
+            h('p', { class: 'mt-4 text-slate-500' }, '加载中...')
+          ]) :
+          campaigns.value.length === 0 ?
+            h('div', { class: 'p-12 text-center' }, [
+              h(LucideIcons.Search, { size: 48, class: 'mx-auto text-slate-300 mb-4' }),
+              h('p', { class: 'text-slate-500 text-lg' }, '暂无活动数据'),
+              h('p', { class: 'text-slate-400 text-sm mt-2' }, '请调整筛选条件或联系品牌方创建活动')
+            ]) :
+            h('table', { class: 'w-full text-left' }, [
+              h('thead', { class: 'bg-slate-50' }, [
+                h('tr', [
+                  'ID', '活动名称', '品牌', '时间范围', '参与数据', '转化数据', '状态', '操作'
+                ].map(th => h('th', { class: 'px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-widest' }, th)))
+              ]),
+              h('tbody', campaigns.value.map(campaign => h('tr', { class: 'border-b border-slate-50 last:border-0 hover:bg-slate-50/40' }, [
+                h('td', { class: 'px-6 py-4 text-sm text-slate-400 font-mono' }, String(campaign.id)),
+                h('td', { class: 'px-6 py-4' }, [
+                  h('div', { class: 'text-sm font-bold text-slate-900' }, campaign.name),
+                  h('div', { class: 'text-xs text-slate-500 mt-1' }, campaign.description || '暂无描述')
+                ]),
+                h('td', { class: 'px-6 py-4' }, [
+                  h('div', { class: 'text-sm font-medium text-slate-700' }, campaign.brandName || `品牌${campaign.brandId}`)
+                ]),
+                h('td', { class: 'px-6 py-4' }, [
+                  h('div', { class: 'text-sm text-slate-600' }, `${campaign.startTime} 至`),
+                  h('div', { class: 'text-sm text-slate-600' }, campaign.endTime)
+                ]),
+                h('td', { class: 'px-6 py-4' }, [
+                  h('div', { class: 'flex items-center gap-4' }, [
+                    h('div', { class: 'text-center' }, [
+                      h('div', { class: 'text-lg font-black text-indigo-600' }, String(campaign.participants || 0)),
+                      h('div', { class: 'text-xs text-slate-500' }, '总参与')
+                    ]),
+                    h('div', { class: 'text-center' }, [
+                      h('div', { class: 'text-lg font-black text-emerald-600' }, String(Math.floor((campaign.participants || 0) * 0.8))),
+                      h('div', { class: 'text-xs text-slate-500' }, '有效报名')
+                    ])
+                  ])
+                ]),
+                h('td', { class: 'px-6 py-4' }, [
+                  h('div', { class: 'flex items-center gap-4' }, [
+                    h('div', { class: 'text-center' }, [
+                      h('div', { class: 'text-lg font-black text-amber-600' }, String(Math.floor((campaign.participants || 0) * 0.15))),
+                      h('div', { class: 'text-xs text-slate-500' }, '转化成功')
+                    ]),
+                    h('div', { class: 'text-center' }, [
+                      h('div', { class: 'text-lg font-black text-rose-600' }, `${Math.floor((campaign.participants || 0) * 0.15 / Math.max(campaign.participants || 1, 1) * 100)}%`),
+                      h('div', { class: 'text-xs text-slate-500' }, '转化率')
+                    ])
+                  ])
+                ]),
+                h('td', { class: 'px-6 py-4' }, [h(Badge, { status: campaign.status, label: campaign.status === 'active' ? '进行中' : campaign.status === 'paused' ? '已暂停' : '已结束' })]),
+                h('td', { class: 'px-6 py-4' }, [
+                  h('div', { class: 'flex gap-2' }, [
+                    // 状态控制按钮
+                    campaign.status === 'active' ? 
+                      h('button', { 
+                        onClick: () => toggleCampaignStatus(campaign, 'paused'),
+                        class: 'px-3 py-1 text-xs bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100 flex items-center gap-1' 
+                      }, [
+                        h(LucideIcons.Pause, { size: 12 }),
+                        '暂停'
+                      ]) :
+                      h('button', { 
+                        onClick: () => toggleCampaignStatus(campaign, 'active'),
+                        class: 'px-3 py-1 text-xs bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 flex items-center gap-1' 
+                      }, [
+                        h(LucideIcons.Play, { size: 12 }),
+                        '恢复'
+                      ]),
+                    // 查看详情按钮
+                    h('button', { 
+                      onClick: () => openViewModal(campaign),
+                      class: 'px-3 py-1 text-xs bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 flex items-center gap-1' 
+                    }, [
+                      h(LucideIcons.Eye, { size: 12 }),
+                      '查看详情'
+                    ])
+                  ])
+                ])
+              ])))
+            ])
+      ]),
 
       // 活动查看模态框
       h(Modal, { 
         show: showViewModal.value, 
-        title: '查看活动详情',
-        onClose: closeModals
+        title: '活动详情监控',
+        size: 'large',
+        onClose: closeModal
       }, {
-        default: () => editingCampaign.value ? h('div', { class: 'space-y-6' }, [
+        default: () => viewingCampaign.value ? h('div', { class: 'space-y-6' }, [
+          // 活动基本信息
+          h('div', { class: 'grid grid-cols-1 md:grid-cols-2 gap-6' }, [
+            h('div', { class: 'bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 p-6 rounded-2xl' }, [
+              h('h4', { class: 'text-lg font-bold text-blue-900 mb-4 flex items-center gap-2' }, [
+                h(LucideIcons.Info, { size: 20 }),
+                '基本信息'
+              ]),
+              h('div', { class: 'space-y-3' }, [
+                h('div', { class: 'flex justify-between' }, [
+                  h('span', { class: 'text-blue-700 font-medium' }, '活动名称:'),
+                  h('span', { class: 'text-blue-900 font-bold' }, viewingCampaign.value.name)
+                ]),
+                h('div', { class: 'flex justify-between' }, [
+                  h('span', { class: 'text-blue-700 font-medium' }, '所属品牌:'),
+                  h('span', { class: 'text-blue-900 font-bold' }, viewingCampaign.value.brandName || `品牌${viewingCampaign.value.brandId}`)
+                ]),
+                h('div', { class: 'flex justify-between' }, [
+                  h('span', { class: 'text-blue-700 font-medium' }, '活动状态:'),
+                  h(Badge, { status: viewingCampaign.value.status, label: viewingCampaign.value.status === 'active' ? '进行中' : viewingCampaign.value.status === 'paused' ? '已暂停' : '已结束' })
+                ]),
+                h('div', { class: 'flex justify-between' }, [
+                  h('span', { class: 'text-blue-700 font-medium' }, '开始时间:'),
+                  h('span', { class: 'text-blue-900 font-bold' }, viewingCampaign.value.startTime)
+                ]),
+                h('div', { class: 'flex justify-between' }, [
+                  h('span', { class: 'text-blue-700 font-medium' }, '结束时间:'),
+                  h('span', { class: 'text-blue-900 font-bold' }, viewingCampaign.value.endTime)
+                ])
+              ])
+            ]),
+            h('div', { class: 'bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-200 p-6 rounded-2xl' }, [
+              h('h4', { class: 'text-lg font-bold text-emerald-900 mb-4 flex items-center gap-2' }, [
+                h(LucideIcons.TrendingUp, { size: 20 }),
+                '数据概览'
+              ]),
+              h('div', { class: 'grid grid-cols-2 gap-4' }, [
+                h('div', { class: 'text-center' }, [
+                  h('div', { class: 'text-2xl font-black text-emerald-600' }, String(viewingCampaign.value.participants || 0)),
+                  h('div', { class: 'text-xs text-emerald-700 font-medium' }, '总参与数')
+                ]),
+                h('div', { class: 'text-center' }, [
+                  h('div', { class: 'text-2xl font-black text-emerald-600' }, String(Math.floor((viewingCampaign.value.participants || 0) * 0.8))),
+                  h('div', { class: 'text-xs text-emerald-700 font-medium' }, '有效报名')
+                ]),
+                h('div', { class: 'text-center' }, [
+                  h('div', { class: 'text-2xl font-black text-emerald-600' }, String(Math.floor((viewingCampaign.value.participants || 0) * 0.15))),
+                  h('div', { class: 'text-xs text-emerald-700 font-medium' }, '转化成功')
+                ]),
+                h('div', { class: 'text-center' }, [
+                  h('div', { class: 'text-2xl font-black text-emerald-600' }, `${Math.floor((viewingCampaign.value.participants || 0) * 0.15 / Math.max(viewingCampaign.value.participants || 1, 1) * 100)}%`),
+                  h('div', { class: 'text-xs text-emerald-700 font-medium' }, '转化率')
+                ])
+              ])
+            ])
+          ]),
+
           // 活动描述
           h('div', { class: 'bg-white border border-slate-200 p-6 rounded-2xl' }, [
             h('h4', { class: 'text-lg font-bold text-slate-900 mb-4 flex items-center gap-2' }, [
@@ -571,74 +645,87 @@ const CampaignManagementView = defineComponent({
               '活动描述'
             ]),
             h('p', { class: 'text-slate-700 leading-relaxed' }, 
-              editingCampaign.value.description || '暂无活动描述'
+              viewingCampaign.value.description || '暂无活动描述'
             )
           ]),
 
-          // 表单字段预览
+          // 奖励规则
+          h('div', { class: 'bg-amber-50 border border-amber-200 p-6 rounded-2xl' }, [
+            h('h4', { class: 'text-lg font-bold text-amber-900 mb-4 flex items-center gap-2' }, [
+              h(LucideIcons.Gift, { size: 20 }),
+              '奖励规则'
+            ]),
+            h('div', { class: 'flex items-center gap-3' }, [
+              h('div', { class: 'text-2xl font-black text-amber-600' }, `¥${viewingCampaign.value.rewardRule || 0}`),
+              h('div', { class: 'text-amber-700' }, '每次成功转化奖励')
+            ])
+          ]),
+
+          // 监控指标
           h('div', { class: 'bg-white border border-slate-200 p-6 rounded-2xl' }, [
             h('h4', { class: 'text-lg font-bold text-slate-900 mb-4 flex items-center gap-2' }, [
-              h(LucideIcons.FormInput, { size: 20 }),
-              '报名表单字段'
+              h(LucideIcons.BarChart3, { size: 20 }),
+              '关键指标监控'
             ]),
-            h('div', { class: 'grid grid-cols-1 md:grid-cols-2 gap-4' }, campaignForm.formFields.map((field, index) => 
-              h('div', { 
-                key: `view-field-${index}`,
-                class: 'p-4 bg-slate-50 rounded-xl border border-slate-200' 
-              }, [
-                h('div', { class: 'flex items-center justify-between mb-2' }, [
-                  h('span', { class: 'font-bold text-slate-900' }, field.label),
-                  field.required && h('span', { class: 'text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full' }, '必填')
-                ]),
-                h('div', { class: 'text-sm text-slate-600' }, [
-                  h('span', { class: 'inline-block bg-blue-100 text-blue-600 px-2 py-1 rounded mr-2 text-xs' }, 
-                    field.type === 'text' ? '文本' : 
-                    field.type === 'phone' ? '手机号' : 
-                    field.type === 'email' ? '邮箱' : '选择'
-                  ),
-                  field.placeholder && h('span', { class: 'text-slate-500' }, `占位符: ${field.placeholder}`)
+            h('div', { class: 'grid grid-cols-1 md:grid-cols-3 gap-4' }, [
+              h('div', { class: 'p-4 bg-blue-50 rounded-xl border border-blue-200' }, [
+                h('div', { class: 'text-center' }, [
+                  h('div', { class: 'text-xl font-black text-blue-600' }, '85%'),
+                  h('div', { class: 'text-xs text-blue-700 font-medium mt-1' }, '报名完成率')
+                ])
+              ]),
+              h('div', { class: 'p-4 bg-purple-50 rounded-xl border border-purple-200' }, [
+                h('div', { class: 'text-center' }, [
+                  h('div', { class: 'text-xl font-black text-purple-600' }, '12.5%'),
+                  h('div', { class: 'text-xs text-purple-700 font-medium mt-1' }, '平均转化率')
+                ])
+              ]),
+              h('div', { class: 'p-4 bg-rose-50 rounded-xl border border-rose-200' }, [
+                h('div', { class: 'text-center' }, [
+                  h('div', { class: 'text-xl font-black text-rose-600' }, '¥' + String((viewingCampaign.value.rewardRule || 0) * Math.floor((viewingCampaign.value.participants || 0) * 0.15))),
+                  h('div', { class: 'text-xs text-rose-700 font-medium mt-1' }, '总奖励支出')
                 ])
               ])
-            ))
+            ])
           ]),
 
           // 操作记录
           h('div', { class: 'bg-white border border-slate-200 p-6 rounded-2xl' }, [
             h('h4', { class: 'text-lg font-bold text-slate-900 mb-4 flex items-center gap-2' }, [
               h(LucideIcons.Clock, { size: 20 }),
-              '操作记录'
+              '活动时间线'
             ]),
             h('div', { class: 'space-y-3' }, [
               h('div', { class: 'flex items-center gap-3 p-3 bg-slate-50 rounded-lg' }, [
                 h('div', { class: 'w-2 h-2 bg-green-500 rounded-full' }),
                 h('div', { class: 'flex-1' }, [
                   h('p', { class: 'text-sm font-medium text-slate-900' }, '活动创建'),
-                  h('p', { class: 'text-xs text-slate-500' }, '2024-01-15 10:30:00')
+                  h('p', { class: 'text-xs text-slate-500' }, viewingCampaign.value.startTime + ' 00:00:00')
                 ])
               ]),
               h('div', { class: 'flex items-center gap-3 p-3 bg-slate-50 rounded-lg' }, [
                 h('div', { class: 'w-2 h-2 bg-blue-500 rounded-full' }),
                 h('div', { class: 'flex-1' }, [
                   h('p', { class: 'text-sm font-medium text-slate-900' }, '活动启动'),
-                  h('p', { class: 'text-xs text-slate-500' }, '2024-01-15 12:00:00')
+                  h('p', { class: 'text-xs text-slate-500' }, viewingCampaign.value.startTime + ' 09:00:00')
                 ])
               ]),
               h('div', { class: 'flex items-center gap-3 p-3 bg-slate-50 rounded-lg' }, [
                 h('div', { class: 'w-2 h-2 bg-amber-500 rounded-full' }),
                 h('div', { class: 'flex-1' }, [
-                  h('p', { class: 'text-sm font-medium text-slate-900' }, '最后更新'),
-                  h('p', { class: 'text-xs text-slate-500' }, '2024-01-20 15:45:00')
+                  h('p', { class: 'text-sm font-medium text-slate-900' }, '最后数据更新'),
+                  h('p', { class: 'text-xs text-slate-500' }, new Date().toLocaleString())
                 ])
               ])
             ])
           ]),
 
-          // 快速操作
-          h('div', { class: 'flex gap-4 pt-4 border-t' }, [
+          // 关闭按钮
+          h('div', { class: 'flex justify-end pt-4 border-t' }, [
             h('button', {
               type: 'button',
-              onClick: closeModals,
-              class: 'flex-1 px-6 py-3 border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50'
+              onClick: closeModal,
+              class: 'px-6 py-3 bg-slate-600 text-white rounded-xl font-bold hover:bg-slate-700 transition-colors'
             }, '关闭')
           ])
         ]) : null
@@ -749,7 +836,7 @@ const AdminApp = defineComponent({
       { id: 'dashboard', label: '控制面板', icon: 'LayoutDashboard' },
       { id: 'users', label: '用户管理', icon: 'Users' },
       { id: 'brands', label: '品牌管理', icon: 'Shield' },
-      { id: 'campaigns', label: '活动管理', icon: 'Flag' },
+      { id: 'campaigns', label: '活动监控', icon: 'Monitor' },
       { id: 'system', label: '系统设置', icon: 'Settings' },
     ];
 
