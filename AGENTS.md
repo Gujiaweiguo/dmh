@@ -16,3 +16,8 @@ Use `@/openspec/AGENTS.md` to learn:
 Keep this managed block so 'openspec update' can refresh the instructions.
 
 <!-- OPENSPEC:END -->
+
+# 项目约定（补充）
+- 默认使用中文回复
+- 先给出计划并与用户确认后再执行
+- 执行完成后给出执行结果

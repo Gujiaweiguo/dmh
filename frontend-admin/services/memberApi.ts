@@ -8,9 +8,17 @@ const getToken = () => localStorage.getItem('dmh_token');
 // 通用请求方法
 async function request(url: string, options: RequestInit = {}) {
   const token = getToken();
+  
+  // 如果没有 token，提示用户重新登录
+  if (!token) {
+    // 清除可能存在的无效状态
+    localStorage.removeItem('dmh_token');
+    throw new Error('请先登录');
+  }
+  
   const headers = {
     'Content-Type': 'application/json',
-    ...(token && { Authorization: `Bearer ${token}` }),
+    Authorization: `Bearer ${token}`,
     ...options.headers,
   };
 
@@ -18,6 +26,13 @@ async function request(url: string, options: RequestInit = {}) {
     ...options,
     headers,
   });
+
+  // 处理 401 未授权错误
+  if (response.status === 401) {
+    // Token 无效或过期，清除并提示重新登录
+    localStorage.removeItem('dmh_token');
+    throw new Error('登录已过期，请重新登录');
+  }
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: '请求失败' }));

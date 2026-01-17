@@ -36,7 +36,14 @@ export default {
         total.value = response.total || 0;
       } catch (error: any) {
         console.error('加载会员列表失败:', error);
-        alert(error.message || '加载失败');
+        const errorMsg = error.message || '加载失败';
+        // 如果是登录相关错误，提示用户刷新页面
+        if (errorMsg.includes('登录')) {
+          alert(errorMsg + '\n\n点击确定后将刷新页面');
+          window.location.reload();
+        } else {
+          alert(errorMsg);
+        }
       } finally {
         loading.value = false;
       }

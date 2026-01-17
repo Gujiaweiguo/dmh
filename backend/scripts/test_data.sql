@@ -1,3 +1,8 @@
+-- 测试数据脚本
+-- 设置字符集
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
+
 -- 插入测试品牌
 INSERT INTO brands (id, name, logo, description, status, created_at, updated_at) VALUES
 (1, '星巴克咖啡', 'https://example.com/starbucks.png', '全球知名咖啡连锁品牌', 'active', NOW(), NOW()),
