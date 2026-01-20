@@ -46,21 +46,30 @@ func (l *GetCampaignLogic) GetCampaign(id string) (resp *types.CampaignResp, err
 		json.Unmarshal([]byte(campaign.FormFields), &formFields)
 	}
 
+	// 解析分销奖励配置
+	var distributionRewards []types.DistributorLevelRewardResp
+	if campaign.DistributionRewards != nil {
+		json.Unmarshal([]byte(*campaign.DistributionRewards), &distributionRewards)
+	}
+
 	// 获取品牌名称
 	var brand model.Brand
 	l.svcCtx.DB.First(&brand, campaign.BrandId)
 
 	return &types.CampaignResp{
-		Id:          campaign.Id,
-		BrandId:     campaign.BrandId,
-		BrandName:   brand.Name,
-		Name:        campaign.Name,
-		Description: campaign.Description,
-		FormFields:  formFields,
-		RewardRule:  campaign.RewardRule,
-		StartTime:   campaign.StartTime.Format("2006-01-02 15:04:05"),
-		EndTime:     campaign.EndTime.Format("2006-01-02 15:04:05"),
-		Status:      campaign.Status,
-		CreatedAt:   campaign.CreatedAt.Format("2006-01-02 15:04:05"),
+		Id:                  campaign.Id,
+		BrandId:             campaign.BrandId,
+		BrandName:           brand.Name,
+		Name:                campaign.Name,
+		Description:         campaign.Description,
+		FormFields:          formFields,
+		RewardRule:          campaign.RewardRule,
+		StartTime:           campaign.StartTime.Format("2006-01-02 15:04:05"),
+		EndTime:             campaign.EndTime.Format("2006-01-02 15:04:05"),
+		Status:              campaign.Status,
+		EnableDistribution:  campaign.EnableDistribution,
+		DistributionLevel:   campaign.DistributionLevel,
+		DistributionRewards: distributionRewards,
+		CreatedAt:           campaign.CreatedAt.Format("2006-01-02 15:04:05"),
 	}, nil
 }

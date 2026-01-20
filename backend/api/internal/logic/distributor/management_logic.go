@@ -427,3 +427,246 @@ func (l *ManagementLogic) GetMyDistributorStatus(brandId int64) (*types.Distribu
 
 	return l.buildDistributorResp(distributor), nil
 }
+
+// GetCustomers 获取顾客列表（参与活动但不是分销商的用户）
+func (l *ManagementLogic) GetCustomers(req *types.GetCustomersReq) (*types.CustomerListResp, error) {
+	userId, ok := l.ctx.Value("userId").(int64)
+	if !ok || userId == 0 {
+		return nil, fmt.Errorf("获取用户信息失败")
+	}
+
+	// 检查权限
+	var user model.User
+	if err := l.svcCtx.DB.Where("id = ?", userId).First(&user).Error; err != nil {
+		return nil, fmt.Errorf("用户不存在")
+	}
+
+	// 构建基础查询
+	query := l.svcCtx.DB.Table("orders o").
+		Select(`
+			o.id as id,
+			MAX(o.member_id) as user_id,
+			COALESCE(MAX(u.username), MAX(u.real_name), o.phone) as username,
+			o.phone,
+			MAX(o.campaign_id) as campaign_id,
+			COALESCE(MAX(c.name), '') as campaign_name,
+			COUNT(DISTINCT o.id) as order_count,
+			SUM(CASE WHEN o.pay_status = 'paid' THEN o.amount ELSE 0 END) as total_amount,
+			MIN(o.created_at) as first_order_at,
+			MAX(o.created_at) as last_order_at,
+			MAX(o.created_at) as created_at
+		`).
+		Joins("LEFT JOIN campaigns c ON o.campaign_id = c.id").
+		Joins("LEFT JOIN members m ON o.member_id = m.id").
+		Joins("LEFT JOIN users u ON m.user_id = u.id").
+		Where("o.deleted_at IS NULL")
+
+	// 品牌管理员只能查看自己品牌的顾客
+	if user.Role != "platform_admin" {
+		var userBrands []model.UserBrand
+		l.svcCtx.DB.Where("user_id = ?", userId).Find(&userBrands)
+
+		if len(userBrands) == 0 {
+			return &types.CustomerListResp{
+				Total:     0,
+				Customers: []types.CustomerResp{},
+			}, nil
+		}
+
+		brandIds := make([]int64, len(userBrands))
+		for i, ub := range userBrands {
+			brandIds[i] = ub.BrandId
+		}
+		query = query.Where("o.campaign_id IN (SELECT id FROM campaigns WHERE brand_id IN ?)", brandIds)
+	} else if req.BrandId > 0 {
+		query = query.Where("o.campaign_id IN (SELECT id FROM campaigns WHERE brand_id = ?)", req.BrandId)
+	}
+
+	// 筛选条件
+	if req.CampaignId > 0 {
+		query = query.Where("o.campaign_id = ?", req.CampaignId)
+	}
+	if req.Keyword != "" {
+		query = query.Where("(o.phone LIKE ? OR u.username LIKE ? OR u.real_name LIKE ?)",
+			"%"+req.Keyword+"%", "%"+req.Keyword+"%", "%"+req.Keyword+"%")
+	}
+	if req.Status != "" {
+		query = query.Where("o.pay_status = ?", req.Status)
+	}
+
+	// 排除非分销商（排除已成为分销商的用户）
+	query = query.Where("o.member_id NOT IN (SELECT user_id FROM distributors)")
+
+	// 统计总数
+	var total int64
+	countQuery := l.svcCtx.DB.Table("(?) as sub", query)
+	countQuery.Count(&total)
+
+	// 分页
+	if req.Page < 1 {
+		req.Page = 1
+	}
+	if req.PageSize < 1 || req.PageSize > 100 {
+		req.PageSize = 20
+	}
+
+	offset := (req.Page - 1) * req.PageSize
+	query.Group("o.phone, o.member_id").
+		Order("created_at DESC").
+		Limit(int(req.PageSize)).
+		Offset(int(offset))
+
+	// 执行查询
+	rows, err := query.Rows()
+	if err != nil {
+		return nil, fmt.Errorf("查询顾客列表失败: %w", err)
+	}
+	defer rows.Close()
+
+	customers := []types.CustomerResp{}
+	for rows.Next() {
+		var c types.CustomerResp
+		if err := rows.Scan(&c.Id, &c.UserId, &c.Username, &c.Phone,
+			&c.CampaignId, &c.CampaignName, &c.OrderCount, &c.TotalAmount,
+			&c.FirstOrderAt, &c.LastOrderAt, &c.CreatedAt); err != nil {
+			logx.Errorf("扫描顾客数据失败: %v", err)
+			continue
+		}
+
+		// 查询品牌名称
+		if c.CampaignId > 0 {
+			var campaign model.Campaign
+			if err := l.svcCtx.DB.Where("id = ?", c.CampaignId).First(&campaign).Error; err == nil {
+				c.BrandId = campaign.BrandId
+				var brand model.Brand
+				if err := l.svcCtx.DB.Where("id = ?", campaign.BrandId).First(&brand).Error; err == nil {
+					c.BrandName = brand.Name
+				}
+			}
+		}
+
+		customers = append(customers, c)
+	}
+
+	return &types.CustomerListResp{
+		Total:     total,
+		Customers: customers,
+	}, nil
+}
+
+// GetBrandRewards 获取品牌奖励详情
+func (l *ManagementLogic) GetBrandRewards(req *types.GetBrandRewardsReq) (*types.BrandRewardListResp, error) {
+	userId, ok := l.ctx.Value("userId").(int64)
+	if !ok || userId == 0 {
+		return nil, fmt.Errorf("获取用户信息失败")
+	}
+
+	// 检查权限
+	var user model.User
+	if err := l.svcCtx.DB.Where("id = ?", userId).First(&user).Error; err != nil {
+		return nil, fmt.Errorf("用户不存在")
+	}
+
+	query := l.svcCtx.DB.Table("rewards r").
+		Select(`
+			r.id,
+			r.user_id,
+			COALESCE(u.username, u.real_name, '未知用户') as username,
+			r.order_id,
+			r.campaign_id,
+			COALESCE(c.name, '') as campaign_name,
+			r.amount,
+			r.status,
+			r.settled_at,
+			r.created_at
+		`).
+		Joins("LEFT JOIN users u ON r.user_id = u.id").
+		Joins("LEFT JOIN campaigns c ON r.campaign_id = c.id").
+		Where("r.deleted_at IS NULL")
+
+	// 品牌管理员只能查看自己品牌的奖励
+	if user.Role != "platform_admin" {
+		var userBrands []model.UserBrand
+		l.svcCtx.DB.Where("user_id = ?", userId).Find(&userBrands)
+
+		if len(userBrands) == 0 {
+			return &types.BrandRewardListResp{
+				Total:   0,
+				Rewards: []types.BrandRewardResp{},
+			}, nil
+		}
+
+		brandIds := make([]int64, len(userBrands))
+		for i, ub := range userBrands {
+			brandIds[i] = ub.BrandId
+		}
+		query = query.Where("r.campaign_id IN (SELECT id FROM campaigns WHERE brand_id IN ?)", brandIds)
+	} else if req.BrandId > 0 {
+		query = query.Where("r.campaign_id IN (SELECT id FROM campaigns WHERE brand_id = ?)", req.BrandId)
+	}
+
+	// 筛选条件
+	if req.CampaignId > 0 {
+		query = query.Where("r.campaign_id = ?", req.CampaignId)
+	}
+	if req.Keyword != "" {
+		query = query.Where("(u.username LIKE ? OR u.real_name LIKE ? OR u.phone LIKE ?)",
+			"%"+req.Keyword+"%", "%"+req.Keyword+"%", "%"+req.Keyword+"%")
+	}
+	if req.Status != "" {
+		query = query.Where("r.status = ?", req.Status)
+	}
+	if req.StartDate != "" {
+		query = query.Where("r.created_at >= ?", req.StartDate)
+	}
+	if req.EndDate != "" {
+		query = query.Where("r.created_at <= ?", req.EndDate)
+	}
+
+	// 统计总数
+	var total int64
+	query.Count(&total)
+
+	// 分页
+	if req.Page < 1 {
+		req.Page = 1
+	}
+	if req.PageSize < 1 || req.PageSize > 100 {
+		req.PageSize = 20
+	}
+
+	offset := (req.Page - 1) * req.PageSize
+
+	// 执行查询
+	rows, err := query.Order("r.created_at DESC").
+		Limit(int(req.PageSize)).
+		Offset(int(offset)).
+		Rows()
+	if err != nil {
+		return nil, fmt.Errorf("查询奖励列表失败: %w", err)
+	}
+	defer rows.Close()
+
+	rewards := []types.BrandRewardResp{}
+	for rows.Next() {
+		var r types.BrandRewardResp
+		var settledAt *string
+		if err := rows.Scan(&r.Id, &r.UserId, &r.Username, &r.OrderId,
+			&r.CampaignId, &r.CampaignName, &r.Amount, &r.Status,
+			&settledAt, &r.CreatedAt); err != nil {
+			logx.Errorf("扫描奖励数据失败: %v", err)
+			continue
+		}
+
+		if settledAt != nil {
+			r.SettledAt = *settledAt
+		}
+
+		rewards = append(rewards, r)
+	}
+
+	return &types.BrandRewardListResp{
+		Total:   total,
+		Rewards: rewards,
+	}, nil
+}

@@ -1,5 +1,15 @@
 // DMH H5 品牌管理端
 let authToken = localStorage.getItem('h5_token');
+const API_BASE_URL = (() => {
+    const configured = window.DMH_API_BASE_URL || localStorage.getItem('dmh_api_base');
+    if (configured) return configured.replace(/\/$/, '');
+    if (window.location.port === '3101') return 'http://localhost:8889/api/v1';
+    return '/api/v1';
+})();
+const apiFetch = (path, options) => {
+    const normalized = path.startsWith('/') ? path : `/${path}`;
+    return fetch(`${API_BASE_URL}${normalized}`, options);
+};
 let brandIds = [];
 let currentBrandId = null;
 let campaigns = [];
@@ -264,7 +274,7 @@ async function handleLogin(e) {
     errorMsg.innerHTML = '';
     
     try {
-        const response = await fetch('/api/v1/auth/login', {
+        const response = await apiFetch('/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
@@ -366,7 +376,7 @@ async function loadDistributorPending(brandId) {
     const listEl = document.getElementById('distPendingList');
     if (listEl) listEl.innerHTML = '<div class="empty-state">加载中...</div>';
     try {
-        const response = await fetch(`/api/v1/brands/${brandId}/distributor/applications?page=1&pageSize=50&status=pending`, {
+        const response = await apiFetch(`/brands/${brandId}/distributor/applications?page=1&pageSize=50&status=pending`, {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
         if (!response.ok) {
@@ -418,7 +428,7 @@ async function approveDistributor(appId) {
     }
     const notes = prompt('审批备注（可选）', '') || '';
     try {
-        const response = await fetch(`/api/v1/brands/${brandId}/distributor/approve/${appId}`, {
+        const response = await apiFetch(`/brands/${brandId}/distributor/approve/${appId}`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${authToken}`,
@@ -447,7 +457,7 @@ async function rejectDistributor(appId) {
         return;
     }
     try {
-        const response = await fetch(`/api/v1/brands/${brandId}/distributor/approve/${appId}`, {
+        const response = await apiFetch(`/brands/${brandId}/distributor/approve/${appId}`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${authToken}`,
@@ -479,7 +489,7 @@ async function loadDistributors(brandId) {
     if (level) qs.set('level', level);
 
     try {
-        const response = await fetch(`/api/v1/brands/${brandId}/distributors?${qs.toString()}`, {
+        const response = await apiFetch(`/brands/${brandId}/distributors?${qs.toString()}`, {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
         if (!response.ok) {
@@ -540,7 +550,7 @@ async function changeDistributorLevel(distributorId, currentLevel) {
         return;
     }
     try {
-        const response = await fetch(`/api/v1/brands/distributors/${distributorId}/level`, {
+        const response = await apiFetch(`/brands/distributors/${distributorId}/level`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${authToken}`,
@@ -565,7 +575,7 @@ async function toggleDistributorStatus(distributorId, currentStatus) {
     if (!ok) return;
     const reason = prompt('原因（可选）', '') || '';
     try {
-        const response = await fetch(`/api/v1/brands/distributors/${distributorId}/status`, {
+        const response = await apiFetch(`/brands/distributors/${distributorId}/status`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${authToken}`,
@@ -604,7 +614,7 @@ function formatDateTime(timeString) {
 // 加载活动列表
 async function loadCampaigns() {
     try {
-        const response = await fetch('/api/v1/campaigns?page=1&pageSize=100', {
+        const response = await apiFetch('/campaigns?page=1&pageSize=100', {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
         if (response.ok) {
@@ -624,7 +634,7 @@ async function loadMembers() {
     if (!listEl) return;
     listEl.innerHTML = '<div class="empty-state">加载中...</div>';
     try {
-        const response = await fetch('/api/v1/members?page=1&pageSize=20', {
+        const response = await apiFetch('/members?page=1&pageSize=20', {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
         if (!response.ok) {
@@ -676,7 +686,7 @@ async function viewMember(memberId) {
     contentEl.innerHTML = '<div class="empty-state">加载中...</div>';
     openModal('memberDetailModal');
     try {
-        const response = await fetch(`/api/v1/members/${memberId}`, {
+        const response = await apiFetch(`/members/${memberId}`, {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
         if (!response.ok) {
@@ -838,10 +848,10 @@ async function saveCampaign() {
     }
     
     try {
-        const url = currentCampaign ? `/api/v1/campaigns/${currentCampaign.id}` : '/api/v1/campaigns';
+        const url = currentCampaign ? `/campaigns/${currentCampaign.id}` : '/campaigns';
         const method = currentCampaign ? 'PUT' : 'POST';
         
-        const response = await fetch(url, {
+        const response = await apiFetch(url, {
             method,
             headers: { 
                 'Content-Type': 'application/json',
@@ -887,7 +897,7 @@ async function resumeCampaign(id) {
 // 更新活动状态
 async function updateCampaignStatus(id, status) {
     try {
-        const response = await fetch(`/api/v1/campaigns/${id}/status`, {
+        const response = await apiFetch(`/campaigns/${id}/status`, {
             method: 'PUT',
             headers: { 
                 'Content-Type': 'application/json',
@@ -910,7 +920,7 @@ async function updateCampaignStatus(id, status) {
 async function deleteCampaign(id) {
     if (!confirm('确定要删除此活动吗？此操作不可恢复！')) return;
     try {
-        const response = await fetch(`/api/v1/campaigns/${id}`, {
+        const response = await apiFetch(`/campaigns/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${authToken}` }
         });

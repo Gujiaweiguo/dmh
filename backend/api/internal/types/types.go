@@ -141,17 +141,20 @@ type CampaignListResp struct {
 }
 
 type CampaignResp struct {
-	Id          int64       `json:"id"`
-	BrandId     int64       `json:"brandId"`
-	BrandName   string      `json:"brandName,optional"`
-	Name        string      `json:"name"`
-	Description string      `json:"description"`
-	FormFields  []FormField `json:"formFields"`
-	RewardRule  float64     `json:"rewardRule"`
-	StartTime   string      `json:"startTime"`
-	EndTime     string      `json:"endTime"`
-	Status      string      `json:"status"`
-	CreatedAt   string      `json:"createdAt"`
+	Id                  int64                        `json:"id"`
+	BrandId             int64                        `json:"brandId"`
+	BrandName           string                       `json:"brandName,optional"`
+	Name                string                       `json:"name"`
+	Description         string                       `json:"description"`
+	FormFields          []FormField                  `json:"formFields"`
+	RewardRule          float64                      `json:"rewardRule"`
+	StartTime           string                       `json:"startTime"`
+	EndTime             string                       `json:"endTime"`
+	Status              string                       `json:"status"`
+	EnableDistribution  bool                         `json:"enableDistribution"`
+	DistributionLevel   int                          `json:"distributionLevel"`
+	DistributionRewards []DistributorLevelRewardResp `json:"distributionRewards"`
+	CreatedAt           string                       `json:"createdAt"`
 }
 
 type ChangePasswordReq struct {
@@ -170,13 +173,22 @@ type CreateBrandReq struct {
 }
 
 type CreateCampaignReq struct {
-	BrandId     int64       `json:"brandId"`
-	Name        string      `json:"name"`
-	Description string      `json:"description"`
-	FormFields  []FormField `json:"formFields"` // 动态表单字段
-	RewardRule  float64     `json:"rewardRule"` // 奖励规则（金额）
-	StartTime   string      `json:"startTime"`
-	EndTime     string      `json:"endTime"`
+	BrandId             int64                           `json:"brandId"`
+	Name                string                          `json:"name"`
+	Description         string                          `json:"description"`
+	FormFields          []FormField                     `json:"formFields"` // 动态表单字段
+	RewardRule          float64                         `json:"rewardRule"` // 奖励规则（金额）
+	StartTime           string                          `json:"startTime"`
+	EndTime             string                          `json:"endTime"`
+	EnableDistribution  bool                            `json:"enableDistribution,optional"`  // 是否启用分销
+	DistributionLevel   int                             `json:"distributionLevel,optional"`   // 分销层级(1/2/3)
+	DistributionRewards []CampaignDistributionRewardReq `json:"distributionRewards,optional"` // 各级奖励比例
+}
+
+// CampaignDistributionRewardReq 活动分销奖励配置请求
+type CampaignDistributionRewardReq struct {
+	Level            int64   `json:"level"`            // 1/2/3
+	RewardPercentage float64 `json:"rewardPercentage"` // 百分比，如 5.5 表示 5.5%
 }
 
 type CreateMenuReq struct {
@@ -270,15 +282,15 @@ type MenuResp struct {
 }
 
 type OrderResp struct {
-	Id         int64             `json:"id"`
-	CampaignId int64             `json:"campaignId"`
-	CampaignName string          `json:"campaignName,optional"`
-	Phone      string            `json:"phone"`
-	FormData   map[string]string `json:"formData"`
-	ReferrerId int64             `json:"referrerId"`
-	Status     string            `json:"status"`
-	Amount     float64           `json:"amount"`
-	CreatedAt  string            `json:"createdAt"`
+	Id           int64             `json:"id"`
+	CampaignId   int64             `json:"campaignId"`
+	CampaignName string            `json:"campaignName,optional"`
+	Phone        string            `json:"phone"`
+	FormData     map[string]string `json:"formData"`
+	ReferrerId   int64             `json:"referrerId"`
+	Status       string            `json:"status"`
+	Amount       float64           `json:"amount"`
+	CreatedAt    string            `json:"createdAt"`
 }
 
 type PageConfigReq struct {
@@ -554,36 +566,36 @@ type WithdrawalResp struct {
 // Member related types
 
 type GetMembersReq struct {
-	Page      int64  `json:"page,optional" form:"page,optional"`
-	PageSize  int64  `json:"pageSize,optional" form:"pageSize,optional"`
-	BrandId   int64  `json:"brandId,optional" form:"brandId,optional"` // 品牌管理员筛选
-	Keyword   string `json:"keyword,optional" form:"keyword,optional"` // 搜索昵称/手机号/unionid
-	Source    string `json:"source,optional" form:"source,optional"`   // 来源渠道
-	Status    string `json:"status,optional" form:"status,optional"`
-	TagIds    []int64 `json:"tagIds,optional" form:"tagIds,optional"` // 标签筛选
-	StartDate string `json:"startDate,optional" form:"startDate,optional"` // 创建时间范围
-	EndDate   string `json:"endDate,optional" form:"endDate,optional"`
+	Page      int64   `json:"page,optional" form:"page,optional"`
+	PageSize  int64   `json:"pageSize,optional" form:"pageSize,optional"`
+	BrandId   int64   `json:"brandId,optional" form:"brandId,optional"` // 品牌管理员筛选
+	Keyword   string  `json:"keyword,optional" form:"keyword,optional"` // 搜索昵称/手机号/unionid
+	Source    string  `json:"source,optional" form:"source,optional"`   // 来源渠道
+	Status    string  `json:"status,optional" form:"status,optional"`
+	TagIds    []int64 `json:"tagIds,optional" form:"tagIds,optional"`       // 标签筛选
+	StartDate string  `json:"startDate,optional" form:"startDate,optional"` // 创建时间范围
+	EndDate   string  `json:"endDate,optional" form:"endDate,optional"`
 }
 
 type MemberResp struct {
-	Id                    int64   `json:"id"`
-	UnionID               string  `json:"unionid"`
-	Nickname              string  `json:"nickname"`
-	Avatar                string  `json:"avatar"`
-	Phone                 string  `json:"phone"`
-	Gender                int     `json:"gender"`
-	Source                string  `json:"source"`
-	Status                string  `json:"status"`
-	TotalOrders           int     `json:"totalOrders"`
-	TotalPayment          float64 `json:"totalPayment"`
-	TotalReward           float64 `json:"totalReward"`
-	ParticipatedCampaigns int     `json:"participatedCampaigns"`
-	FirstOrderAt          string  `json:"firstOrderAt,omitempty"`
-	LastOrderAt           string  `json:"lastOrderAt,omitempty"`
-	CreatedAt             string  `json:"createdAt"`
-	Tags                  []MemberTagResp `json:"tags,omitempty"`
+	Id                    int64             `json:"id"`
+	UnionID               string            `json:"unionid"`
+	Nickname              string            `json:"nickname"`
+	Avatar                string            `json:"avatar"`
+	Phone                 string            `json:"phone"`
+	Gender                int               `json:"gender"`
+	Source                string            `json:"source"`
+	Status                string            `json:"status"`
+	TotalOrders           int               `json:"totalOrders"`
+	TotalPayment          float64           `json:"totalPayment"`
+	TotalReward           float64           `json:"totalReward"`
+	ParticipatedCampaigns int               `json:"participatedCampaigns"`
+	FirstOrderAt          string            `json:"firstOrderAt,omitempty"`
+	LastOrderAt           string            `json:"lastOrderAt,omitempty"`
+	CreatedAt             string            `json:"createdAt"`
+	Tags                  []MemberTagResp   `json:"tags,omitempty"`
 	Brands                []MemberBrandResp `json:"brands,omitempty"`
-	Orders                []OrderResp `json:"orders,omitempty"`
+	Orders                []OrderResp       `json:"orders,omitempty"`
 }
 
 type MemberListResp struct {
@@ -644,17 +656,17 @@ type MemberMergePreviewResp struct {
 }
 
 type MemberMergeRequestResp struct {
-	Id             int64      `json:"id"`
-	SourceMemberId int64      `json:"sourceMemberId"`
-	TargetMemberId int64      `json:"targetMemberId"`
-	Status         string     `json:"status"`
-	Reason         string     `json:"reason"`
-	ConflictInfo   string     `json:"conflictInfo"`
-	CreatedBy      int64      `json:"createdBy"`
-	CreatedByName  string     `json:"createdByName"`
-	ExecutedAt     string     `json:"executedAt,omitempty"`
-	ErrorMsg       string     `json:"errorMsg,omitempty"`
-	CreatedAt      string     `json:"createdAt"`
+	Id             int64  `json:"id"`
+	SourceMemberId int64  `json:"sourceMemberId"`
+	TargetMemberId int64  `json:"targetMemberId"`
+	Status         string `json:"status"`
+	Reason         string `json:"reason"`
+	ConflictInfo   string `json:"conflictInfo"`
+	CreatedBy      int64  `json:"createdBy"`
+	CreatedByName  string `json:"createdByName"`
+	ExecutedAt     string `json:"executedAt,omitempty"`
+	ErrorMsg       string `json:"errorMsg,omitempty"`
+	CreatedAt      string `json:"createdAt"`
 }
 
 type ExportRequestReq struct {
@@ -664,21 +676,21 @@ type ExportRequestReq struct {
 }
 
 type ExportRequestResp struct {
-	Id            int64  `json:"id"`
-	BrandId       int64  `json:"brandId"`
-	BrandName     string `json:"brandName"`
-	RequestedBy   int64  `json:"requestedBy"`
+	Id              int64  `json:"id"`
+	BrandId         int64  `json:"brandId"`
+	BrandName       string `json:"brandName"`
+	RequestedBy     int64  `json:"requestedBy"`
 	RequestedByName string `json:"requestedByName"`
-	Reason        string `json:"reason"`
-	Filters       string `json:"filters"`
-	Status        string `json:"status"`
-	ApprovedBy    int64  `json:"approvedBy,omitempty"`
-	ApprovedByName string `json:"approvedByName,omitempty"`
-	ApprovedAt    string `json:"approvedAt,omitempty"`
-	RejectReason  string `json:"rejectReason,omitempty"`
-	FileUrl       string `json:"fileUrl,omitempty"`
-	RecordCount   int    `json:"recordCount"`
-	CreatedAt     string `json:"createdAt"`
+	Reason          string `json:"reason"`
+	Filters         string `json:"filters"`
+	Status          string `json:"status"`
+	ApprovedBy      int64  `json:"approvedBy,omitempty"`
+	ApprovedByName  string `json:"approvedByName,omitempty"`
+	ApprovedAt      string `json:"approvedAt,omitempty"`
+	RejectReason    string `json:"rejectReason,omitempty"`
+	FileUrl         string `json:"fileUrl,omitempty"`
+	RecordCount     int    `json:"recordCount"`
+	CreatedAt       string `json:"createdAt"`
 }
 
 type ExportRequestListResp struct {
@@ -687,7 +699,7 @@ type ExportRequestListResp struct {
 }
 
 type ApproveExportReq struct {
-	Approve bool   `json:"approve"` // true=批准, false=驳回
+	Approve bool   `json:"approve"`         // true=批准, false=驳回
 	Reason  string `json:"reason,optional"` // 驳回原因
 }
 
@@ -709,48 +721,48 @@ type DistributorApplyReq struct {
 }
 
 type DistributorApplicationResp struct {
-	Id         int64  `json:"id"`
-	UserId     int64  `json:"userId"`
-	Username   string `json:"username,omitempty"`
-	BrandId    int64  `json:"brandId"`
-	BrandName  string `json:"brandName,omitempty"`
-	Status     string `json:"status"`
-	Reason     string `json:"reason"`
-	ReviewedBy int64  `json:"reviewedBy,omitempty"`
-	Reviewer   string `json:"reviewer,omitempty"`
-	ReviewedAt string `json:"reviewedAt,omitempty"`
+	Id          int64  `json:"id"`
+	UserId      int64  `json:"userId"`
+	Username    string `json:"username,omitempty"`
+	BrandId     int64  `json:"brandId"`
+	BrandName   string `json:"brandName,omitempty"`
+	Status      string `json:"status"`
+	Reason      string `json:"reason"`
+	ReviewedBy  int64  `json:"reviewedBy,omitempty"`
+	Reviewer    string `json:"reviewer,omitempty"`
+	ReviewedAt  string `json:"reviewedAt,omitempty"`
 	ReviewNotes string `json:"reviewNotes,omitempty"`
-	CreatedAt  string `json:"createdAt"`
+	CreatedAt   string `json:"createdAt"`
 }
 
 type DistributorApplicationListResp struct {
-	Total         int64                      `json:"total"`
-	Applications  []DistributorApplicationResp `json:"applications"`
+	Total        int64                        `json:"total"`
+	Applications []DistributorApplicationResp `json:"applications"`
 }
 
 // 分销商审批
 type ApproveDistributorReq struct {
-	Action string `json:"action"` // approve/reject
+	Action string `json:"action"`          // approve/reject
 	Level  int    `json:"level,optional"`  // 批准时设置的级别 1-3
-	Reason string `json:"reason,optional"`  // 拒绝原因或备注
+	Reason string `json:"reason,optional"` // 拒绝原因或备注
 }
 
 // 分销商信息
 type DistributorResp struct {
-	Id               int64  `json:"id"`
-	UserId           int64  `json:"userId"`
-	Username         string `json:"username,omitempty"`
-	BrandId          int64  `json:"brandId"`
-	BrandName        string `json:"brandName,omitempty"`
-	Level            int    `json:"level"`
-	ParentId         int64  `json:"parentId,omitempty"`
-	ParentName       string `json:"parentName,omitempty"`
-	Status           string `json:"status"`
-	TotalEarnings    float64 `json:"totalEarnings"`
-	SubordinatesCount int    `json:"subordinatesCount"`
-	ApprovedBy       int64  `json:"approvedBy,omitempty"`
-	ApprovedAt       string `json:"approvedAt,omitempty"`
-	CreatedAt        string `json:"createdAt"`
+	Id                int64   `json:"id"`
+	UserId            int64   `json:"userId"`
+	Username          string  `json:"username,omitempty"`
+	BrandId           int64   `json:"brandId"`
+	BrandName         string  `json:"brandName,omitempty"`
+	Level             int     `json:"level"`
+	ParentId          int64   `json:"parentId,omitempty"`
+	ParentName        string  `json:"parentName,omitempty"`
+	Status            string  `json:"status"`
+	TotalEarnings     float64 `json:"totalEarnings"`
+	SubordinatesCount int     `json:"subordinatesCount"`
+	ApprovedBy        int64   `json:"approvedBy,omitempty"`
+	ApprovedAt        string  `json:"approvedAt,omitempty"`
+	CreatedAt         string  `json:"createdAt"`
 }
 
 type DistributorListResp struct {
@@ -787,14 +799,14 @@ type GetQrcodeResp struct {
 
 // 分销商统计数据
 type DistributorStatisticsResp struct {
-	DistributorId    int64   `json:"distributorId"`
-	TotalOrders      int64   `json:"totalOrders"`
-	TotalEarnings    float64 `json:"totalEarnings"`
-	TodayEarnings    float64 `json:"todayEarnings"`
-	MonthEarnings    float64 `json:"monthEarnings"`
-	SubordinatesCount int    `json:"subordinatesCount"`
-	ClickCount       int     `json:"clickCount"`
-	ConversionRate   float64 `json:"conversionRate"`
+	DistributorId     int64   `json:"distributorId"`
+	TotalOrders       int64   `json:"totalOrders"`
+	TotalEarnings     float64 `json:"totalEarnings"`
+	TodayEarnings     float64 `json:"todayEarnings"`
+	MonthEarnings     float64 `json:"monthEarnings"`
+	SubordinatesCount int     `json:"subordinatesCount"`
+	ClickCount        int     `json:"clickCount"`
+	ConversionRate    float64 `json:"conversionRate"`
 }
 
 type DistributorRewardResp struct {
@@ -804,38 +816,38 @@ type DistributorRewardResp struct {
 	Level        int     `json:"level"`
 	RewardRate   float64 `json:"rewardRate"`
 	FromUserId   int64   `json:"fromUserId,omitempty"`
-	FromUsername string   `json:"fromUsername,omitempty"`
+	FromUsername string  `json:"fromUsername,omitempty"`
 	Status       string  `json:"status"`
 	SettledAt    string  `json:"settledAt,omitempty"`
 	CreatedAt    string  `json:"createdAt"`
 }
 
 type DistributorRewardListResp struct {
-	Total   int64                  `json:"total"`
+	Total   int64                   `json:"total"`
 	Rewards []DistributorRewardResp `json:"rewards"`
 }
 
 type GetDistributorRewardsReq struct {
-	Page     int64  `json:"page,optional" form:"page,optional"`
-	PageSize int64  `json:"pageSize,optional" form:"pageSize,optional"`
-	Level    int    `json:"level,optional" form:"level,optional"`
+	Page      int64  `json:"page,optional" form:"page,optional"`
+	PageSize  int64  `json:"pageSize,optional" form:"pageSize,optional"`
+	Level     int    `json:"level,optional" form:"level,optional"`
 	StartDate string `json:"startDate,optional" form:"startDate,optional"`
 	EndDate   string `json:"endDate,optional" form:"endDate,optional"`
 }
 
 // 分销商下级列表
 type SubordinateResp struct {
-	Id          int64   `json:"id"`
-	UserId      int64   `json:"userId"`
-	Username    string  `json:"username,omitempty"`
-	Level       int     `json:"level"`
-	TotalOrders int     `json:"totalOrders"`
+	Id            int64   `json:"id"`
+	UserId        int64   `json:"userId"`
+	Username      string  `json:"username,omitempty"`
+	Level         int     `json:"level"`
+	TotalOrders   int     `json:"totalOrders"`
 	TotalEarnings float64 `json:"totalEarnings"`
-	CreatedAt   string  `json:"createdAt"`
+	CreatedAt     string  `json:"createdAt"`
 }
 
 type SubordinateListResp struct {
-	Total        int64            `json:"total"`
+	Total        int64             `json:"total"`
 	Subordinates []SubordinateResp `json:"subordinates"`
 }
 
@@ -866,12 +878,12 @@ type DistributorLevelRewardResp struct {
 }
 
 type DistributorLevelRewardsResp struct {
-	BrandId int64                       `json:"brandId"`
+	BrandId int64                        `json:"brandId"`
 	Rewards []DistributorLevelRewardResp `json:"rewards"`
 }
 
 type SetDistributorLevelRewardReq struct {
-	Level            int64   `json:"level"` // 1/2/3
+	Level            int64   `json:"level"`            // 1/2/3
 	RewardPercentage float64 `json:"rewardPercentage"` // 百分比，如 5.5 表示 5.5%
 }
 
@@ -897,16 +909,191 @@ type PathDistributorIDReq struct {
 }
 
 type PathBrandIDApplicationIDReq struct {
-	BrandID      int64 `path:"brandId"`
+	BrandID       int64 `path:"brandId"`
 	ApplicationID int64 `path:"id"`
 }
 
 type PathBrandIDDistributorIDReq struct {
-	BrandID      int64 `path:"brandId"`
+	BrandID       int64 `path:"brandId"`
 	DistributorID int64 `path:"id"`
 }
 
 type PaginationReq struct {
 	Page     int64 `form:"page,optional"`
 	PageSize int64 `form:"pageSize,optional"`
+}
+
+type ApplyWithdrawalReq struct {
+	Amount      float64 `json:"amount"`
+	PayType     string  `json:"payType"`
+	PayAccount  string  `json:"payAccount"`
+	PayRealName string  `json:"payRealName"`
+}
+
+type ApproveWithdrawalReq struct {
+	Notes string `json:"notes"`
+}
+
+type RejectWithdrawalReq struct {
+	Reason string `json:"reason"`
+}
+
+type GetWithdrawalsReq struct {
+	BrandId  int64  `json:"brandId,optional" form:"brandId,optional"`
+	Status   string `json:"status,optional" form:"status,optional"`
+	Page     int64  `form:"page,optional"`
+	PageSize int64  `form:"pageSize,optional"`
+}
+
+type GeneratePosterReq struct {
+	CampaignId int64 `json:"campaignId,optional"`
+}
+
+type GeneratePosterResp struct {
+	PosterUrl  string `json:"posterUrl"`
+	LinkCode   string `json:"linkCode,omitempty"`
+	IsGeneric  bool   `json:"isGeneric"`
+	CampaignId int64  `json:"campaignId,omitempty"`
+}
+
+type AutoUpgradeDistributorReq struct {
+	UserId     int64   `json:"userId"`
+	BrandId    int64   `json:"brandId"`
+	OrderId    int64   `json:"orderId"`
+	Amount     float64 `json:"amount"`
+	ReferrerId int64   `json:"referrerId,optional"`
+}
+
+type AutoUpgradeDistributorResp struct {
+	BecomeDistributor bool   `json:"becomeDistributor"`
+	DistributorId     int64  `json:"distributorId,omitempty"`
+	Message           string `json:"message"`
+}
+
+type CalculateMultiLevelRewardReq struct {
+	OrderId    int64   `json:"orderId"`
+	Amount     float64 `json:"amount"`
+	ReferrerId int64   `json:"referrerId"`
+	BrandId    int64   `json:"brandId"`
+	CampaignId int64   `json:"campaignId"`
+}
+
+type CalculateMultiLevelRewardResp struct {
+	Rewards []RewardDetail `json:"rewards"`
+	Total   float64        `json:"total"`
+}
+
+type RewardDetail struct {
+	DistributorId   int64   `json:"distributorId"`
+	DistributorName string  `json:"distributorName,omitempty"`
+	Level           int     `json:"level"`
+	Amount          float64 `json:"amount"`
+	RewardRate      float64 `json:"rewardRate"`
+}
+
+type GetGlobalStatsReq struct {
+	StartDate string `json:"startDate,optional" form:"startDate,optional"`
+	EndDate   string `json:"endDate,optional" form:"endDate,optional"`
+}
+
+type GlobalStatsResp struct {
+	TotalDistributors  int64   `json:"totalDistributors"`
+	ActiveDistributors int64   `json:"activeDistributors"`
+	TotalRewards       float64 `json:"totalRewards"`
+	TotalWithdrawals   float64 `json:"totalWithdrawals"`
+	PendingWithdrawals int64   `json:"pendingWithdrawals"`
+	TotalOrders        int64   `json:"totalOrders"`
+	TotalRevenue       float64 `json:"totalRevenue"`
+}
+
+// 平台管理员全局查询类型
+type GetPlatformDistributorsReq struct {
+	Page     int64  `json:"page,optional" form:"page,optional"`
+	PageSize int64  `json:"pageSize,optional" form:"pageSize,optional"`
+	BrandId  int64  `json:"brandId,optional" form:"brandId,optional"`
+	Level    int    `json:"level,optional" form:"level,optional"`
+	Status   string `json:"status,optional" form:"status,optional"`
+	Keyword  string `json:"keyword,optional" form:"keyword,optional"`
+}
+
+type GetPlatformRewardsReq struct {
+	Page       int64  `json:"page,optional" form:"page,optional"`
+	PageSize   int64  `json:"pageSize,optional" form:"pageSize,optional"`
+	BrandId    int64  `json:"brandId,optional" form:"brandId,optional"`
+	CampaignId int64  `json:"campaignId,optional" form:"campaignId,optional"`
+	Status     string `json:"status,optional" form:"status,optional"`
+	Keyword    string `json:"keyword,optional" form:"keyword,optional"`
+	StartDate  string `json:"startDate,optional" form:"startDate,optional"`
+	EndDate    string `json:"endDate,optional" form:"endDate,optional"`
+}
+
+type GetPlatformWithdrawalsReq struct {
+	Page      int64  `json:"page,optional" form:"page,optional"`
+	PageSize  int64  `json:"pageSize,optional" form:"pageSize,optional"`
+	BrandId   int64  `json:"brandId,optional" form:"brandId,optional"`
+	Status    string `json:"status,optional" form:"status,optional"`
+	Keyword   string `json:"keyword,optional" form:"keyword,optional"`
+	StartDate string `json:"startDate,optional" form:"startDate,optional"`
+	EndDate   string `json:"endDate,optional" form:"endDate,optional"`
+}
+
+// 顾客相关类型
+type GetCustomersReq struct {
+	Page       int64  `json:"page,optional" form:"page,optional"`
+	PageSize   int64  `json:"pageSize,optional" form:"pageSize,optional"`
+	BrandId    int64  `json:"brandId,optional" form:"brandId,optional"`
+	CampaignId int64  `json:"campaignId,optional" form:"campaignId,optional"`
+	Keyword    string `json:"keyword,optional" form:"keyword,optional"`
+	Status     string `json:"status,optional" form:"status,optional"`
+}
+
+type CustomerResp struct {
+	Id           int64   `json:"id"`
+	UserId       int64   `json:"userId"`
+	Username     string  `json:"username"`
+	Phone        string  `json:"phone"`
+	BrandId      int64   `json:"brandId"`
+	BrandName    string  `json:"brandName,omitempty"`
+	CampaignId   int64   `json:"campaignId"`
+	CampaignName string  `json:"campaignName,omitempty"`
+	OrderCount   int64   `json:"orderCount"`
+	TotalAmount  float64 `json:"totalAmount"`
+	FirstOrderAt string  `json:"firstOrderAt,omitempty"`
+	LastOrderAt  string  `json:"lastOrderAt,omitempty"`
+	CreatedAt    string  `json:"createdAt"`
+}
+
+type CustomerListResp struct {
+	Total     int64          `json:"total"`
+	Customers []CustomerResp `json:"customers"`
+}
+
+// 品牌奖励详情类型
+type GetBrandRewardsReq struct {
+	Page       int64  `json:"page,optional" form:"page,optional"`
+	PageSize   int64  `json:"pageSize,optional" form:"pageSize,optional"`
+	BrandId    int64  `json:"brandId,optional" form:"brandId,optional"`
+	CampaignId int64  `json:"campaignId,optional" form:"campaignId,optional"`
+	Keyword    string `json:"keyword,optional" form:"keyword,optional"`
+	Status     string `json:"status,optional" form:"status,optional"`
+	StartDate  string `json:"startDate,optional" form:"startDate,optional"`
+	EndDate    string `json:"endDate,optional" form:"endDate,optional"`
+}
+
+type BrandRewardResp struct {
+	Id           int64   `json:"id"`
+	UserId       int64   `json:"userId"`
+	Username     string  `json:"username"`
+	OrderId      int64   `json:"orderId"`
+	CampaignId   int64   `json:"campaignId"`
+	CampaignName string  `json:"campaignName,omitempty"`
+	Amount       float64 `json:"amount"`
+	Status       string  `json:"status"`
+	SettledAt    string  `json:"settledAt,omitempty"`
+	CreatedAt    string  `json:"createdAt"`
+}
+
+type BrandRewardListResp struct {
+	Total   int64             `json:"total"`
+	Rewards []BrandRewardResp `json:"rewards"`
 }

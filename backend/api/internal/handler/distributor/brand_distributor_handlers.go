@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"strings"
 
-	apimiddleware "dmh/api/internal/middleware"
 	"dmh/api/internal/logic/distributor"
+	apimiddleware "dmh/api/internal/middleware"
 	"dmh/api/internal/svc"
 	"dmh/api/internal/types"
 	"github.com/golang-jwt/jwt/v4"
@@ -218,6 +218,42 @@ func SetDistributorLevelRewardsHandler(svcCtx *svc.ServiceContext) http.HandlerF
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {
 			httpx.OkJsonCtx(r.Context(), w, types.CommonResp{Message: "奖励配置保存成功"})
+		}
+	}
+}
+
+func GetBrandCustomersHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req types.GetCustomersReq
+		if err := httpx.ParseForm(r, &req); err != nil {
+			httpx.ErrorCtx(r.Context(), w, err)
+			return
+		}
+
+		l := distributor.NewManagementLogic(r.Context(), svcCtx)
+		resp, err := l.GetCustomers(&req)
+		if err != nil {
+			httpx.ErrorCtx(r.Context(), w, err)
+		} else {
+			httpx.OkJsonCtx(r.Context(), w, resp)
+		}
+	}
+}
+
+func GetBrandRewardsHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req types.GetBrandRewardsReq
+		if err := httpx.ParseForm(r, &req); err != nil {
+			httpx.ErrorCtx(r.Context(), w, err)
+			return
+		}
+
+		l := distributor.NewManagementLogic(r.Context(), svcCtx)
+		resp, err := l.GetBrandRewards(&req)
+		if err != nil {
+			httpx.ErrorCtx(r.Context(), w, err)
+		} else {
+			httpx.OkJsonCtx(r.Context(), w, resp)
 		}
 	}
 }

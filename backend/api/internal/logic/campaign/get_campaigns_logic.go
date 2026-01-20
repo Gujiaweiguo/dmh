@@ -76,18 +76,27 @@ func (l *GetCampaignsLogic) GetCampaigns(req *types.GetCampaignsReq) (resp *type
 			json.Unmarshal([]byte(c.FormFields), &formFields)
 		}
 
+		// 解析分销奖励配置
+		var distributionRewards []types.DistributorLevelRewardResp
+		if c.DistributionRewards != nil {
+			json.Unmarshal([]byte(*c.DistributionRewards), &distributionRewards)
+		}
+
 		campaignResps = append(campaignResps, types.CampaignResp{
-			Id:          c.Id,
-			BrandId:     c.BrandId,
-			BrandName:   brandMap[c.BrandId],
-			Name:        c.Name,
-			Description: c.Description,
-			FormFields:  formFields,
-			RewardRule:  c.RewardRule,
-			StartTime:   c.StartTime.Format("2006-01-02 15:04:05"),
-			EndTime:     c.EndTime.Format("2006-01-02 15:04:05"),
-			Status:      c.Status,
-			CreatedAt:   c.CreatedAt.Format("2006-01-02 15:04:05"),
+			Id:                  c.Id,
+			BrandId:             c.BrandId,
+			BrandName:           brandMap[c.BrandId],
+			Name:                c.Name,
+			Description:         c.Description,
+			FormFields:          formFields,
+			RewardRule:          c.RewardRule,
+			StartTime:           c.StartTime.Format("2006-01-02 15:04:05"),
+			EndTime:             c.EndTime.Format("2006-01-02 15:04:05"),
+			Status:              c.Status,
+			EnableDistribution:  c.EnableDistribution,
+			DistributionLevel:   c.DistributionLevel,
+			DistributionRewards: distributionRewards,
+			CreatedAt:           c.CreatedAt.Format("2006-01-02 15:04:05"),
 		})
 	}
 

@@ -513,26 +513,27 @@ cmd_status() {
     echo -e "${BLUE}========== 服务状态 ==========${NC}"
     
     check_service() {
-        local name=$1
-        local port=$2
-        local pidfile="logs/${name}.pid"
+        local label=$1
+        local key=$2
+        local port=$3
+        local pidfile="logs/${key}.pid"
         
         if [ -f "$pidfile" ]; then
             local pid
             pid=$(cat "$pidfile")
             if ps -p "$pid" > /dev/null 2>&1; then
-                echo -e "${GREEN}✓ $name 运行中 (PID: $pid, Port: $port)${NC}"
+                echo -e "${GREEN}✓ $label 运行中 (PID: $pid, Port: $port)${NC}"
             else
-                echo -e "${RED}✗ $name 已停止${NC}"
+                echo -e "${RED}✗ $label 已停止${NC}"
             fi
         else
-            echo -e "${RED}✗ $name 未启动${NC}"
+            echo -e "${RED}✗ $label 未启动${NC}"
         fi
     }
     
-    check_service "后端" 8889
-    check_service "H5" 3100
-    check_service "管理后台" 3000
+    check_service "后端" "backend" 8889
+    check_service "H5" "h5" 3100
+    check_service "管理后台" "admin" 3000
     
     echo ""
     if check_docker_mysql; then

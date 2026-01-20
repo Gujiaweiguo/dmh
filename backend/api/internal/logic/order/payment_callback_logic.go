@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	distributorLogic "dmh/api/internal/logic/distributor"
 	"dmh/api/internal/svc"
 	"dmh/api/internal/types"
-	distributorLogic "dmh/api/internal/logic/distributor"
 	"dmh/model"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -108,6 +108,25 @@ func (l *PaymentCallbackLogic) PaymentCallback(req *types.PaymentCallbackReq) er
 		return err
 	}
 
+	// 处理自动成为分销商（在事务外单独处理）
+	autoUpgradeLogic := distributorLogic.NewAutoUpgradeLogic(l.ctx, l.svcCtx)
+	if order.MemberID != nil {
+		distributor, err := autoUpgradeLogic.CheckAndAutoUpgradeWithCampaign(
+			*order.MemberID,
+			campaign.BrandId,
+			order.CampaignId,
+			order.ReferrerId,
+		)
+		if err != nil {
+			logx.Infof("订单 %d 会员 %d 自动成为分销商: %v", order.Id, *order.MemberID, err)
+		} else {
+			logx.Infof("订单 %d 会员 %d 已成为分销商 ID: %d", order.Id, *order.MemberID, distributor.Id)
+		}
+	} else {
+		// 如果没有会员ID，尝试通过用户ID处理
+		logx.Infof("订单 %d 无会员ID，跳过自动成为分销商", order.Id)
+	}
+
 	// 处理多级分销商奖励分配（在事务外单独处理）
 	if order.ReferrerId > 0 && req.Amount > 0 {
 		rewardLogic := distributorLogic.NewRewardLogic(l.ctx, l.svcCtx)
@@ -152,4 +171,3 @@ func (l *PaymentCallbackLogic) updateMemberRewardProfile(tx *gorm.DB, memberId i
 
 	tx.Save(&profile)
 }
-

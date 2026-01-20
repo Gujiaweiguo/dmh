@@ -81,5 +81,53 @@ export const distributorApi = {
       method: 'PUT',
       body: JSON.stringify({ rewards }),
     });
-  }
-};
+  },
+
+  // 获取提现记录列表（平台管理员）
+  getWithdrawals: async (brandId: number, status?: string, page?: number, pageSize?: number) => {
+    const params: any = {};
+    if (brandId > 0) params.brandId = brandId;
+    if (status) params.status = status;
+    if (page) params.page = page;
+    if (pageSize) params.pageSize = pageSize;
+    const query = Object.keys(params).length > 0 ? '?' + new URLSearchParams(params).toString() : '';
+    return request<any>(`${API_BASE}/platform/withdrawals${query}`);
+  },
+
+  // 批准提现
+  approveWithdrawal: async (withdrawalId: number, notes?: string) => {
+    return request<any>(`${API_BASE}/platform/withdrawals/${withdrawalId}/approve`, {
+      method: 'PUT',
+      body: JSON.stringify({ notes }),
+    });
+  },
+
+  // 拒绝提现
+  rejectWithdrawal: async (withdrawalId: number, reason: string) => {
+    return request<any>(`${API_BASE}/platform/withdrawals/${withdrawalId}/reject`, {
+      method: 'PUT',
+      body: JSON.stringify({ reason }),
+    });
+  },
+
+  // 获取全局分销商列表（平台管理员）
+  getGlobalDistributors: async (brandId?: number, status?: string, page?: number, pageSize?: number) => {
+    const params: any = {};
+    if (brandId) params.brandId = brandId;
+    if (status) params.status = status;
+    if (page) params.page = page;
+    if (pageSize) params.pageSize = pageSize;
+    const query = Object.keys(params).length > 0 ? '?' + new URLSearchParams(params).toString() : '';
+    return request<any>(`${API_BASE}/platform/distributors${query}`);
+  },
+
+  // 获取全局奖励列表（平台管理员）
+  getGlobalRewards: async (brandId?: number, page?: number, pageSize?: number) => {
+    const params: any = {};
+    if (brandId) params.brandId = brandId;
+    if (page) params.page = page;
+    if (pageSize) params.pageSize = pageSize;
+    const query = Object.keys(params).length > 0 ? '?' + new URLSearchParams(params).toString() : '';
+    return request<any>(`${API_BASE}/platform/rewards${query}`);
+  },
+ };

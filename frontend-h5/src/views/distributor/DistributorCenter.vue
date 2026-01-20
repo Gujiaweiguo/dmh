@@ -55,21 +55,25 @@
 
     <!-- 已成为分销商 -->
     <div class="distributor-content" v-else>
-      <!-- 统计卡片 -->
-      <div class="stats-cards">
-        <div class="stat-card">
-          <div class="stat-value">¥{{ statistics.totalEarnings.toFixed(2) }}</div>
-          <div class="stat-label">累计收益</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">{{ statistics.totalOrders }}</div>
-          <div class="stat-label">订单数</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">{{ statistics.subordinatesCount }}</div>
-          <div class="stat-label">下级数</div>
-        </div>
-      </div>
+       <!-- 统计卡片 -->
+       <div class="stats-cards">
+         <div class="stat-card">
+           <div class="stat-value">¥{{ statistics.balance.toFixed(2) }}</div>
+           <div class="stat-label">可提现</div>
+         </div>
+         <div class="stat-card">
+           <div class="stat-value">¥{{ statistics.totalEarnings.toFixed(2) }}</div>
+           <div class="stat-label">累计收益</div>
+         </div>
+         <div class="stat-card">
+           <div class="stat-value">{{ statistics.totalOrders }}</div>
+           <div class="stat-label">订单数</div>
+         </div>
+         <div class="stat-card">
+           <div class="stat-value">{{ statistics.subordinatesCount }}</div>
+           <div class="stat-label">下级数</div>
+         </div>
+       </div>
 
       <!-- 功能菜单 -->
       <van-cell-group class="menu-group" inset>
@@ -91,13 +95,19 @@
           is-link
           @click="goToSubordinates"
         />
-        <van-cell
-          title="推广数据"
-          icon="bar-chart-o"
-          is-link
-          @click="goToStatistics"
-        />
-      </van-cell-group>
+         <van-cell
+           title="推广数据"
+           icon="bar-chart-o"
+           is-link
+           @click="goToStatistics"
+         />
+         <van-cell
+           title="提现管理"
+           icon="balance-o"
+           is-link
+           @click="goToWithdrawals"
+         />
+       </van-cell-group>
 
       <!-- 收益趋势 -->
       <div class="earnings-trend" v-if="statistics.monthEarnings > 0">
@@ -140,8 +150,16 @@ export default {
       todayEarnings: 0,
       monthEarnings: 0
     })
-    const applicationStatus = ref(null)
-    const activeTab = ref(1)
+     const applicationStatus = ref(null)
+     const activeTab = ref(1)
+     const statistics = ref({
+       totalEarnings: 0,
+       totalOrders: 0,
+       subordinatesCount: 0,
+       todayEarnings: 0,
+       monthEarnings: 0,
+       balance: 0 // 新增：可提现余额
+     })
 
     // 加载分销商状态
     const loadDistributorStatus = async () => {
@@ -196,25 +214,30 @@ export default {
       router.push('/distributor/apply')
     }
 
-    // 跳转到推广工具
-    const goToPromotion = () => {
-      router.push(`/distributor/promotion?brandId=${selectedBrandId.value}`)
-    }
-
-    // 跳转到奖励明细
-    const goToRewards = () => {
-      router.push(`/distributor/rewards?brandId=${selectedBrandId.value}`)
-    }
-
-    // 跳转到下级列表
-    const goToSubordinates = () => {
-      router.push(`/distributor/subordinates?brandId=${selectedBrandId.value}`)
-    }
-
-    // 跳转到统计数据
-    const goToStatistics = () => {
-      router.push(`/distributor/statistics?brandId=${selectedBrandId.value}`)
-    }
+     // 跳转到推广工具
+     const goToPromotion = () => {
+       router.push(`/distributor/promotion?brandId=${selectedBrandId.value}`)
+     }
+ 
+     // 跳转到奖励明细
+     const goToRewards = () => {
+       router.push(`/distributor/rewards?brandId=${selectedBrandId.value}`)
+     }
+ 
+     // 跳转到下级列表
+     const goToSubordinates = () => {
+       router.push(`/distributor/subordinates?brandId=${selectedBrandId.value}`)
+     }
+ 
+     // 跳转到统计数据
+     const goToStatistics = () => {
+       router.push(`/distributor/statistics?brandId=${selectedBrandId.value}`)
+     }
+ 
+     // 跳转到提现管理
+     const goToWithdrawals = () => {
+       router.push(`/distributor/withdrawals?brandId=${selectedBrandId.value}`)
+     }
 
     // 刷新
     const refresh = () => {

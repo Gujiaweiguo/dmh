@@ -29,6 +29,14 @@ func NewRewardLogic(ctx context.Context, svcCtx *svc.ServiceContext) *RewardLogi
 // DistributeReward 分销商奖励分配
 // 在订单支付成功后调用，向上追溯最多3级分销商并分配奖励
 func (l *RewardLogic) DistributeReward(orderId int64, amount float64, brandId int64) error {
+	// 幂等性检查：检查该订单是否已经分配过奖励
+	var existingRewardCount int64
+	l.svcCtx.DB.Model(&model.DistributorReward{}).Where("order_id = ?", orderId).Count(&existingRewardCount)
+	if existingRewardCount > 0 {
+		l.Logger.Infof("订单 %d 已分配过奖励，跳过", orderId)
+		return nil
+	}
+
 	// 获取订单信息
 	var order model.Order
 	if err := l.svcCtx.DB.Where("id = ?", orderId).First(&order).Error; err != nil {
@@ -48,6 +56,15 @@ func (l *RewardLogic) DistributeReward(orderId int64, amount float64, brandId in
 			tx.Rollback()
 		}
 	}()
+
+	// 事务内再次幂等性检查（双重检查）
+	var count int64
+	tx.Model(&model.DistributorReward{}).Where("order_id = ?", orderId).Count(&count)
+	if count > 0 {
+		tx.Rollback()
+		l.Logger.Infof("订单 %d 已分配过奖励（事务内检查），跳过", orderId)
+		return nil
+	}
 
 	// 获取品牌奖励配置
 	levelRewards, err := l.getBrandLevelRewards(tx, brandId)
@@ -199,9 +216,9 @@ func (l *RewardLogic) getBrandLevelRewards(db *gorm.DB, brandId int64) (map[int]
 
 	// 如果没有配置，使用默认值
 	if len(result) == 0 {
-		result[1] = 5.0  // 一级5%
-		result[2] = 2.0  // 二级2%
-		result[3] = 1.0  // 三级1%
+		result[1] = 5.0 // 一级5%
+		result[2] = 2.0 // 二级2%
+		result[3] = 1.0 // 三级1%
 	}
 
 	return result, nil
@@ -248,9 +265,9 @@ func (l *RewardLogic) updateUserBalance(db *gorm.DB, userId int64, amount float6
 	return db.Model(&balance).
 		Where("version = ?", balance.Version).
 		Updates(map[string]interface{}{
-			"balance":     gorm.Expr("balance + ?", amount),
+			"balance":      gorm.Expr("balance + ?", amount),
 			"total_reward": gorm.Expr("total_reward + ?", amount),
-			"version":     gorm.Expr("version + 1"),
+			"version":      gorm.Expr("version + 1"),
 		}).Error
 }
 
