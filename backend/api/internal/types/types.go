@@ -447,8 +447,13 @@ type OrderListResp struct {
 }
 
 type PageConfigReq struct {
+	Id         int64                    `path:"id"`
 	Components []map[string]interface{} `json:"components"`
 	Theme      map[string]interface{}   `json:"theme"`
+}
+
+type GetPageConfigReq struct {
+	Id int64 `path:"id"`
 }
 
 type PageConfigResp struct {

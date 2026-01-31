@@ -5,6 +5,8 @@ package campaign
 
 import (
 	"net/http"
+	"strconv"
+	"strings"
 
 	"dmh/api/internal/logic/campaign"
 	"dmh/api/internal/svc"
@@ -20,8 +22,13 @@ func SavePageConfigHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
-		l := campaign.NewSavePageConfigLogic(r.Context(), svcCtx)
-		resp, err := l.SavePageConfig(&req)
+		pathParts := strings.Split(r.URL.Path, "/")
+		campaignIdStr := pathParts[len(pathParts)-1]
+		campaignId, _ := strconv.ParseInt(campaignIdStr, 10, 64)
+		req.Id = campaignId
+
+		logic := campaign.NewSavePageConfigLogic(r.Context(), svcCtx)
+		resp, err := logic.SavePageConfig(&req)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {

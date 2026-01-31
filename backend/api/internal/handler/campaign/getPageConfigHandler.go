@@ -5,16 +5,25 @@ package campaign
 
 import (
 	"net/http"
+	"strconv"
+	"strings"
 
 	"dmh/api/internal/logic/campaign"
 	"dmh/api/internal/svc"
+	"dmh/api/internal/types"
 	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
 func GetPageConfigHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		l := campaign.NewGetPageConfigLogic(r.Context(), svcCtx)
-		resp, err := l.GetPageConfig()
+		pathParts := strings.Split(r.URL.Path, "/")
+		campaignIdStr := pathParts[len(pathParts)-1]
+		campaignId, _ := strconv.ParseInt(campaignIdStr, 10, 64)
+
+		req := &types.GetPageConfigReq{Id: campaignId}
+
+		logic := campaign.NewGetPageConfigLogic(r.Context(), svcCtx)
+		resp, err := logic.GetPageConfig(req)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {
