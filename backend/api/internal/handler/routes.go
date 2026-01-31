@@ -17,6 +17,7 @@ import (
 	reward "dmh/api/internal/handler/reward"
 	role "dmh/api/internal/handler/role"
 	security "dmh/api/internal/handler/security"
+	statistics "dmh/api/internal/handler/statistics"
 	sync "dmh/api/internal/handler/sync"
 	withdrawal "dmh/api/internal/handler/withdrawal"
 	"dmh/api/internal/svc"
@@ -575,6 +576,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 
 	server.AddRoutes(
 		[]rest.Route{
+			{
+				Method:  http.MethodGet,
+				Path:    "/dashboard-stats",
+				Handler: statistics.GetDashboardStatsHandler(serverCtx),
+			},
 			{
 				Method:  http.MethodGet,
 				Path:    "/sync/health",

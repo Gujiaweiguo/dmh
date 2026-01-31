@@ -59,7 +59,7 @@ func (l *GetDashboardStatsLogic) GetDashboardStats(req *types.GetDashboardStatsR
 
 	now := l.svcCtx.DB.NowFunc()
 	todayStart := now.Format("2006-01-02")
-	weekStart := now.AddDate(-7 * 24 * time.Hour).Format("2006-01-02")
+	weekStart := now.Add(-7 * 24 * time.Hour).Format("2006-01-02")
 	monthStart := now.Format("2006-01-01")
 
 	var todayOrders int64
@@ -103,14 +103,18 @@ func (l *GetDashboardStatsLogic) GetDashboardStats(req *types.GetDashboardStatsR
 		orderQuery = orderQuery.Where("brand_id = ?", req.BrandId)
 	}
 
-	dateFilter := "7 DAY"
+	var dateCondition string
 	if req.Period == "week" {
-		dateFilter = "30 DAY"
+		dateCondition = "DATE_SUB(NOW(), INTERVAL 7 DAY)"
 	} else if req.Period == "month" {
-		dateFilter = "90 DAY"
+		dateCondition = "DATE_SUB(NOW(), INTERVAL 90 DAY)"
+	} else if req.Period == "year" {
+		dateCondition = "DATE_SUB(NOW(), INTERVAL 365 DAY)"
+	} else {
+		dateCondition = "DATE_SUB(NOW(), INTERVAL 90 DAY)"
 	}
 
-	if err := orderQuery.Where("created_at >= ?", dateFilterQuery(req)).
+	if err := orderQuery.Where("created_at >= ?", dateCondition).
 		Group("DATE(created_at)").
 		Order("DATE(created_at) ASC").
 		Scan(&orderTrends).Error; err != nil {
