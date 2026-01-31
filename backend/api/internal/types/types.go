@@ -857,28 +857,28 @@ type WithdrawalResp struct {
 type (
 	// 会员响应
 	MemberResp struct {
-		Id          int64  `json:"id"`
-		UnionID     string `json:"unionid"`
-		Nickname    string `json:"nickname"`
-		Avatar      string `json:"avatar"`
-		Phone       string `json:"phone"`
-		Gender      int    `json:"gender"`
-		Source      string `json:"source"`
-		Status      string `json:"status"`
-		CreatedAt   string `json:"createdAt"`
-		UpdatedAt   string `json:"updatedAt"`
+		Id        int64  `json:"id"`
+		UnionID   string `json:"unionid"`
+		Nickname  string `json:"nickname"`
+		Avatar    string `json:"avatar"`
+		Phone     string `json:"phone"`
+		Gender    int    `json:"gender"`
+		Source    string `json:"source"`
+		Status    string `json:"status"`
+		CreatedAt string `json:"createdAt"`
+		UpdatedAt string `json:"updatedAt"`
 	}
 	// 会员画像响应
 	MemberProfileResp struct {
-		MemberId                int64   `json:"memberId"`
-		TotalOrders             int      `json:"totalOrders"`
-		TotalPayment            float64 `json:"totalPayment"`
-		TotalReward             float64 `json:"totalReward"`
-		FirstOrderAt           string   `json:"firstOrderAt"`
-		LastOrderAt            string   `json:"lastOrderAt"`
-		FirstPaymentAt          string   `json:"firstPaymentAt"`
-		LastPaymentAt           string   `json:"lastPaymentAt"`
-		ParticipatedCampaigns   int      `json:"participatedCampaigns"`
+		MemberId              int64   `json:"memberId"`
+		TotalOrders           int     `json:"totalOrders"`
+		TotalPayment          float64 `json:"totalPayment"`
+		TotalReward           float64 `json:"totalReward"`
+		FirstOrderAt          string  `json:"firstOrderAt"`
+		LastOrderAt           string  `json:"lastOrderAt"`
+		FirstPaymentAt        string  `json:"firstPaymentAt"`
+		LastPaymentAt         string  `json:"lastPaymentAt"`
+		ParticipatedCampaigns int     `json:"participatedCampaigns"`
 	}
 	// 获取会员列表请求
 	GetMembersReq struct {
@@ -907,5 +907,62 @@ type (
 	// 获取会员请求
 	GetMemberReq struct {
 		Id int64 `path:"id" json:"id"`
+	}
+	// 数据统计请求类型
+	GetDashboardStatsReq struct {
+		BrandId   int64  `path:"brandId,optional" form:"brandId,optional"`
+		StartDate string `path:"startDate,optional" form:"startDate,optional"`
+		EndDate   string `path:"endDate,optional" form:"endDate,optional"`
+		Period    string `path:"period,optional" form:"period,optional"` // day/week/month/year
+	}
+	// 数据统计响应类型
+	DashboardStatsResp struct {
+		TotalOrders     int64              `json:"totalOrders"`
+		TotalRevenue    float64            `json:"totalRevenue"`
+		TodayOrders     int64              `json:"todayOrders"`
+		TodayRevenue    float64            `json:"todayRevenue"`
+		WeekOrders      int64              `json:"weekOrders"`
+		WeekRevenue     float64            `json:"weekRevenue"`
+		MonthOrders     int64              `json:"monthOrders"`
+		MonthRevenue    float64            `json:"monthRevenue"`
+		OrderTrend      []TrendData        `json:"orderTrend"`
+		RevenueTrend    []TrendData        `json:"revenueTrend"`
+		TopCampaigns    []CampaignStats    `json:"topCampaigns"`
+		TopDistributors []DistributorStats `json:"topDistributors"`
+	}
+	// 趋势数据
+	TrendData struct {
+		Date  string `json:"date"`
+		Value int64  `json:"value"`
+	}
+	// 活动统计
+	CampaignStats struct {
+		Id               int64   `json:"id"`
+		Name             string  `json:"name"`
+		OrderCount       int64   `json:"orderCount"`
+		Revenue          float64 `json:"revenue"`
+		ParticipantCount int64   `json:"participantCount"`
+	}
+	// 分销商统计
+	DistributorStats struct {
+		Id                int64   `json:"id"`
+		Username          string  `json:"username,optional"`
+		Level             int     `json:"level"`
+		TotalOrders       int64   `json:"totalOrders"`
+		TotalRevenue      float64 `json:"totalRevenue"`
+		SubordinatesCount int     `json:"subordinatesCount,optional"`
+	}
+	// 导出报告请求
+	ExportReportReq struct {
+		ReportType string `path:"reportType" form:"reportType"` // orders/revenue/campaigns/distributors
+		BrandId    int64  `path:"brandId,optional" form:"brandId,optional"`
+		StartDate  string `path:"startDate,optional" form:"startDate,optional"`
+		EndDate    string `path:"endDate,optional" form:"endDate,optional"`
+		Format     string `path:"format,optional" form:"format,optional"` // csv/excel/json
+	}
+	// 导出报告响应
+	ExportReportResp struct {
+		FileUrl  string `json:"fileUrl"`
+		Filename string `json:"filename"`
 	}
 )
