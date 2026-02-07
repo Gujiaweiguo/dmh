@@ -28,7 +28,7 @@ openspec/changes/add-campaign-advanced-features/
 - [x] OpenSpec 格式验证通过
 - [x] 所有需求包含场景（Scenario）
 - [x] 增量变更正确标记（ADDED/MODIFIED）
-- [ ] 等待用户审批
+- [x] 等待用户审批
 
 ## 🎯 影响的模块
 

@@ -2,27 +2,27 @@
 
 ## 目录
 
-- [开发环境搭建](#开发环境搭建)
-- [项目结构](#项目结构)
-- [开发规范](#开发规范)
-- [调试指南](#调试指南)
-- [测试指南](#测试指南)
-- [常见问题](#常见问题)
+* [开发环境搭建](#开发环境搭建)
+* [项目结构](#项目结构)
+* [开发规范](#开发规范)
+* [调试指南](#调试指南)
+* [测试指南](#测试指南)
+* [常见问题](#常见问题)
 
----
+***
 
 ## 开发环境搭建
 
 ### 环境要求
 
-- **Go**: 1.23+
-- **Node.js**: 20.19.0+ (建议使用 nvm)
-- **MySQL**: 8.0+
-- **Git**: 2.0+
+* **Go**: 1.23+
+* **Node.js**: 20.19.0+ (建议使用 nvm)
+* **MySQL**: 8.0+
+* **Git**: 2.0+
 
 > 💡 **提示**: 详细的环境安装步骤（Docker、Go、Node.js）请参考 [SETUP.md](./SETUP.md)
 
----
+***
 
 ### 快速开始
 
@@ -39,9 +39,10 @@ cd DMH
 ```
 
 服务启动后：
-- 后端 API: http://localhost:8889
-- 管理后台: http://localhost:3000
-- H5 端: http://localhost:3100
+
+* 后端 API: http://localhost:8889
+* 管理后台: http://localhost:3000
+* H5 端: http://localhost:3100
 
 #### 方式二：手动启动
 
@@ -50,9 +51,10 @@ cd DMH
 **1. 环境准备**
 
 如果还没有安装环境，请参考 [SETUP.md](./SETUP.md) 安装：
-- Docker（用于 MySQL）
-- Go 1.23+
-- Node.js 20+
+
+* Docker（用于 MySQL）
+* Go 1.23+
+* Node.js 20+
 
 **2. 初始化数据库**
 
@@ -82,7 +84,7 @@ go run api/dmh.go -f api/etc/dmh-api.yaml
 
 后端服务将在 http://localhost:8889 启动
 
----
+***
 
 ### 容器化开发环境 ⭐
 
@@ -94,28 +96,33 @@ cd /opt/code/DMH/deployment/scripts
 ```
 
 服务启动后访问：
-- 📱 H5前端：http://localhost:3100
-- 💻 管理后台：http://localhost:3000
-- 🔧 后端API：http://localhost:8889
+
+* 📱 H5前端：http://localhost:3100
+* 💻 管理后台：http://localhost:3000
+* 🔧 后端API：http://localhost:8889
 
 #### 容器内调试
 
 **进入 API 容器**：
+
 ```bash
 docker exec -it dmh-api sh
 ```
 
 **查看 API 日志**：
+
 ```bash
 docker logs -f dmh-api
 ```
 
 **进入 Nginx 容器**：
+
 ```bash
 docker exec -it dmh-nginx sh
 ```
 
 **查看 Nginx 日志**：
+
 ```bash
 docker logs -f dmh-nginx
 ```
@@ -123,12 +130,14 @@ docker logs -f dmh-nginx
 #### 容器管理命令
 
 **查看容器状态**：
+
 ```bash
 cd /opt/code/DMH/deployment
 docker compose -f docker-compose-simple.yml ps
 ```
 
 **重启容器**：
+
 ```bash
 # 重启所有服务
 docker compose -f docker-compose-simple.yml restart
@@ -139,6 +148,7 @@ docker restart dmh-nginx
 ```
 
 **查看日志**：
+
 ```bash
 # 所有服务
 docker compose -f docker-compose-simple.yml logs -f
@@ -150,18 +160,19 @@ docker logs -f dmh-nginx
 
 **详细部署文档**：[/deployment/README.md](../deployment/README.md)
 
----
+***
 
-### 方式二：手动启动
+### 生产环境手动部署
 
 如果需要单独启动某个服务或自定义配置：
 
 **1. 环境准备**
 
 如果还没有安装环境，请参考 [SETUP.md](./SETUP.md) 安装：
-- Docker（用于 MySQL）
-- Go 1.23+
-- Node.js 20+
+
+* Docker（用于 MySQL）
+* Go 1.23+
+* Node.js 20+
 
 **2. 初始化数据库**
 
@@ -192,6 +203,7 @@ go run api/dmh.go -f api/etc/dmh-api.yaml
 **4. 启动前端**
 
 管理后台：
+
 ```bash
 cd frontend-admin
 npm install
@@ -199,23 +211,24 @@ npm run dev
 ```
 
 H5 端：
+
 ```bash
 cd frontend-h5
 npm install
 npm run dev
 ```
 
----
+***
 
 ### 测试账号
 
 | 用户名 | 密码 | 角色 | 访问地址 |
 |--------|------|------|----------|
 | admin | 123456 | 平台管理员 | http://localhost:3000 |
-| brand_manager | 123456 | 品牌管理员 | http://localhost:3100/brand/login |
+| brand\_manager | 123456 | 品牌管理员 | http://localhost:3100/brand/login |
 | user001 | 123456 | 普通用户 | http://localhost:3100 |
 
----
+***
 
 ## 项目结构
 
@@ -276,7 +289,7 @@ DMH/
 └── dmh.sh                    # 启动脚本
 ```
 
----
+***
 
 ## 开发规范
 
@@ -480,7 +493,7 @@ git commit -m "build: 更新依赖版本"
 git commit -m "ci: 添加 GitHub Actions 配置"
 ```
 
----
+***
 
 ## 调试指南
 
@@ -525,10 +538,10 @@ grep "ERROR" logs/backend.log
 
 #### 1. 浏览器开发者工具
 
-- **F12** 打开开发者工具
-- **Console** 查看日志和错误
-- **Network** 查看网络请求
-- **Vue DevTools** 查看组件状态
+* **F12** 打开开发者工具
+* **Console** 查看日志和错误
+* **Network** 查看网络请求
+* **Vue DevTools** 查看组件状态
 
 #### 2. 添加调试日志
 
@@ -548,7 +561,7 @@ const loadUsers = async () => {
 };
 ```
 
----
+***
 
 ## 测试指南
 
@@ -640,7 +653,7 @@ test('user can login', async ({ page }) => {
 });
 ```
 
----
+***
 
 ## 常见问题
 
@@ -649,6 +662,7 @@ test('user can login', async ({ page }) => {
 **问题**: `Error 1045: Access denied for user 'root'@'localhost'`
 
 **解决方案**:
+
 ```bash
 # 检查 MySQL 容器是否启动
 docker ps | grep mysql8
@@ -667,6 +681,7 @@ cat backend/api/etc/dmh-api.yaml
 **问题**: `Error: Cannot find module 'vue'`
 
 **解决方案**:
+
 ```bash
 # 删除 node_modules 和 lock 文件
 rm -rf node_modules package-lock.json
@@ -683,6 +698,7 @@ npm ci
 **问题**: `go: downloading ... timeout`
 
 **解决方案**:
+
 ```bash
 # 设置 Go 代理（中国大陆）
 go env -w GOPROXY=https://goproxy.cn,direct
@@ -698,6 +714,7 @@ go mod download
 **问题**: `bind: address already in use`
 
 **解决方案**:
+
 ```bash
 # 查找占用端口的进程
 lsof -i :8889  # 后端端口
@@ -711,46 +728,46 @@ lsof -i :3100  # H5 端口
 kill -9 <PID>
 ```
 
----
+***
 
 ## 开发工具推荐
 
 ### IDE
 
-- **GoLand** - Go 开发（推荐）
-- **VS Code** - 通用开发
-  - 插件: Go, Vue, ESLint, Prettier
+* **GoLand** - Go 开发（推荐）
+* **VS Code** - 通用开发
+  * 插件: Go, Vue, ESLint, Prettier
 
 ### 数据库工具
 
-- **DBeaver** - 免费开源
-- **Navicat** - 商业软件
-- **MySQL Workbench** - 官方工具
+* **DBeaver** - 免费开源
+* **Navicat** - 商业软件
+* **MySQL Workbench** - 官方工具
 
 ### API 测试
 
-- **Postman** - API 测试
-- **Insomnia** - 轻量级 API 测试
-- **curl** - 命令行工具
+* **Postman** - API 测试
+* **Insomnia** - 轻量级 API 测试
+* **curl** - 命令行工具
 
 ### 版本控制
 
-- **Git** - 版本控制
-- **GitHub Desktop** - Git GUI
-- **SourceTree** - Git GUI
+* **Git** - 版本控制
+* **GitHub Desktop** - Git GUI
+* **SourceTree** - Git GUI
 
----
+***
 
 ## 相关文档
 
-- [README.md](./README.md) - 项目介绍
-- [SETUP.md](./SETUP.md) - 环境搭建指南
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - 系统架构
-- [API.md](./API.md) - API 文档
-- [CONTRIBUTING.md](./CONTRIBUTING.md) - 贡献指南
+* [README.md](./README.md) - 项目介绍
+* [SETUP.md](./SETUP.md) - 环境搭建指南
+* [ARCHITECTURE.md](./ARCHITECTURE.md) - 系统架构
+* [API.md](./API.md) - API 文档
+* [CONTRIBUTING.md](./CONTRIBUTING.md) - 贡献指南
 
----
+***
 
-**文档版本**: v1.0  
-**最后更新**: 2025-01-21  
+**文档版本**: v1.0\
+**最后更新**: 2025-01-21\
 **维护者**: DMH Team

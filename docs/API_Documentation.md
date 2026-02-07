@@ -2,11 +2,11 @@
 
 ## 基础信息
 
-- **API 版本**: v1.0.0
-- **基础URL**: `http://localhost:8889/api/v1`
-- **协议**: HTTP/HTTPS
-- **数据格式**: JSON
-- **认证方式**: JWT Bearer Token
+* **API 版本**: v1.0.0
+* **基础URL**: `http://localhost:8889/api/v1`
+* **协议**: HTTP/HTTPS
+* **数据格式**: JSON
+* **认证方式**: JWT Bearer Token
 
 ## 认证
 
@@ -15,6 +15,7 @@
 **端点**: `POST /auth/login`
 
 **请求体**：
+
 ```json
 {
   "username": "admin",
@@ -23,6 +24,7 @@
 ```
 
 **响应**：
+
 ```json
 {
   "code": 200,
@@ -39,21 +41,22 @@
 ```
 
 **状态码说明**：
-- `200`: 成功
-- `400`: 请求参数错误
-- `401`: 未授权
-- `403`: 权限不足
-- `500`: 服务器内部错误
+
+* `200`: 成功
+* `400`: 请求参数错误
+* `401`: 未授权
+* `403`: 权限不足
+* `500`: 服务器内部错误
 
 ## 用户角色
 
 | 角色 | 说明 | 权限 |
 |------|------|------|
-| platform_admin | 平台管理员 | 所有权限 |
-| brand_admin | 品牌管理员 | 品牌数据管理 |
+| platform\_admin | 平台管理员 | 所有权限 |
+| brand\_admin | 品牌管理员 | 品牌数据管理 |
 | participant | 参与者 | 活动报名、订单查询 |
 
----
+***
 
 ## 活动管理
 
@@ -70,12 +73,14 @@
 | keyword | string | 否 | 关键词搜索 |
 
 **请求示例**：
+
 ```bash
 curl -X GET "http://localhost:8889/api/v1/campaigns?page=1&pageSize=20&status=active" \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
 **响应**：
+
 ```json
 {
   "code": 200,
@@ -106,6 +111,7 @@ curl -X GET "http://localhost:8889/api/v1/campaigns?page=1&pageSize=20&status=ac
 **端点**: `GET /campaigns/:id`
 
 **请求示例**：
+
 ```bash
 curl -X GET "http://localhost:8889/api/v1/campaigns/1" \
   -H "Authorization: Bearer YOUR_TOKEN"
@@ -118,6 +124,7 @@ curl -X GET "http://localhost:8889/api/v1/campaigns/1" \
 **端点**: `POST /campaigns`
 
 **请求体**：
+
 ```json
 {
   "brandId": 1,
@@ -165,6 +172,7 @@ curl -X GET "http://localhost:8889/api/v1/campaigns/1" \
 **端点**: `PUT /campaigns/:id`
 
 **请求体**：
+
 ```json
 {
   "brandId": 1,
@@ -183,12 +191,13 @@ curl -X GET "http://localhost:8889/api/v1/campaigns/1" \
 **端点**: `DELETE /campaigns/:id`
 
 **请求示例**：
+
 ```bash
 curl -X DELETE "http://localhost:8889/api/v1/campaigns/1" \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
----
+***
 
 ## 支付二维码
 
@@ -197,12 +206,14 @@ curl -X DELETE "http://localhost:8889/api/v1/campaigns/1" \
 **端点**: `GET /campaigns/:id/payment-qrcode`
 
 **请求示例**：
+
 ```bash
 curl -X GET "http://localhost:8889/api/v1/campaigns/1/payment-qrcode" \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
 **响应**：
+
 ```json
 {
   "code": 200,
@@ -216,11 +227,12 @@ curl -X GET "http://localhost:8889/api/v1/campaigns/1/payment-qrcode" \
 ```
 
 **说明**：
-- `amount`: 支付金额 = 活动奖励规则 * 10
-- `qrcodeUrl`: 微信支付二维码链接
-- 二维码包含时间戳，每次调用都会返回不同的 URL（用于刷新）
 
----
+* `amount`: 支付金额 = 活动奖励规则 \* 10
+* `qrcodeUrl`: 微信支付二维码链接
+* 二维码包含时间戳，每次调用都会返回不同的 URL（用于刷新）
+
+***
 
 ## 订单管理
 
@@ -229,6 +241,7 @@ curl -X GET "http://localhost:8889/api/v1/campaigns/1/payment-qrcode" \
 **端点**: `POST /orders`
 
 **请求体**：
+
 ```json
 {
   "campaignId": 1,
@@ -253,6 +266,7 @@ curl -X GET "http://localhost:8889/api/v1/campaigns/1/payment-qrcode" \
 | status | string | 否 | 订单状态（pending/paid/cancelled） |
 
 **请求示例**：
+
 ```bash
 curl -X GET "http://localhost:8889/api/v1/orders?status=paid&page=1&pageSize=20" \
   -H "Authorization: Bearer YOUR_TOKEN"
@@ -267,12 +281,14 @@ curl -X GET "http://localhost:8889/api/v1/orders?status=paid&page=1&pageSize=20"
 **端点**: `POST /orders/:id/generate-verification-code`
 
 **请求示例**：
+
 ```bash
 curl -X POST "http://localhost:8889/api/v1/orders/1/generate-verification-code" \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
 **响应**：
+
 ```json
 {
   "code": 200,
@@ -292,6 +308,7 @@ curl -X POST "http://localhost:8889/api/v1/orders/1/generate-verification-code" 
 **端点**: `POST /orders/verify`
 
 **请求体**：
+
 ```json
 {
   "code": "1_13800138001_1738267320_abcd1234"
@@ -299,6 +316,7 @@ curl -X POST "http://localhost:8889/api/v1/orders/1/generate-verification-code" 
 ```
 
 **响应**：
+
 ```json
 {
   "code": 200,
@@ -313,12 +331,13 @@ curl -X POST "http://localhost:8889/api/v1/orders/1/generate-verification-code" 
 ```
 
 **核销码验证机制**：
-- 签名算法：HMAC-SHA1
-- 密钥：`dmh_secret_key`
-- 拒绝重复核销
-- 订单已核销后无法再次核销
 
----
+* 签名算法：HMAC-SHA1
+* 密钥：`dmh_secret_key`
+* 拒绝重复核销
+* 订单已核销后无法再次核销
+
+***
 
 ## 错误码说明
 
@@ -332,6 +351,7 @@ curl -X POST "http://localhost:8889/api/v1/orders/1/generate-verification-code" 
 | 500 | Internal Server Error | 服务器内部错误 |
 
 常见错误响应示例：
+
 ```json
 {
   "code": 400,
@@ -340,7 +360,7 @@ curl -X POST "http://localhost:8889/api/v1/orders/1/generate-verification-code" 
 }
 ```
 
----
+***
 
 ## 分页参数
 
@@ -353,6 +373,7 @@ curl -X POST "http://localhost:8889/api/v1/orders/1/generate-verification-code" 
 | total | int64 | - | 返回总记录数 |
 
 **分页响应格式**：
+
 ```json
 {
   "code": 200,
@@ -364,19 +385,22 @@ curl -X POST "http://localhost:8889/api/v1/orders/1/generate-verification-code" 
 }
 ```
 
----
+***
 
 ## 速率限制
 
 ### 海报生成
-- **频率**: 5 次/60 秒
-- **窗口**: 滑动窗口
+
+* **频率**: 5 次/60 秒
+* **窗口**: 滑动窗口
 
 ### 通用API
-- **频率**: 100 次/分钟
-- **窗口**: 60 秒
+
+* **频率**: 100 次/分钟
+* **窗口**: 60 秒
 
 超限响应：
+
 ```json
 {
   "code": 429,
@@ -384,38 +408,42 @@ curl -X POST "http://localhost:8889/api/v1/orders/1/generate-verification-code" 
 }
 ```
 
----
+***
 
 ## 安全机制
 
 ### JWT Token 认证
-- **算法**: HS256
-- **过期时间**: 86400 秒（24 小时）
-- **刷新机制**: 过期后需要重新登录
+
+* **算法**: HS256
+* **过期时间**: 86400 秒（24 小时）
+* **刷新机制**: 过期后需要重新登录
 
 ### 核销码签名
-- **格式**: `{orderId}_{phone}_{timestamp}_{signature}`
-- **算法**: HMAC-SHA1
-- **密钥**: `dmh_secret_key`
-- **防护措施**：
-  - 伪造签名检测
-  - 重复核销拒绝
-  - 核销码过期检查
+
+* **格式**: `{orderId}_{phone}_{timestamp}_{signature}`
+* **算法**: HMAC-SHA1
+* **密钥**: `dmh_secret_key`
+* **防护措施**：
+  * 伪造签名检测
+  * 重复核销拒绝
+  * 核销码过期检查
 
 ### 权限控制
-- **基于角色的 RBAC**
-- **资源级别权限控制**
-- **未授权访问返回 401/403**
 
----
+* **基于角色的 RBAC**
+* **资源级别权限控制**
+* **未授权访问返回 401/403**
+
+***
 
 ## 时间格式
 
 所有时间字段使用 ISO 8601 格式：
-- 示例：`2026-01-30T12:00:00`
-- 时区：本地时间
 
----
+* 示例：`2026-01-30T12:00:00`
+* 时区：本地时间
+
+***
 
 ## 测试工具
 
@@ -451,32 +479,36 @@ curl -X GET 'http://localhost:8889/api/v1/campaigns/1/payment-qrcode' \
 ### Postman 集合测试
 
 建议使用 Postman 进行 API 测试，导入以下环境变量：
-- `base_url`: `http://localhost:8889/api/v1`
-- `token`: 从登录响应中获取
 
----
+* `base_url`: `http://localhost:8889/api/v1`
+* `token`: 从登录响应中获取
+
+***
 
 ## 版本历史
 
 | 版本 | 日期 | 变更内容 |
 |------|------|----------|
 | v1.0.0 | 2025-01-30 | 初始版本，包含：
-  - 活动管理（增删改查）
-  - 支付二维码生成
-  - 订单管理（创建、查询、核销）
-  - JWT 认证
-  - RBAC 权限控制
-  - 速率限制
-  - 核销码签名验证
-  - FormFields 动态表单字段
 
----
+* 活动管理（增删改查）
+* 支付二维码生成
+* 订单管理（创建、查询、核销）
+* JWT 认证
+* RBAC 权限控制
+* 速率限制
+* 核销码签名验证
+* FormFields 动态表单字段
+
+***
 
 ## 联系与支持
 
 如有问题，请联系：
-- 技术支持：[待补充]
-- 技术文档：[待补充]
 
----
+* 技术支持：\[待补充]
+* 技术文档：\[待补充]
+
+***
+
 *最后更新：2025年1月30日*

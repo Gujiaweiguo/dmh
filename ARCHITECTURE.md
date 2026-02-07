@@ -2,15 +2,15 @@
 
 ## 📋 目录
 
-- [系统概述](#系统概述)
-- [技术架构](#技术架构)
-- [模块设计](#模块设计)
-- [数据库设计](#数据库设计)
-- [API设计](#api设计)
-- [安全架构](#安全架构)
-- [部署架构](#部署架构)
+* [系统概述](#系统概述)
+* [技术架构](#技术架构)
+* [模块设计](#模块设计)
+* [数据库设计](#数据库设计)
+* [API设计](#api设计)
+* [安全架构](#安全架构)
+* [部署架构](#部署架构)
 
----
+***
 
 ## 系统概述
 
@@ -18,14 +18,14 @@ DMH (Digital Marketing Hub) 是一个企业级数字营销中台系统，提供�
 
 ### 核心特性
 
-- **极速部署**：1分钟内创建并上线营销活动
-- **动态表单**：无需后端改动即可配置表单字段
-- **实时奖励**：支付成功后2秒内完成奖励结算
-- **多级分销**：支持最多3级分销体系
-- **会员系统**：基于UnionID的跨活动会员管理
-- **数据同步**：自动同步到客户既有系统（Oracle/SQL Server）
+* **极速部署**：1分钟内创建并上线营销活动
+* **动态表单**：无需后端改动即可配置表单字段
+* **实时奖励**：支付成功后2秒内完成奖励结算
+* **多级分销**：支持最多3级分销体系
+* **会员系统**：基于UnionID的跨活动会员管理
+* **数据同步**：自动同步到客户既有系统（Oracle/SQL Server）
 
----
+***
 
 ## 技术架构
 
@@ -55,7 +55,7 @@ my-net 网络 (172.19.0.0/16)
         └── 提供业务API服务
 ```
 
----
+***
 
 ### 整体架构图
 
@@ -105,39 +105,43 @@ my-net 网络 (172.19.0.0/16)
 ### 技术栈
 
 #### 后端技术栈
-- **语言**: Go 1.23+
-- **框架**: go-zero 1.6+ (微服务框架)
-- **ORM**: GORM
-- **数据库**: MySQL 8.0+
-- **缓存**: Redis (可选)
-- **认证**: JWT
-- **图像处理**: fogleman/gg (海报生成)
+
+* **语言**: Go 1.23+
+* **框架**: go-zero 1.6+ (微服务框架)
+* **ORM**: GORM
+* **数据库**: MySQL 8.0+
+* **缓存**: Redis (可选)
+* **认证**: JWT
+* **图像处理**: fogleman/gg (海报生成)
 
 #### 前端技术栈
-- **框架**: Vue.js 3 (Composition API)
-- **构建工具**: 
-  - Vite 6 (管理后台)
-  - Vite 5 (H5端)
-- **语言**: TypeScript 5.8+
-- **UI组件**: 
-  - Vant UI (H5端)
-  - Lucide Vue (管理后台图标)
-- **状态管理**: 计划接入 Pinia
-- **路由**: Vue Router
 
----
+* **框架**: Vue.js 3 (Composition API)
+* **构建工具**:
+  * Vite 6 (管理后台)
+  * Vite 5 (H5端)
+* **语言**: TypeScript 5.8+
+* **UI组件**:
+  * Vant UI (H5端)
+  * Lucide Vue (管理后台图标)
+* **状态管理**: 计划接入 Pinia
+* **路由**: Vue Router
+
+***
 
 ## 模块设计
 
 ### 1. 营销活动管理模块
 
 **职责**：
-- 活动的完整生命周期管理
-- 动态表单配置
-- 页面设计器
-- 活动数据统计
+
+* 活动的完整生命周期管理
+* 动态表单配置
+* 页面设计器
+* 活动数据统计
 
 **核心组件**：
+
 ```
 CampaignService
 ├── CreateCampaign()      // 创建活动
@@ -148,18 +152,21 @@ CampaignService
 ```
 
 **数据表**：
-- `campaigns` - 活动主表
-- `page_configs` - 页面配置
+
+* `campaigns` - 活动主表
+* `page_configs` - 页面配置
 
 ### 2. 订单与支付模块
 
 **职责**：
-- 订单创建与管理
-- 支付集成（微信支付）
-- 支付回调处理
-- 订单状态管理
+
+* 订单创建与管理
+* 支付集成（微信支付）
+* 支付回调处理
+* 订单状态管理
 
 **核心组件**：
+
 ```
 OrderService
 ├── CreateOrder()         // 创建订单
@@ -169,6 +176,7 @@ OrderService
 ```
 
 **关键流程**：
+
 ```
 用户提交表单
     ↓
@@ -191,18 +199,21 @@ OrderService
 ```
 
 **数据表**：
-- `orders` - 订单表
-- `external_orders` - 外部订单表
+
+* `orders` - 订单表
+* `external_orders` - 外部订单表
 
 ### 3. 实时奖励系统
 
 **职责**：
-- 奖励自动计算
-- 多级分销奖励
-- 余额管理（乐观锁）
-- 奖励记录查询
+
+* 奖励自动计算
+* 多级分销奖励
+* 余额管理（乐观锁）
+* 奖励记录查询
 
 **核心组件**：
+
 ```
 RewardService
 ├── CalculateReward()     // 计算奖励
@@ -213,6 +224,7 @@ RewardService
 ```
 
 **乐观锁实现**：
+
 ```sql
 UPDATE user_balances 
 SET 
@@ -225,19 +237,22 @@ WHERE
 ```
 
 **数据表**：
-- `rewards` - 奖励记录
-- `user_balances` - 用户余额
-- `distributor_rewards` - 分销商奖励
+
+* `rewards` - 奖励记录
+* `user_balances` - 用户余额
+* `distributor_rewards` - 分销商奖励
 
 ### 4. 分销商系统
 
 **职责**：
-- 分销商申请与审批
-- 多级分销体系（最多3级）
-- 推广链接生成
-- 分销数据统计
+
+* 分销商申请与审批
+* 多级分销体系（最多3级）
+* 推广链接生成
+* 分销数据统计
 
 **核心组件**：
+
 ```
 DistributorService
 ├── ApplyDistributor()    // 申请成为分销商
@@ -248,6 +263,7 @@ DistributorService
 ```
 
 **分销层级**：
+
 ```
 一级分销商 (Level 1)
     ↓ 推荐
@@ -257,19 +273,22 @@ DistributorService
 ```
 
 **数据表**：
-- `distributors` - 分销商表
-- `distributor_links` - 推广链接
-- `distributor_rewards` - 分销奖励
+
+* `distributors` - 分销商表
+* `distributor_links` - 推广链接
+* `distributor_rewards` - 分销奖励
 
 ### 5. 会员系统
 
 **职责**：
-- 会员档案管理（基于UnionID）
-- 会员标签系统
-- 会员数据分析
-- 会员合并功能
+
+* 会员档案管理（基于UnionID）
+* 会员标签系统
+* 会员数据分析
+* 会员合并功能
 
 **核心组件**：
+
 ```
 MemberService
 ├── CreateMember()        // 创建会员
@@ -280,27 +299,31 @@ MemberService
 ```
 
 **数据表**：
-- `members` - 会员主表
-- `member_profiles` - 会员档案
-- `member_tags` - 会员标签
-- `member_tag_links` - 标签关联
-- `member_brand_links` - 品牌关联
+
+* `members` - 会员主表
+* `member_profiles` - 会员档案
+* `member_tags` - 会员标签
+* `member_tag_links` - 标签关联
+* `member_brand_links` - 品牌关联
 
 ### 6. RBAC权限系统
 
 **职责**：
-- 用户认证与授权
-- 角色权限管理
-- 菜单权限管理
-- 数据权限控制
+
+* 用户认证与授权
+* 角色权限管理
+* 菜单权限管理
+* 数据权限控制
 
 **角色定义**：
-- `platform_admin` - 平台管理员（全局权限）
-- `brand_admin` - 品牌管理员（品牌范围权限）
-- `distributor` - 分销商（推广权限）
-- `participant` - 普通用户（基础权限）
+
+* `platform_admin` - 平台管理员（全局权限）
+* `brand_admin` - 品牌管理员（品牌范围权限）
+* `distributor` - 分销商（推广权限）
+* `participant` - 普通用户（基础权限）
 
 **核心组件**：
+
 ```
 AuthService
 ├── Login()               // 用户登录
@@ -310,24 +333,27 @@ AuthService
 ```
 
 **数据表**：
-- `users` - 用户表
-- `roles` - 角色表
-- `permissions` - 权限表
-- `user_roles` - 用户角色关联
-- `role_permissions` - 角色权限关联
-- `menus` - 菜单表
-- `role_menus` - 角色菜单关联
+
+* `users` - 用户表
+* `roles` - 角色表
+* `permissions` - 权限表
+* `user_roles` - 用户角色关联
+* `role_permissions` - 角色权限关联
+* `menus` - 菜单表
+* `role_menus` - 角色菜单关联
 
 ### 7. 安全管理系统
 
 **职责**：
-- 密码策略管理
-- 登录尝试监控
-- 会话管理
-- 审计日志
-- 安全事件监控
+
+* 密码策略管理
+* 登录尝试监控
+* 会话管理
+* 审计日志
+* 安全事件监控
 
 **核心组件**：
+
 ```
 SecurityService
 ├── CheckPasswordPolicy() // 密码策略检查
@@ -338,21 +364,24 @@ SecurityService
 ```
 
 **数据表**：
-- `password_policies` - 密码策略
-- `login_attempts` - 登录尝试
-- `user_sessions` - 用户会话
-- `audit_logs` - 审计日志
-- `security_events` - 安全事件
+
+* `password_policies` - 密码策略
+* `login_attempts` - 登录尝试
+* `user_sessions` - 用户会话
+* `audit_logs` - 审计日志
+* `security_events` - 安全事件
 
 ### 8. 外部数据同步适配器
 
 **职责**：
-- 连接外部数据库（Oracle/SQL Server）
-- 异步数据同步
-- 同步状态监控
-- 失败重试机制
+
+* 连接外部数据库（Oracle/SQL Server）
+* 异步数据同步
+* 同步状态监控
+* 失败重试机制
 
 **核心组件**：
+
 ```
 SyncAdapter
 ├── Connect()             // 连接外部数据库
@@ -363,6 +392,7 @@ SyncAdapter
 ```
 
 **同步流程**：
+
 ```
 支付成功
     ↓
@@ -382,11 +412,12 @@ Worker消费任务
 ```
 
 **数据表**：
-- `sync_logs` - 同步日志
-- `external_orders` - 外部订单表
-- `external_rewards` - 外部奖励表
 
----
+* `sync_logs` - 同步日志
+* `external_orders` - 外部订单表
+* `external_rewards` - 外部奖励表
+
+***
 
 ## 数据库设计
 
@@ -420,6 +451,7 @@ members (会员)
 ### 核心表结构
 
 #### 1. campaigns (营销活动表)
+
 ```sql
 CREATE TABLE campaigns (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -440,6 +472,7 @@ CREATE TABLE campaigns (
 ```
 
 #### 2. orders (订单表)
+
 ```sql
 CREATE TABLE orders (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -462,7 +495,8 @@ CREATE TABLE orders (
 );
 ```
 
-#### 3. user_balances (用户余额表)
+#### 3. user\_balances (用户余额表)
+
 ```sql
 CREATE TABLE user_balances (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -476,6 +510,7 @@ CREATE TABLE user_balances (
 ```
 
 #### 4. distributors (分销商表)
+
 ```sql
 CREATE TABLE distributors (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -496,6 +531,7 @@ CREATE TABLE distributors (
 ```
 
 #### 5. members (会员表)
+
 ```sql
 CREATE TABLE members (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -512,7 +548,7 @@ CREATE TABLE members (
 );
 ```
 
----
+***
 
 ## API设计
 
@@ -523,6 +559,7 @@ CREATE TABLE members (
 **认证方式**: JWT Bearer Token
 
 **请求头**:
+
 ```
 Authorization: Bearer <token>
 Content-Type: application/json
@@ -531,6 +568,7 @@ Content-Type: application/json
 ### API分组
 
 #### 1. 认证相关 `/auth`
+
 ```
 POST   /auth/register          # 用户注册
 POST   /auth/login             # 用户登录
@@ -539,6 +577,7 @@ GET    /auth/userinfo          # 获取用户信息
 ```
 
 #### 2. 活动管理 `/campaigns`
+
 ```
 POST   /campaigns              # 创建活动
 GET    /campaigns              # 活动列表
@@ -548,6 +587,7 @@ DELETE /campaigns/:id          # 删除活动
 ```
 
 #### 3. 订单管理 `/orders`
+
 ```
 POST   /orders                 # 创建订单
 GET    /orders/:id             # 订单详情
@@ -555,12 +595,14 @@ POST   /orders/payment/callback # 支付回调
 ```
 
 #### 4. 奖励管理 `/rewards`
+
 ```
 GET    /rewards/balance/:userId    # 查询余额
 GET    /rewards/:userId            # 奖励列表
 ```
 
 #### 5. 分销商管理 `/distributor`
+
 ```
 POST   /distributor/apply          # 申请成为分销商
 GET    /distributor/statistics/:brandId  # 分销统计
@@ -569,6 +611,7 @@ GET    /distributor/subordinates/:brandId # 下级分销商
 ```
 
 #### 6. 会员管理 `/members`
+
 ```
 GET    /members                # 会员列表
 GET    /members/:id            # 会员详情
@@ -579,6 +622,7 @@ POST   /members/export         # 导出会员
 ### 响应格式
 
 **成功响应**:
+
 ```json
 {
   "code": 200,
@@ -590,6 +634,7 @@ POST   /members/export         # 导出会员
 ```
 
 **错误响应**:
+
 ```json
 {
   "code": 40001,
@@ -598,13 +643,14 @@ POST   /members/export         # 导出会员
 }
 ```
 
----
+***
 
 ## 安全架构
 
 ### 1. 认证与授权
 
 **JWT认证流程**:
+
 ```
 用户登录
     ↓
@@ -624,6 +670,7 @@ POST   /members/export         # 导出会员
 ```
 
 **权限检查**:
+
 ```go
 // 中间件检查权限
 func CheckPermission(resource, action string) gin.HandlerFunc {
@@ -643,40 +690,46 @@ func CheckPermission(resource, action string) gin.HandlerFunc {
 ### 2. 数据安全
 
 **敏感数据加密**:
-- 密码使用 bcrypt 加密存储
-- 外部数据库密码使用 AES 加密
-- 支付回调签名验证
+
+* 密码使用 bcrypt 加密存储
+* 外部数据库密码使用 AES 加密
+* 支付回调签名验证
 
 **SQL注入防护**:
-- 使用预编译语句
-- 参数化查询
-- ORM框架自动转义
+
+* 使用预编译语句
+* 参数化查询
+* ORM框架自动转义
 
 ### 3. 业务安全
 
 **防重复提交**:
-- 数据库唯一索引约束
-- 业务逻辑双重校验
-- 幂等性设计
+
+* 数据库唯一索引约束
+* 业务逻辑双重校验
+* 幂等性设计
 
 **并发控制**:
-- 乐观锁（余额更新）
-- 分布式锁（关键业务）
-- 事务隔离级别控制
+
+* 乐观锁（余额更新）
+* 分布式锁（关键业务）
+* 事务隔离级别控制
 
 ### 4. 监控与审计
 
 **审计日志**:
-- 记录所有关键操作
-- 包含用户、时间、IP、操作内容
-- 日志不可篡改
+
+* 记录所有关键操作
+* 包含用户、时间、IP、操作内容
+* 日志不可篡改
 
 **安全事件监控**:
-- 异常登录检测
-- 暴力破解防护
-- 异常操作告警
 
----
+* 异常登录检测
+* 暴力破解防护
+* 异常操作告警
+
+***
 
 ## 部署架构
 
@@ -693,6 +746,7 @@ func CheckPermission(resource, action string) gin.HandlerFunc {
 ```
 
 **启动命令**:
+
 ```bash
 # 初始化数据库
 ./dmh.sh init
@@ -732,6 +786,7 @@ cd frontend-h5 && npm run dev
 ```
 
 **Docker Compose 部署**:
+
 ```yaml
 version: '3.8'
 services:
@@ -758,90 +813,100 @@ services:
       - ./frontend-h5/dist:/usr/share/nginx/html/h5
 ```
 
----
+***
 
 ## 性能优化
 
 ### 1. 数据库优化
-- 合理使用索引
-- 查询优化（避免全表扫描）
-- 连接池配置
-- 读写分离
+
+* 合理使用索引
+* 查询优化（避免全表扫描）
+* 连接池配置
+* 读写分离
 
 ### 2. 缓存策略
-- Redis缓存热点数据
-- 活动信息缓存（5分钟）
-- 用户会话缓存
-- 查询结果缓存
+
+* Redis缓存热点数据
+* 活动信息缓存（5分钟）
+* 用户会话缓存
+* 查询结果缓存
 
 ### 3. 异步处理
-- 外部数据同步异步化
-- 消息队列解耦
-- 后台任务处理
+
+* 外部数据同步异步化
+* 消息队列解耦
+* 后台任务处理
 
 ### 4. 前端优化
-- 代码分割
-- 懒加载
-- CDN加速
-- 图片压缩
 
----
+* 代码分割
+* 懒加载
+* CDN加速
+* 图片压缩
+
+***
 
 ## 监控与运维
 
 ### 监控指标
 
 **系统指标**:
-- CPU使用率
-- 内存使用率
-- 磁盘IO
-- 网络流量
+
+* CPU使用率
+* 内存使用率
+* 磁盘IO
+* 网络流量
 
 **业务指标**:
-- API响应时间
-- 订单创建量
-- 支付成功率
-- 奖励结算延迟
-- 数据同步成功率
+
+* API响应时间
+* 订单创建量
+* 支付成功率
+* 奖励结算延迟
+* 数据同步成功率
 
 **告警规则**:
-- API响应时间 > 1秒
-- 支付成功率 < 95%
-- 数据同步失败 > 10条
-- 系统错误率 > 1%
 
----
+* API响应时间 > 1秒
+* 支付成功率 < 95%
+* 数据同步失败 > 10条
+* 系统错误率 > 1%
+
+***
 
 ## 扩展性设计
 
 ### 水平扩展
-- 无状态API设计
-- 支持多实例部署
-- 负载均衡
+
+* 无状态API设计
+* 支持多实例部署
+* 负载均衡
 
 ### 垂直扩展
-- 模块化设计
-- 插件化架构
-- 配置化驱动
+
+* 模块化设计
+* 插件化架构
+* 配置化驱动
 
 ### 未来规划
-- 微服务拆分
-- 服务网格
-- 容器编排（Kubernetes）
-- 消息队列（RabbitMQ/Kafka）
 
----
+* 微服务拆分
+* 服务网格
+* 容器编排（Kubernetes）
+* 消息队列（RabbitMQ/Kafka）
+
+***
 
 ## 相关文档
 
-- [README.md](./README.md) - 项目介绍
-- [SETUP.md](./SETUP.md) - 环境搭建指南
-- [API.md](./API.md) - API文档
-- [DEVELOPMENT.md](./DEVELOPMENT.md) - 开发指南
-- [OpenSpec规格文档](./openspec/specs/) - 详细规格
+* [README.md](./README.md) - 项目介绍
+* [SETUP.md](./SETUP.md) - 环境搭建指南
+* [API.md](./API.md) - API文档
+* [DEVELOPMENT.md](./DEVELOPMENT.md) - 开发指南
+* [OpenSpec规格文档](./openspec/specs/) - 详细规格
 
----
+***
 
-**文档版本**: v1.0  
-**最后更新**: 2025-01-21  
+**文档版本**: v1.0\
+**最后更新**: 2025-01-21\
 **维护者**: DMH Team

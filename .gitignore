@@ -101,8 +101,8 @@ coverage/
 # .kiro/
 # 其他 AI 工具
 .qoder/
-# 保留 .opencode/
-# .opencode/
+# 保留 .opencode/ 但忽略其 node_modules
+.opencode/node_modules/
 
 # ==================== 其他 ====================
 # 文件存储（开发环境）
