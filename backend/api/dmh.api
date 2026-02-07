@@ -1005,6 +1005,9 @@ service dmh-api {
 	@handler UpdateCampaign
 	put /campaigns/:id (UpdateCampaignReq) returns (CampaignResp)
 
+	@handler DeleteCampaign
+	delete /campaigns/:id (CommonReq) returns (CommonResp)
+
 	@handler SavePageConfig
 	post /campaign/page-config/:id (PageConfigReq) returns (PageConfigResp)
 

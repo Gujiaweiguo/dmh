@@ -3,6 +3,8 @@
 
 package types
 
+import "time"
+
 type AdminCreateUserReq struct {
 	Username string  `json:"username"`
 	Password string  `json:"password"`
@@ -155,17 +157,22 @@ type GetCampaignReq struct {
 }
 
 type CampaignResp struct {
-	Id          int64   `json:"id"`
-	BrandId     int64   `json:"brandId"`
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	FormFields  string  `json:"formFields"`
-	RewardRule  float64 `json:"rewardRule"`
-	StartTime   string  `json:"startTime"`
-	EndTime     string  `json:"endTime"`
-	Status      string  `json:"status"`
-	CreatedAt   string  `json:"createdAt"`
-	UpdatedAt   string  `json:"updatedAt"`
+	Id                  int64   `json:"id"`
+	BrandId             int64   `json:"brandId"`
+	Name                string  `json:"name"`
+	Description         string  `json:"description"`
+	FormFields          string  `json:"formFields"`
+	RewardRule          float64 `json:"rewardRule"`
+	StartTime           string  `json:"startTime"`
+	EndTime             string  `json:"endTime"`
+	Status              string  `json:"status"`
+	EnableDistribution  bool    `json:"enableDistribution"`
+	DistributionLevel   int     `json:"distributionLevel"`
+	DistributionRewards string  `json:"distributionRewards"`
+	PaymentConfig       string  `json:"paymentConfig"`
+	PosterTemplateId    int64   `json:"posterTemplateId"`
+	CreatedAt           string  `json:"createdAt"`
+	UpdatedAt           string  `json:"updatedAt"`
 }
 
 type ChangePasswordReq struct {
@@ -184,13 +191,18 @@ type CreateBrandReq struct {
 }
 
 type CreateCampaignReq struct {
-	BrandId     int64       `json:"brandId"`
-	Name        string      `json:"name"`
-	Description string      `json:"description"`
-	FormFields  []FormField `json:"formFields"` // 动态表单字段
-	RewardRule  float64     `json:"rewardRule"` // 奖励规则（金额）
-	StartTime   string      `json:"startTime"`
-	EndTime     string      `json:"endTime"`
+	BrandId             int64       `json:"brandId"`
+	Name                string      `json:"name"`
+	Description         string      `json:"description"`
+	FormFields          []FormField `json:"formFields"` // 动态表单字段
+	RewardRule          float64     `json:"rewardRule"` // 奖励规则（金额）
+	StartTime           string      `json:"startTime"`
+	EndTime             string      `json:"endTime"`
+	PaymentConfig       string      `json:"paymentConfig,optional"`       // 支付配置（JSON字符串）
+	EnableDistribution  bool        `json:"enableDistribution,optional"`  // 是否启用分销
+	DistributionLevel   int         `json:"distributionLevel,optional"`   // 分销层级
+	DistributionRewards string      `json:"distributionRewards,optional"` // 分销奖励配置（JSON字符串）
+	PosterTemplateId    int64       `json:"posterTemplateId,optional"`    // 海报模板ID
 }
 
 type CreateMenuReq struct {
@@ -234,6 +246,26 @@ type DistributorApplicationResp struct {
 type DistributorApplyReq struct {
 	BrandId int64  `json:"brandId"`
 	Reason  string `json:"reason"`
+}
+
+type DistributorBrandOption struct {
+	BrandId   int64  `json:"brandId"`
+	BrandName string `json:"brandName"`
+}
+
+type DistributorDashboardData struct {
+	HasDistributor bool                     `json:"hasDistributor"`
+	Brands         []DistributorBrandOption `json:"brands"`
+}
+
+type DistributorDashboardResp struct {
+	Code    int                      `json:"code"`
+	Message string                   `json:"message,omitempty"`
+	Data    DistributorDashboardData `json:"data"`
+}
+
+type GetDistributorStatisticsReq struct {
+	BrandId int64 `path:"brandId"`
 }
 
 type DistributorLevelRewardResp struct {
@@ -295,8 +327,15 @@ type DistributorStatisticsResp struct {
 	TodayEarnings     float64 `json:"todayEarnings"`
 	MonthEarnings     float64 `json:"monthEarnings"`
 	SubordinatesCount int     `json:"subordinatesCount"`
+	Balance           float64 `json:"balance"`
 	ClickCount        int     `json:"clickCount"`
 	ConversionRate    float64 `json:"conversionRate"`
+}
+
+type DistributorStatisticsResponse struct {
+	Code    int                       `json:"code"`
+	Message string                    `json:"message,omitempty"`
+	Data    DistributorStatisticsResp `json:"data"`
 }
 
 type ForceLogoutReq struct {
@@ -326,7 +365,8 @@ type GenerateLinkResp struct {
 }
 
 type GeneratePosterReq struct {
-	TemplateId int64  `json:"templateId"`
+	Id         int64  `path:"id"`
+	TemplateId int64  `json:"templateId,optional"`
 	Theme      string `json:"theme,optional"`
 }
 
@@ -598,7 +638,7 @@ type RoleResp struct {
 }
 
 type ScanOrderReq struct {
-	Code string `json:"code" form:"code"`
+	Code string `json:"code" form:"code" validate:"required"` // 核销码
 }
 
 type ScanOrderResp struct {
@@ -683,7 +723,8 @@ type SyncStatusResp struct {
 }
 
 type UnverifyOrderReq struct {
-	Code string `json:"code" form:"code"`
+	Code   string `json:"code"   validate:"required"` // 核销码
+	Reason string `json:"reason,optional"`            // 取消原因
 }
 
 type UnverifyOrderResp struct {
@@ -699,14 +740,20 @@ type UpdateBrandReq struct {
 }
 
 type UpdateCampaignReq struct {
-	BrandId     int64       `json:"brandId,optional"`
-	Name        string      `json:"name,optional"`
-	Description string      `json:"description,optional"`
-	FormFields  []FormField `json:"formFields,optional"` // 动态表单字段
-	RewardRule  float64     `json:"rewardRule,optional"` // 奖励规则（金额）
-	StartTime   string      `json:"startTime,optional"`
-	EndTime     string      `json:"endTime,optional"`
-	Status      string      `json:"status,optional"` // 活动状态：active, paused, ended
+	Id                  int64       `path:"id"`
+	BrandId             *int64      `json:"brandId,optional"`
+	Name                *string     `json:"name,optional"`
+	Description         *string     `json:"description,optional"`
+	FormFields          []FormField `json:"formFields,optional"` // 动态表单字段
+	RewardRule          *float64    `json:"rewardRule,optional"` // 奖励规则（金额）
+	StartTime           *string     `json:"startTime,optional"`
+	EndTime             *string     `json:"endTime,optional"`
+	Status              *string     `json:"status,optional"`              // 活动状态：active, paused, ended
+	PaymentConfig       *string     `json:"paymentConfig,optional"`       // 支付配置（JSON字符串）
+	EnableDistribution  *bool       `json:"enableDistribution,optional"`  // 是否启用分销
+	DistributionLevel   *int        `json:"distributionLevel,optional"`   // 分销层级
+	DistributionRewards *string     `json:"distributionRewards,optional"` // 分销奖励配置（JSON字符串）
+	PosterTemplateId    *int64      `json:"posterTemplateId,optional"`    // 海报模板ID
 }
 
 type UpdateDistributorLevelReq struct {
@@ -809,13 +856,15 @@ type VerificationRecordsListResp struct {
 }
 
 type VerifyOrderReq struct {
-	Code string `json:"code" form:"code"`
+	Code   string `json:"code" validate:"required"` // 核销码
+	Remark string `json:"remark,optional"`          // 核销备注
 }
 
 type VerifyOrderResp struct {
 	OrderId    int64  `json:"orderId"`
 	Status     string `json:"status"`
-	VerifiedAt string `json:"verifiedAt"`
+	VerifiedAt string `json:"verifiedAt"` // ⚠️ 临时使用 string，应改为 *time.Time
+	VerifiedBy *int64 `json:"verifiedBy"`
 }
 
 type WithdrawalApplyReq struct {
@@ -964,5 +1013,182 @@ type (
 	ExportReportResp struct {
 		FileUrl  string `json:"fileUrl"`
 		Filename string `json:"filename"`
+	}
+
+	// ========== 反馈系统相关类型 ==========
+
+	// 创建反馈请求
+	CreateFeedbackReq struct {
+		Category       string `json:"category"` // poster, payment, verification, other
+		Subcategory    string `json:"subcategory,optional"`
+		Rating         *int   `json:"rating,optional"` // 1-5星
+		Title          string `json:"title"`
+		Content        string `json:"content"`
+		FeatureUseCase string `json:"featureUseCase,optional"`
+		DeviceInfo     string `json:"deviceInfo,optional"`
+		BrowserInfo    string `json:"browserInfo,optional"`
+		Priority       string `json:"priority,optional"` // low, medium, high
+	}
+
+	// 反馈响应
+	FeedbackResp struct {
+		Id             int64      `json:"id"`
+		UserId         int64      `json:"userId"`
+		UserName       string     `json:"userName"`
+		UserRole       string     `json:"userRole"`
+		Category       string     `json:"category"`
+		Subcategory    string     `json:"subcategory"`
+		Rating         *int       `json:"rating"`
+		Title          string     `json:"title"`
+		Content        string     `json:"content"`
+		FeatureUseCase string     `json:"featureUseCase"`
+		DeviceInfo     string     `json:"deviceInfo"`
+		BrowserInfo    string     `json:"browserInfo"`
+		Priority       string     `json:"priority"`
+		Status         string     `json:"status"`
+		AssigneeId     *int64     `json:"assigneeId"`
+		Response       string     `json:"response"`
+		ResolvedAt     *time.Time `json:"resolvedAt"`
+		CreatedAt      time.Time  `json:"createdAt"`
+		Tags           []TagResp  `json:"tags,optional"`
+	}
+
+	// 列表反馈请求
+	ListFeedbackReq struct {
+		Page     int    `json:"page,optional" form:"page,optional"`
+		PageSize int    `json:"pageSize,optional" form:"pageSize,optional"`
+		Category string `json:"category,optional" form:"category,optional"`
+		Status   string `json:"status,optional" form:"status,optional"`
+		Priority string `json:"priority,optional" form:"priority,optional"`
+	}
+
+	// 反馈列表响应
+	FeedbackListResp struct {
+		Total     int64          `json:"total"`
+		Feedbacks []FeedbackResp `json:"feedbacks"`
+	}
+
+	// 更新反馈状态请求
+	UpdateFeedbackStatusReq struct {
+		Id         int64  `json:"id"`
+		Status     string `json:"status"` // pending, reviewing, resolved, closed
+		AssigneeId *int64 `json:"assigneeId,optional"`
+		Response   string `json:"response,optional"`
+	}
+
+	// 提交满意度调查请求
+	SubmitSatisfactionSurveyReq struct {
+		Feature                string `json:"feature"`                      // poster, payment, verification
+		EaseOfUse              *int   `json:"easeOfUse,optional"`           // 1-5
+		Performance            *int   `json:"performance,optional"`         // 1-5
+		Reliability            *int   `json:"reliability,optional"`         // 1-5
+		OverallSatisfaction    *int   `json:"overallSatisfaction,optional"` // 1-5
+		WouldRecommend         *int   `json:"wouldRecommend,optional"`      // 1-5
+		MostLiked              string `json:"mostLiked,optional"`
+		LeastLiked             string `json:"leastLiked,optional"`
+		ImprovementSuggestions string `json:"improvementSuggestions,optional"`
+		WouldLikeMoreFeatures  string `json:"wouldLikeMoreFeatures,optional"`
+	}
+
+	// 满意度调查响应
+	SatisfactionSurveyResp struct {
+		Id                     int64     `json:"id"`
+		UserId                 int64     `json:"userId"`
+		UserRole               string    `json:"userRole"`
+		Feature                string    `json:"feature"`
+		EaseOfUse              *int      `json:"easeOfUse"`
+		Performance            *int      `json:"performance"`
+		Reliability            *int      `json:"reliability"`
+		OverallSatisfaction    *int      `json:"overallSatisfaction"`
+		WouldRecommend         *int      `json:"wouldRecommend"`
+		MostLiked              string    `json:"mostLiked"`
+		LeastLiked             string    `json:"leastLiked"`
+		ImprovementSuggestions string    `json:"improvementSuggestions"`
+		WouldLikeMoreFeatures  string    `json:"wouldLikeMoreFeatures"`
+		CreatedAt              time.Time `json:"createdAt"`
+	}
+
+	// 列表FAQ请求
+	ListFAQReq struct {
+		Category string `json:"category,optional" form:"category,optional"`
+		Keyword  string `json:"keyword,optional" form:"keyword,optional"`
+	}
+
+	// FAQ响应
+	FAQResp struct {
+		Id              int64  `json:"id"`
+		Category        string `json:"category"`
+		Question        string `json:"question"`
+		Answer          string `json:"answer"`
+		SortOrder       int    `json:"sortOrder"`
+		ViewCount       int    `json:"viewCount"`
+		HelpfulCount    int    `json:"helpfulCount"`
+		NotHelpfulCount int    `json:"notHelpfulCount"`
+	}
+
+	// FAQ列表响应
+	FAQListResp struct {
+		Total int64     `json:"total"`
+		FAQs  []FAQResp `json:"faqs"`
+	}
+
+	// 标记FAQ有帮助请求
+	MarkFAQHelpfulReq struct {
+		Id   int64  `json:"id"`
+		Type string `json:"type"` // helpful, not_helpful
+	}
+
+	// 记录功能使用请求
+	RecordFeatureUsageReq struct {
+		Feature      string `json:"feature"` // poster, payment, verification
+		Action       string `json:"action"`  // generate, refresh, pay, verify, etc.
+		CampaignId   *int64 `json:"campaignId,optional"`
+		Success      bool   `json:"success"`
+		DurationMs   *int   `json:"durationMs,optional"`
+		ErrorMessage string `json:"errorMessage,optional"`
+	}
+
+	// 获取反馈统计请求
+	GetFeedbackStatisticsReq struct {
+		StartDate string `json:"startDate,optional" form:"startDate,optional"` // YYYY-MM-DD
+		EndDate   string `json:"endDate,optional" form:"endDate,optional"`     // YYYY-MM-DD
+		Category  string `json:"category,optional" form:"category,optional"`
+	}
+
+	// 反馈统计响应
+	FeedbackStatisticsResp struct {
+		TotalFeedbacks    int64            `json:"totalFeedbacks"`
+		ByCategory        map[string]int64 `json:"byCategory"`
+		ByStatus          map[string]int64 `json:"byStatus"`
+		ByPriority        map[string]int64 `json:"byPriority"`
+		AverageRating     float64          `json:"averageRating"`
+		ResolutionRate    float64          `json:"resolutionRate"`    // 已解决/总数
+		AvgResolutionTime float64          `json:"avgResolutionTime"` // 平均解决时间（小时）
+		ByRating          map[int]int64    `json:"byRating"`          // 1-5星分布
+	}
+
+	// 功能使用统计响应
+	FeatureUsageStatsResp struct {
+		Feature      string           `json:"feature"`
+		TotalActions int64            `json:"totalActions"`
+		SuccessRate  float64          `json:"successRate"`
+		AvgDuration  float64          `json:"avgDuration"`
+		ErrorCount   int64            `json:"errorCount"`
+		UniqueUsers  int64            `json:"uniqueUsers"`
+		ByAction     map[string]int64 `json:"byAction"`
+	}
+
+	// 标签响应
+	TagResp struct {
+		Id          int64  `json:"id"`
+		Name        string `json:"name"`
+		Description string `json:"description"`
+		Color       string `json:"color"`
+	}
+
+	// 基础响应
+	BaseResp struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
 	}
 )

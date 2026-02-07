@@ -10,6 +10,7 @@ import (
 
 	"dmh/api/internal/svc"
 	"dmh/api/internal/types"
+	"dmh/common/poster"
 	"dmh/model"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -32,25 +33,39 @@ func NewGenerateCampaignPosterLogic(ctx context.Context, svcCtx *svc.ServiceCont
 func (l *GenerateCampaignPosterLogic) GenerateCampaignPoster(req *types.GeneratePosterReq) (resp *types.GeneratePosterResp, err error) {
 	startTime := time.Now()
 
-	// 1. 查询活动信息
 	var campaign model.Campaign
-	if err := l.svcCtx.DB.First(&campaign, req.TemplateId).Error; err != nil {
-		l.Errorf("查询活动失败: %v", err)
-		return nil, fmt.Errorf("活动不存在")
+	if err := l.svcCtx.DB.First(&campaign, req.Id).Error; err != nil {
+		l.Errorf("Failed to query campaign: %v", err)
+		return nil, fmt.Errorf("Campaign not found")
 	}
 
-	// 2. 调用海报服务生成海报
-	// 注意：这里暂时返回模拟的海报URL，实际应该调用真实的海报服务
-	posterURL := fmt.Sprintf("https://cdn.example.com/posters/%d_%d.jpg", campaign.Id, time.Now().Unix())
+	templateId := req.TemplateId
+	if templateId == 0 {
+		templateId = campaign.PosterTemplateId
+	}
+
+	var template model.PosterTemplateConfig
+	if err := l.svcCtx.DB.First(&template, templateId).Error; err != nil {
+		l.Errorf("Failed to query poster template: %v", err)
+		return nil, fmt.Errorf("Poster template not found")
+	}
+
+	posterService := poster.NewService("/opt/data/posters", "http://localhost:8889/api/v1")
+	qrcodeData := fmt.Sprintf("campaign_id=%d", campaign.Id)
+
+	posterURL, err := posterService.GenerateCampaignPoster(campaign.Name, campaign.Description, "", qrcodeData)
+	if err != nil {
+		l.Errorf("Failed to generate poster: %v", err)
+		return nil, fmt.Errorf("Failed to generate poster: %w", err)
+	}
 
 	generationTime := time.Since(startTime).Milliseconds()
 
-	// 3. 保存海报记录到数据库
 	posterRecord := model.PosterRecord{
 		RecordType:     "campaign",
 		CampaignID:     campaign.Id,
 		DistributorID:  0,
-		TemplateName:   fmt.Sprintf("模板%d", req.TemplateId),
+		TemplateName:   template.Name,
 		PosterUrl:      posterURL,
 		ThumbnailUrl:   "",
 		FileSize:       "",
@@ -61,13 +76,12 @@ func (l *GenerateCampaignPosterLogic) GenerateCampaignPoster(req *types.Generate
 	}
 
 	if err := l.svcCtx.DB.Create(&posterRecord).Error; err != nil {
-		l.Errorf("保存海报记录失败: %v", err)
-		return nil, fmt.Errorf("保存海报记录失败: %w", err)
+		l.Errorf("Failed to save poster record: %v", err)
+		return nil, fmt.Errorf("Failed to save poster record: %w", err)
 	}
 
-	l.Infof("海报生成成功: campaignId=%d, posterUrl=%s, time=%dms", campaign.Id, posterURL, generationTime)
+	l.Infof("Poster generated successfully: campaignId=%d, posterUrl=%s, time=%dms", campaign.Id, posterURL, generationTime)
 
-	// 4. 返回响应
 	resp = &types.GeneratePosterResp{
 		PosterUrl:      posterURL,
 		ThumbnailUrl:   "",

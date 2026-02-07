@@ -11,7 +11,6 @@ import (
 	brand "dmh/api/internal/handler/brand"
 	campaign "dmh/api/internal/handler/campaign"
 	distributor "dmh/api/internal/handler/distributor"
-	menu "dmh/api/internal/handler/menu"
 	order "dmh/api/internal/handler/order"
 	poster "dmh/api/internal/handler/poster"
 	reward "dmh/api/internal/handler/reward"
@@ -221,6 +220,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: campaign.UpdateCampaignHandler(serverCtx),
 			},
 			{
+				Method:  http.MethodDelete,
+				Path:    "/campaigns/:id",
+				Handler: campaign.DeleteCampaignHandler(serverCtx),
+			},
+			{
 				Method:  http.MethodGet,
 				Path:    "/campaigns/:id/payment-qrcode",
 				Handler: campaign.GetPaymentQrcodeHandler(serverCtx),
@@ -359,46 +363,6 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			},
 		},
 		rest.WithPrefix("/api/v1"),
-	)
-
-	server.AddRoutes(
-		[]rest.Route{
-			{
-				Method:  http.MethodPost,
-				Path:    "/menus",
-				Handler: menu.CreateMenuHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/menus",
-				Handler: menu.GetMenusHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/menus/:id",
-				Handler: menu.GetMenuHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodPut,
-				Path:    "/menus/:id",
-				Handler: menu.UpdateMenuHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodDelete,
-				Path:    "/menus/:id",
-				Handler: menu.DeleteMenuHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/roles/menus",
-				Handler: menu.ConfigRoleMenusHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/users/menus",
-				Handler: menu.GetUserMenusHandler(serverCtx),
-			},
-		},
 	)
 
 	server.AddRoutes(
