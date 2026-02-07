@@ -62,7 +62,7 @@ func TestOrderIntegration_ConcurrentDuplicateCreateGuard(t *testing.T) {
 
 	req := &types.CreateOrderReq{
 		CampaignId: campaign.Id,
-		Phone:      "13900000002",
+		Phone:      "13900000003",
 		FormData: map[string]string{
 			"name": "并发测试用户",
 		},
@@ -97,10 +97,10 @@ func TestOrderIntegration_ConcurrentDuplicateCreateGuard(t *testing.T) {
 		}
 	}
 
-	assert.Equal(t, 1, successCount)
-	assert.Equal(t, 1, errCount)
+	assert.Equal(t, 1, successCount, "expected exactly one success")
+	assert.Equal(t, 1, errCount, "expected exactly one error due to unique constraint")
 
 	var total int64
 	require.NoError(t, db.Model(&model.Order{}).Where("campaign_id = ? AND phone = ?", campaign.Id, req.Phone).Count(&total).Error)
-	assert.Equal(t, int64(1), total)
+	assert.Equal(t, int64(1), total, "should have exactly one order after concurrent attempts")
 }
