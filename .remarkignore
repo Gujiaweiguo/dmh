@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+.opencode/node_modules/
+
+# Archived OpenSpec history
+openspec/changes/archive/
+
+# Generated or deployment artifacts
+deployment/backups/
+deployment/dmh-api
+
+# Standard changelog format allows duplicate headings
+CHANGELOG.md

@@ -1,0 +1,12 @@
+{
+  "lsp": {
+    "remark-md": {
+      "command": [
+        "bash",
+        "-lc",
+        "NODE_PATH=/opt/code/DMH/.opencode/node_modules /opt/code/DMH/.opencode/node_modules/.bin/remark-language-server --stdio"
+      ],
+      "extensions": [".md", ".markdown", ".mdx"]
+    }
+  }
+}
