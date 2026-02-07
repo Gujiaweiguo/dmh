@@ -59,17 +59,18 @@ func TestOrderVerifyRoutesAuthGuard(t *testing.T) {
 		require.NoError(t, err)
 
 		code := generateVerificationCode(orderID, phone, time.Now().Unix())
-		verifyURL := fmt.Sprintf("%s/api/v1/orders/verify?code=%s", baseURL, url.QueryEscape(code))
+		verifyURL := baseURL + "/api/v1/orders/verify"
+		verifyForm := url.Values{"code": {code}}
 
-		status, body, err := doJSONRequest(client, http.MethodPost, verifyURL, "", nil)
+		status, body, err := doFormRequest(client, http.MethodPost, verifyURL, "", verifyForm)
 		require.NoError(t, err)
 		require.Equalf(t, http.StatusUnauthorized, status, "no-token verify response: %s", string(body))
 
-		status, body, err = doJSONRequest(client, http.MethodPost, verifyURL, participantToken, nil)
+		status, body, err = doFormRequest(client, http.MethodPost, verifyURL, participantToken, verifyForm)
 		require.NoError(t, err)
 		require.Equalf(t, http.StatusForbidden, status, "participant verify response: %s", string(body))
 
-		status, body, err = doJSONRequest(client, http.MethodPost, verifyURL, adminToken, nil)
+		status, body, err = doFormRequest(client, http.MethodPost, verifyURL, adminToken, verifyForm)
 		require.NoError(t, err)
 		require.Equalf(t, http.StatusOK, status, "admin verify response: %s", string(body))
 	})
@@ -79,22 +80,24 @@ func TestOrderVerifyRoutesAuthGuard(t *testing.T) {
 		require.NoError(t, err)
 
 		code := generateVerificationCode(orderID, phone, time.Now().Unix())
-		verifyURL := fmt.Sprintf("%s/api/v1/orders/verify?code=%s", baseURL, url.QueryEscape(code))
-		unverifyURL := fmt.Sprintf("%s/api/v1/orders/unverify?code=%s", baseURL, url.QueryEscape(code))
+		verifyURL := baseURL + "/api/v1/orders/verify"
+		unverifyURL := baseURL + "/api/v1/orders/unverify"
+		verifyForm := url.Values{"code": {code}}
+		unverifyForm := url.Values{"code": {code}}
 
-		status, body, err := doJSONRequest(client, http.MethodPost, verifyURL, adminToken, nil)
+		status, body, err := doFormRequest(client, http.MethodPost, verifyURL, adminToken, verifyForm)
 		require.NoError(t, err)
 		require.Equalf(t, http.StatusOK, status, "verify setup response: %s", string(body))
 
-		status, body, err = doJSONRequest(client, http.MethodPost, unverifyURL, "", nil)
+		status, body, err = doFormRequest(client, http.MethodPost, unverifyURL, "", unverifyForm)
 		require.NoError(t, err)
 		require.Equalf(t, http.StatusUnauthorized, status, "no-token unverify response: %s", string(body))
 
-		status, body, err = doJSONRequest(client, http.MethodPost, unverifyURL, participantToken, nil)
+		status, body, err = doFormRequest(client, http.MethodPost, unverifyURL, participantToken, unverifyForm)
 		require.NoError(t, err)
 		require.Equalf(t, http.StatusForbidden, status, "participant unverify response: %s", string(body))
 
-		status, body, err = doJSONRequest(client, http.MethodPost, unverifyURL, adminToken, nil)
+		status, body, err = doFormRequest(client, http.MethodPost, unverifyURL, adminToken, unverifyForm)
 		require.NoError(t, err)
 		require.Equalf(t, http.StatusOK, status, "admin unverify response: %s", string(body))
 	})
@@ -267,6 +270,36 @@ func doJSONRequest(client *http.Client, method, url, token string, payload inter
 	}
 
 	req.Header.Set("Content-Type", "application/json")
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return 0, nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	return resp.StatusCode, body, nil
+}
+
+func doFormRequest(client *http.Client, method, endpoint, token string, form url.Values) (int, []byte, error) {
+	var reqBody io.Reader
+	if form != nil {
+		reqBody = strings.NewReader(form.Encode())
+	}
+
+	req, err := http.NewRequest(method, endpoint, reqBody)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	if token != "" {
 		req.Header.Set("Authorization", "Bearer "+token)
 	}
