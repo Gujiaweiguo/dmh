@@ -21,7 +21,7 @@ cd "$ROOT_DIR"
 OUT_FILE="$(mktemp)"
 trap 'rm -f "$OUT_FILE"' EXIT
 
-go test ./test/integration -run 'TestOrderVerifyRoutesAuthGuard|TestOrderCreateDuplicateMessage' -count=1 -v | tee "$OUT_FILE"
+go test ./test/integration/order_verify_auth_guard_integration_test.go -run 'TestOrderVerifyRoutesAuthGuard|TestOrderCreateDuplicateMessage' -count=1 -v | tee "$OUT_FILE"
 
 if grep -E -q -- '--- SKIP: TestOrderVerifyRoutesAuthGuard|--- SKIP: TestOrderCreateDuplicateMessage' "$OUT_FILE"; then
   echo ""
