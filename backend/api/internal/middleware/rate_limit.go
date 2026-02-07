@@ -163,7 +163,7 @@ func (l *RedisRateLimiter) Allow(userID string) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	key := fmt.Sprintf("%s:requests", l.prefix, userID)
+	key := fmt.Sprintf("%s:requests:%s", l.prefix, userID)
 
 	count, err := l.redis.Incr(context.Background(), key)
 	if err != nil {
@@ -186,7 +186,7 @@ func (l *RedisRateLimiter) GetRemaining(userID string) int {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	key := fmt.Sprintf("%s:requests", l.prefix, userID)
+	key := fmt.Sprintf("%s:requests:%s", l.prefix, userID)
 
 	count, err := l.redis.Get(context.Background(), key)
 	if err != nil {
@@ -207,7 +207,7 @@ func (l *RedisRateLimiter) GetResetTime(userID string) time.Time {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	key := fmt.Sprintf("%s:requests:expire", l.prefix, userID)
+	key := fmt.Sprintf("%s:requests:expire:%s", l.prefix, userID)
 
 	ttl, err := l.redis.TTL(context.Background(), key)
 	if err != nil {
