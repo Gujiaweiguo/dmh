@@ -40,7 +40,7 @@ func (s *AuditService) LogUserAction(ctx *AuditContext, action, resource, resour
 			detailsJSON = string(detailsBytes)
 		}
 	}
-	
+
 	auditLog := &model.AuditLog{
 		UserID:     ctx.UserID,
 		Username:   ctx.Username,
@@ -52,7 +52,7 @@ func (s *AuditService) LogUserAction(ctx *AuditContext, action, resource, resour
 		UserAgent:  ctx.UserAgent,
 		Status:     "success",
 	}
-	
+
 	return s.db.Create(auditLog).Error
 }
 
@@ -69,7 +69,7 @@ func (s *AuditService) LogFailedAction(ctx *AuditContext, action, resource, reso
 		Status:     "failed",
 		ErrorMsg:   errorMsg,
 	}
-	
+
 	return s.db.Create(auditLog).Error
 }
 
@@ -83,7 +83,7 @@ func (s *AuditService) LogLoginAttempt(userID *int64, username, clientIP, userAg
 		Success:    success,
 		FailReason: failReason,
 	}
-	
+
 	return s.db.Create(loginAttempt).Error
 }
 
@@ -95,7 +95,7 @@ func (s *AuditService) LogSecurityEvent(eventType, severity string, userID *int6
 			detailsJSON = string(detailsBytes)
 		}
 	}
-	
+
 	securityEvent := &model.SecurityEvent{
 		EventType:   eventType,
 		Severity:    severity,
@@ -107,7 +107,7 @@ func (s *AuditService) LogSecurityEvent(eventType, severity string, userID *int6
 		Details:     detailsJSON,
 		Handled:     false,
 	}
-	
+
 	return s.db.Create(securityEvent).Error
 }
 
@@ -115,9 +115,9 @@ func (s *AuditService) LogSecurityEvent(eventType, severity string, userID *int6
 func (s *AuditService) GetAuditLogs(page, pageSize int, filters map[string]interface{}) ([]model.AuditLog, int64, error) {
 	var logs []model.AuditLog
 	var total int64
-	
+
 	query := s.db.Model(&model.AuditLog{})
-	
+
 	// 应用过滤条件
 	if userID, ok := filters["user_id"]; ok {
 		query = query.Where("user_id = ?", userID)
@@ -140,19 +140,19 @@ func (s *AuditService) GetAuditLogs(page, pageSize int, filters map[string]inter
 	if endTime, ok := filters["end_time"]; ok {
 		query = query.Where("created_at <= ?", endTime)
 	}
-	
+
 	// 获取总数
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
-	
+
 	// 获取分页数据
 	offset := (page - 1) * pageSize
 	err := query.Order("created_at DESC").
 		Offset(offset).
 		Limit(pageSize).
 		Find(&logs).Error
-	
+
 	return logs, total, err
 }
 
@@ -160,9 +160,9 @@ func (s *AuditService) GetAuditLogs(page, pageSize int, filters map[string]inter
 func (s *AuditService) GetLoginAttempts(page, pageSize int, filters map[string]interface{}) ([]model.LoginAttempt, int64, error) {
 	var attempts []model.LoginAttempt
 	var total int64
-	
+
 	query := s.db.Model(&model.LoginAttempt{})
-	
+
 	// 应用过滤条件
 	if userID, ok := filters["user_id"]; ok {
 		query = query.Where("user_id = ?", userID)
@@ -182,19 +182,19 @@ func (s *AuditService) GetLoginAttempts(page, pageSize int, filters map[string]i
 	if endTime, ok := filters["end_time"]; ok {
 		query = query.Where("created_at <= ?", endTime)
 	}
-	
+
 	// 获取总数
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
-	
+
 	// 获取分页数据
 	offset := (page - 1) * pageSize
 	err := query.Order("created_at DESC").
 		Offset(offset).
 		Limit(pageSize).
 		Find(&attempts).Error
-	
+
 	return attempts, total, err
 }
 
@@ -202,9 +202,9 @@ func (s *AuditService) GetLoginAttempts(page, pageSize int, filters map[string]i
 func (s *AuditService) GetSecurityEvents(page, pageSize int, filters map[string]interface{}) ([]model.SecurityEvent, int64, error) {
 	var events []model.SecurityEvent
 	var total int64
-	
+
 	query := s.db.Model(&model.SecurityEvent{})
-	
+
 	// 应用过滤条件
 	if eventType, ok := filters["event_type"]; ok {
 		query = query.Where("event_type = ?", eventType)
@@ -224,19 +224,19 @@ func (s *AuditService) GetSecurityEvents(page, pageSize int, filters map[string]
 	if endTime, ok := filters["end_time"]; ok {
 		query = query.Where("created_at <= ?", endTime)
 	}
-	
+
 	// 获取总数
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
-	
+
 	// 获取分页数据
 	offset := (page - 1) * pageSize
 	err := query.Order("created_at DESC").
 		Offset(offset).
 		Limit(pageSize).
 		Find(&events).Error
-	
+
 	return events, total, err
 }
 
@@ -247,7 +247,7 @@ func (s *AuditService) HandleSecurityEvent(eventID, handlerID int64, note string
 		"handled_by": handlerID,
 		"handled_at": time.Now(),
 	}
-	
+
 	return s.db.Model(&model.SecurityEvent{}).
 		Where("id = ?", eventID).
 		Updates(updates).Error
@@ -259,17 +259,17 @@ func (s *AuditService) DetectSuspiciousActivity() error {
 	if err := s.detectFrequentLoginFailures(); err != nil {
 		return err
 	}
-	
+
 	// 检测异常IP登录
 	if err := s.detectAbnormalIPLogin(); err != nil {
 		return err
 	}
-	
+
 	// 检测权限提升操作
 	if err := s.detectPrivilegeEscalation(); err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 
@@ -280,22 +280,23 @@ func (s *AuditService) detectFrequentLoginFailures() error {
 		ClientIP string
 		Count    int64
 	}
-	
-	oneHourAgo := time.Now().Add(-1 * time.Hour)
+
+	// 使用UTC时间查询以确保与数据库存储的UTC时间一致
+	oneHourAgo := time.Now().UTC().Add(-1 * time.Hour)
 	err := s.db.Model(&model.LoginAttempt{}).
 		Select("client_ip, COUNT(*) as count").
 		Where("success = ? AND created_at >= ?", false, oneHourAgo).
 		Group("client_ip").
 		Having("COUNT(*) >= ?", 10).
 		Find(&results).Error
-	
+
 	if err != nil {
 		return err
 	}
-	
+
 	// 记录安全事件
 	for _, result := range results {
-		s.LogSecurityEvent(
+		err := s.LogSecurityEvent(
 			"frequent_login_failures",
 			"medium",
 			nil,
@@ -304,13 +305,16 @@ func (s *AuditService) detectFrequentLoginFailures() error {
 			"",
 			fmt.Sprintf("IP %s 在1小时内登录失败 %d 次", result.ClientIP, result.Count),
 			map[string]interface{}{
-				"client_ip":    result.ClientIP,
+				"client_ip":     result.ClientIP,
 				"failure_count": result.Count,
-				"time_window":  "1 hour",
+				"time_window":   "1 hour",
 			},
 		)
+		if err != nil {
+			return err
+		}
 	}
-	
+
 	return nil
 }
 
@@ -322,9 +326,9 @@ func (s *AuditService) detectAbnormalIPLogin() error {
 		Username string
 		ClientIP string
 	}
-	
-	// 查找最近24小时内的成功登录
-	oneDayAgo := time.Now().Add(-24 * time.Hour)
+
+	// 查找最近24小时内的成功登录 (使用UTC时间以确保与数据库存储一致)
+	oneDayAgo := time.Now().UTC().Add(-24 * time.Hour)
 	err := s.db.Raw(`
 		SELECT DISTINCT la.user_id, la.username, la.client_ip
 		FROM login_attempts la
@@ -339,11 +343,11 @@ func (s *AuditService) detectAbnormalIPLogin() error {
 			AND la2.created_at < ?
 		)
 	`, oneDayAgo, oneDayAgo).Scan(&results).Error
-	
+
 	if err != nil {
 		return err
 	}
-	
+
 	// 记录安全事件
 	for _, result := range results {
 		s.LogSecurityEvent(
@@ -361,24 +365,24 @@ func (s *AuditService) detectAbnormalIPLogin() error {
 			},
 		)
 	}
-	
+
 	return nil
 }
 
 // detectPrivilegeEscalation 检测权限提升操作
 func (s *AuditService) detectPrivilegeEscalation() error {
-	// 查找最近1小时内的权限相关操作
-	oneHourAgo := time.Now().Add(-1 * time.Hour)
+	// 查找最近1小时内的权限相关操作 (使用UTC时间以确保与数据库存储一致)
+	oneHourAgo := time.Now().UTC().Add(-1 * time.Hour)
 	var logs []model.AuditLog
-	
-	err := s.db.Where("action IN ? AND created_at >= ?", 
-		[]string{"update_user_role", "assign_permission", "create_admin_user"}, 
+
+	err := s.db.Where("action IN ? AND created_at >= ?",
+		[]string{"update_user_role", "assign_permission", "create_admin_user"},
 		oneHourAgo).Find(&logs).Error
-	
+
 	if err != nil {
 		return err
 	}
-	
+
 	// 记录安全事件
 	for _, log := range logs {
 		s.LogSecurityEvent(
@@ -397,7 +401,7 @@ func (s *AuditService) detectPrivilegeEscalation() error {
 			},
 		)
 	}
-	
+
 	return nil
 }
 
@@ -420,17 +424,17 @@ func getClientIP(r *http.Request) string {
 		ips := strings.Split(clientIP, ",")
 		return strings.TrimSpace(ips[0])
 	}
-	
+
 	clientIP = r.Header.Get("X-Real-IP")
 	if clientIP != "" {
 		return clientIP
 	}
-	
+
 	clientIP = r.Header.Get("X-Client-IP")
 	if clientIP != "" {
 		return clientIP
 	}
-	
+
 	// 如果都没有，使用RemoteAddr
 	return strings.Split(r.RemoteAddr, ":")[0]
 }

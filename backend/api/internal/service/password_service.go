@@ -25,18 +25,21 @@ func NewPasswordService(db *gorm.DB) *PasswordService {
 
 // GetPasswordPolicy 获取密码策略
 func (s *PasswordService) GetPasswordPolicy() (*model.PasswordPolicy, error) {
-	var policy model.PasswordPolicy
-	
-	err := s.db.First(&policy).Error
+	var policies []model.PasswordPolicy
+
+	// 获取所有策略，按ID倒序（最新的在前）
+	err := s.db.Order("id DESC").Find(&policies).Error
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			// 如果没有配置，返回默认策略
-			return s.getDefaultPasswordPolicy(), nil
-		}
 		return nil, err
 	}
-	
-	return &policy, nil
+
+	// 如果没有策略，返回默认策略
+	if len(policies) == 0 {
+		return s.getDefaultPasswordPolicy(), nil
+	}
+
+	// 返回最新的策略
+	return &policies[0], nil
 }
 
 // getDefaultPasswordPolicy 获取默认密码策略
@@ -62,47 +65,47 @@ func (s *PasswordService) ValidatePassword(password string, userID int64) error 
 	if err != nil {
 		return fmt.Errorf("获取密码策略失败: %v", err)
 	}
-	
+
 	// 检查密码长度
 	if len(password) < policy.MinLength {
 		return fmt.Errorf("密码长度不能少于%d位", policy.MinLength)
 	}
-	
+
 	// 检查大写字母
 	if policy.RequireUppercase {
 		if matched, _ := regexp.MatchString(`[A-Z]`, password); !matched {
 			return fmt.Errorf("密码必须包含至少一个大写字母")
 		}
 	}
-	
+
 	// 检查小写字母
 	if policy.RequireLowercase {
 		if matched, _ := regexp.MatchString(`[a-z]`, password); !matched {
 			return fmt.Errorf("密码必须包含至少一个小写字母")
 		}
 	}
-	
+
 	// 检查数字
 	if policy.RequireNumbers {
 		if matched, _ := regexp.MatchString(`[0-9]`, password); !matched {
 			return fmt.Errorf("密码必须包含至少一个数字")
 		}
 	}
-	
+
 	// 检查特殊字符
 	if policy.RequireSpecialChars {
 		if matched, _ := regexp.MatchString(`[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\?]`, password); !matched {
 			return fmt.Errorf("密码必须包含至少一个特殊字符")
 		}
 	}
-	
+
 	// 检查密码历史
 	if userID > 0 {
 		if err := s.checkPasswordHistory(password, userID, policy.HistoryCount); err != nil {
 			return err
 		}
 	}
-	
+
 	return nil
 }
 
@@ -111,23 +114,23 @@ func (s *PasswordService) checkPasswordHistory(password string, userID int64, hi
 	if historyCount <= 0 {
 		return nil
 	}
-	
+
 	var histories []model.PasswordHistory
 	err := s.db.Where("user_id = ?", userID).
 		Order("created_at DESC").
 		Limit(historyCount).
 		Find(&histories).Error
-	
+
 	if err != nil {
 		return fmt.Errorf("检查密码历史失败: %v", err)
 	}
-	
+
 	for _, history := range histories {
 		if err := bcrypt.CompareHashAndPassword([]byte(history.PasswordHash), []byte(password)); err == nil {
 			return fmt.Errorf("不能使用最近%d次使用过的密码", historyCount)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -137,17 +140,17 @@ func (s *PasswordService) SavePasswordHistory(userID int64, passwordHash string)
 	if err != nil {
 		return err
 	}
-	
+
 	// 保存新的密码历史
 	history := &model.PasswordHistory{
 		UserID:       userID,
 		PasswordHash: passwordHash,
 	}
-	
+
 	if err := s.db.Create(history).Error; err != nil {
 		return fmt.Errorf("保存密码历史失败: %v", err)
 	}
-	
+
 	// 清理超出限制的历史记录
 	if policy.HistoryCount > 0 {
 		var oldHistories []model.PasswordHistory
@@ -155,7 +158,7 @@ func (s *PasswordService) SavePasswordHistory(userID int64, passwordHash string)
 			Order("created_at DESC").
 			Offset(policy.HistoryCount).
 			Find(&oldHistories).Error
-		
+
 		if err == nil && len(oldHistories) > 0 {
 			var ids []int64
 			for _, h := range oldHistories {
@@ -164,7 +167,7 @@ func (s *PasswordService) SavePasswordHistory(userID int64, passwordHash string)
 			s.db.Where("id IN ?", ids).Delete(&model.PasswordHistory{})
 		}
 	}
-	
+
 	return nil
 }
 
@@ -174,24 +177,24 @@ func (s *PasswordService) IsPasswordExpired(userID int64) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	
+
 	if policy.MaxAge <= 0 {
 		return false, nil // 密码不过期
 	}
-	
+
 	var user model.User
 	err = s.db.Where("id = ?", userID).First(&user).Error
 	if err != nil {
 		return false, err
 	}
-	
+
 	// 检查最后一次密码更新时间
 	var lastPasswordChange time.Time
 	var history model.PasswordHistory
 	err = s.db.Where("user_id = ?", userID).
 		Order("created_at DESC").
 		First(&history).Error
-	
+
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			// 如果没有密码历史，使用用户创建时间
@@ -202,7 +205,7 @@ func (s *PasswordService) IsPasswordExpired(userID int64) (bool, error) {
 	} else {
 		lastPasswordChange = history.CreatedAt
 	}
-	
+
 	// 检查是否过期
 	expireTime := lastPasswordChange.AddDate(0, 0, policy.MaxAge)
 	return time.Now().After(expireTime), nil
@@ -211,7 +214,7 @@ func (s *PasswordService) IsPasswordExpired(userID int64) (bool, error) {
 // GeneratePasswordStrengthScore 生成密码强度评分
 func (s *PasswordService) GeneratePasswordStrengthScore(password string) int {
 	score := 0
-	
+
 	// 长度评分
 	if len(password) >= 8 {
 		score += 25
@@ -219,7 +222,7 @@ func (s *PasswordService) GeneratePasswordStrengthScore(password string) int {
 	if len(password) >= 12 {
 		score += 25
 	}
-	
+
 	// 字符类型评分
 	if matched, _ := regexp.MatchString(`[a-z]`, password); matched {
 		score += 10
@@ -233,7 +236,7 @@ func (s *PasswordService) GeneratePasswordStrengthScore(password string) int {
 	if matched, _ := regexp.MatchString(`[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\?]`, password); matched {
 		score += 20
 	}
-	
+
 	// 复杂度评分
 	if len(password) > 0 {
 		uniqueChars := make(map[rune]bool)
@@ -244,12 +247,12 @@ func (s *PasswordService) GeneratePasswordStrengthScore(password string) int {
 			score += 10
 		}
 	}
-	
+
 	// 确保评分在0-100之间
 	if score > 100 {
 		score = 100
 	}
-	
+
 	return score
 }
 
@@ -284,7 +287,7 @@ func (s *PasswordService) VerifyPassword(password, hashedPassword string) error 
 func (s *PasswordService) UpdatePasswordPolicy(policy *model.PasswordPolicy) error {
 	var existingPolicy model.PasswordPolicy
 	err := s.db.First(&existingPolicy).Error
-	
+
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			// 创建新策略
@@ -292,7 +295,7 @@ func (s *PasswordService) UpdatePasswordPolicy(policy *model.PasswordPolicy) err
 		}
 		return err
 	}
-	
+
 	// 更新现有策略
 	policy.ID = existingPolicy.ID
 	return s.db.Save(policy).Error

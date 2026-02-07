@@ -59,20 +59,20 @@ func (suite *PasswordServiceTestSuite) TestGetPasswordPolicy() {
 	assert.True(suite.T(), policy.RequireSpecialChars)
 
 	// 测试获取自定义密码策略
-	customPolicy := &model.PasswordPolicy{
-		MinLength:             10,
-		RequireUppercase:      true,
-		RequireLowercase:      true,
-		RequireNumbers:        true,
-		RequireSpecialChars:   false,
-		MaxAge:                60,
-		HistoryCount:          3,
-		MaxLoginAttempts:      3,
-		LockoutDuration:       15,
-		SessionTimeout:        240,
-		MaxConcurrentSessions: 2,
+	customPolicy := map[string]interface{}{
+		"min_length":              10,
+		"require_uppercase":       true,
+		"require_lowercase":       true,
+		"require_numbers":         true,
+		"require_special_chars":   false,
+		"max_age":                 60,
+		"history_count":           3,
+		"max_login_attempts":      3,
+		"lockout_duration":        15,
+		"session_timeout":         240,
+		"max_concurrent_sessions": 2,
 	}
-	err = suite.db.Create(customPolicy).Error
+	err = suite.db.Model(&model.PasswordPolicy{}).Create(customPolicy).Error
 	assert.NoError(suite.T(), err)
 
 	policy, err = suite.passwordService.GetPasswordPolicy()
@@ -114,7 +114,7 @@ func (suite *PasswordServiceTestSuite) TestValidatePassword() {
 
 func (suite *PasswordServiceTestSuite) TestPasswordHistory() {
 	userID := int64(1)
-	
+
 	// 创建测试用户
 	user := &model.User{
 		Id:       userID,
@@ -147,7 +147,7 @@ func (suite *PasswordServiceTestSuite) TestPasswordHistory() {
 
 func (suite *PasswordServiceTestSuite) TestPasswordExpiration() {
 	userID := int64(1)
-	
+
 	// 创建测试用户
 	user := &model.User{
 		Id:        userID,
@@ -198,7 +198,7 @@ func (suite *PasswordServiceTestSuite) TestPasswordStrength() {
 
 func (suite *PasswordServiceTestSuite) TestHashAndVerifyPassword() {
 	password := "TestPassword123!"
-	
+
 	// 测试密码加密
 	hashedPassword, err := suite.passwordService.HashPassword(password)
 	assert.NoError(suite.T(), err)
