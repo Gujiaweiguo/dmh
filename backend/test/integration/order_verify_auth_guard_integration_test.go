@@ -21,8 +21,8 @@ import (
 const (
 	orderAuthGuardBaseURL      = "http://localhost:8889"
 	verificationSignSecret     = "dmh-verification-secret-2026"
-	adminUsername              = "admin"
-	adminPassword              = "123456"
+	defaultAdminUsername       = "admin"
+	defaultAdminPassword       = "123456"
 	participantSyntheticUserID = int64(900001)
 )
 
@@ -33,6 +33,7 @@ func TestOrderVerifyRoutesAuthGuard(t *testing.T) {
 	}
 
 	client := &http.Client{Timeout: 10 * time.Second}
+	adminUsername, adminPassword := getTestAdminCredentials()
 
 	adminToken, err := loginAndGetToken(client, baseURL, adminUsername, adminPassword)
 	if err != nil {
@@ -106,6 +107,7 @@ func TestOrderCreateDuplicateMessage(t *testing.T) {
 	}
 
 	client := &http.Client{Timeout: 10 * time.Second}
+	adminUsername, adminPassword := getTestAdminCredentials()
 
 	adminToken, err := loginAndGetToken(client, baseURL, adminUsername, adminPassword)
 	if err != nil {
@@ -162,6 +164,20 @@ func loginAndGetToken(client *http.Client, baseURL, username, password string) (
 	}
 
 	return resp.Token, nil
+}
+
+func getTestAdminCredentials() (string, string) {
+	username := strings.TrimSpace(os.Getenv("DMH_TEST_ADMIN_USERNAME"))
+	if username == "" {
+		username = defaultAdminUsername
+	}
+
+	password := strings.TrimSpace(os.Getenv("DMH_TEST_ADMIN_PASSWORD"))
+	if password == "" {
+		password = defaultAdminPassword
+	}
+
+	return username, password
 }
 
 func createActiveCampaign(client *http.Client, baseURL, adminToken string) (int64, error) {
