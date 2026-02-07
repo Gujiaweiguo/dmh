@@ -2,6 +2,7 @@ package order
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"dmh/api/internal/types"
 	"dmh/model"
 
+	mysqlDriver "github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -221,4 +223,22 @@ func TestValidateField_UnsupportedType(t *testing.T) {
 	err := validateField("x", model.FormField{Type: "checkbox", Name: "agree", Label: "同意"})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "不支持的字段类型")
+}
+
+func TestIsDuplicateOrderError_MySQL1062(t *testing.T) {
+	err := &mysqlDriver.MySQLError{Number: 1062, Message: "Duplicate entry '1-13800138000' for key 'uk_orders_campaign_phone'"}
+	assert.True(t, isDuplicateOrderError(err))
+
+	wrapped := fmt.Errorf("db insert failed: %w", err)
+	assert.True(t, isDuplicateOrderError(wrapped))
+}
+
+func TestIsDuplicateOrderError_SQLiteUniqueConstraint(t *testing.T) {
+	err := fmt.Errorf("UNIQUE constraint failed: orders.campaign_id, orders.phone")
+	assert.True(t, isDuplicateOrderError(err))
+}
+
+func TestIsDuplicateOrderError_NonDuplicate(t *testing.T) {
+	err := fmt.Errorf("connection reset by peer")
+	assert.False(t, isDuplicateOrderError(err))
 }
