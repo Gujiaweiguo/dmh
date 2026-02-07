@@ -101,6 +101,9 @@ export interface Campaign {
   endTime: string;
   status: 'active' | 'paused' | 'ended';
   createdAt: string;
+  enableDistribution?: boolean;
+  distributionLevel?: number;
+  distributionRewards?: string;
   paymentConfig?: string;
   posterTemplateId?: number;
 }

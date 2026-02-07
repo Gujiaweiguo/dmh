@@ -14,6 +14,11 @@ export interface CreateCampaignRequest {
   rewardRule: number;
   startTime: string;
   endTime: string;
+  paymentConfig?: string;
+  enableDistribution?: boolean;
+  distributionLevel?: number;
+  distributionRewards?: string;
+  posterTemplateId?: number;
 }
 
 export interface UpdateCampaignRequest extends CreateCampaignRequest {

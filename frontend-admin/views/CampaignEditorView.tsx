@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { Save, ArrowLeft, Plus, Trash2, Setting } from 'lucide-vue-next';
 import { campaignApi, type CreateCampaignRequest, type UpdateCampaignRequest } from '../services/campaignApi';
+import { posterApi } from '../services/posterApi';
 import type { Campaign, PosterTemplate } from '../types';
 
 const props = defineProps<{
@@ -14,6 +15,9 @@ const form = ref<CreateCampaignRequest & {
   status?: 'active' | 'paused' | 'ended';
   paymentConfig?: string;
   posterTemplateId?: number;
+  enableDistribution?: boolean;
+  distributionLevel?: number;
+  distributionRewards?: string;
 }>({
   brandId: 1,
   name: '',
@@ -24,7 +28,10 @@ const form = ref<CreateCampaignRequest & {
   endTime: '',
   status: 'active',
   paymentConfig: '',
-  posterTemplateId: 1
+  posterTemplateId: 1,
+  enableDistribution: false,
+  distributionLevel: 1,
+  distributionRewards: ''
 });
 
 const posterTemplates = ref<PosterTemplate[]>([]);
@@ -47,6 +54,28 @@ const paymentConfigForm = ref({
   maxAmount: undefined as number | undefined
 });
 
+const distributionRewardsForm = ref({
+  level1: 10,
+  level2: 5,
+  level3: 3
+});
+
+const parseDistributionRewards = (value?: string) => {
+  if (!value) return;
+  try {
+    const parsed = JSON.parse(value);
+    if (parsed && typeof parsed === 'object') {
+      distributionRewardsForm.value = {
+        level1: Number(parsed.level1 ?? distributionRewardsForm.value.level1),
+        level2: Number(parsed.level2 ?? distributionRewardsForm.value.level2),
+        level3: Number(parsed.level3 ?? distributionRewardsForm.value.level3)
+      };
+    }
+  } catch (error) {
+    console.warn('Failed to parse distribution rewards:', error);
+  }
+};
+
 const loadCampaign = async () => {
   if (!props.campaignId) return;
 
@@ -63,8 +92,12 @@ const loadCampaign = async () => {
       endTime: campaign.endTime,
       status: campaign.status,
       paymentConfig: campaign.paymentConfig || '',
-      posterTemplateId: campaign.posterTemplateId || 1
+      posterTemplateId: campaign.posterTemplateId || 1,
+      enableDistribution: campaign.enableDistribution ?? false,
+      distributionLevel: campaign.distributionLevel || 1,
+      distributionRewards: campaign.distributionRewards || ''
     };
+    parseDistributionRewards(campaign.distributionRewards);
   } catch (error) {
     console.error('Failed to load campaign:', error);
     alert('加载活动失败');
@@ -76,8 +109,8 @@ const loadCampaign = async () => {
 const loadPosterTemplates = async () => {
   posterTemplatesLoading.value = true;
   try {
-    const templates = await campaignApi.getPosterTemplates();
-    posterTemplates.value = templates.filter((t: PosterTemplate) => t.status === 'active');
+    const response = await posterApi.getPosterTemplates();
+    posterTemplates.value = response.templates.filter((t: PosterTemplate) => t.status === 'active');
   } catch (error) {
     console.error('Failed to load poster templates:', error);
     alert('加载海报模板失败');
@@ -117,7 +150,39 @@ const validateForm = (): boolean => {
     alert('开始时间不能晚于结束时间');
     return false;
   }
+
+  if (form.value.enableDistribution) {
+    const level = Number(form.value.distributionLevel || 1);
+    if (level < 1 || level > 3) {
+      alert('分销层级必须是 1 到 3');
+      return false;
+    }
+    const rewards = distributionRewardsForm.value;
+    const requiredLevels = ['level1', 'level2', 'level3'].slice(0, level);
+    for (const key of requiredLevels) {
+      const value = Number((rewards as any)[key]);
+      if (!Number.isFinite(value) || value < 0 || value > 100) {
+        alert('分销奖励比例必须是 0-100 的数字');
+        return false;
+      }
+    }
+  }
   return true;
+};
+
+const buildDistributionRewards = () => {
+  const level = Number(form.value.distributionLevel || 1);
+  const rewards = distributionRewardsForm.value;
+  const payload: Record<string, number> = {
+    level1: Number(rewards.level1) || 0
+  };
+  if (level >= 2) {
+    payload.level2 = Number(rewards.level2) || 0;
+  }
+  if (level >= 3) {
+    payload.level3 = Number(rewards.level3) || 0;
+  }
+  return JSON.stringify(payload);
 };
 
 const handleSave = async () => {
@@ -125,6 +190,13 @@ const handleSave = async () => {
 
   saving.value = true;
   try {
+    form.value.distributionLevel = Number(form.value.distributionLevel || 1);
+    if (form.value.enableDistribution) {
+      form.value.distributionRewards = buildDistributionRewards();
+    } else {
+      form.value.distributionRewards = '';
+    }
+
     if (isEditMode.value && props.campaignId) {
       await campaignApi.updateCampaign(props.campaignId, form.value as UpdateCampaignRequest);
       alert('更新成功');
@@ -236,6 +308,42 @@ onMounted(() => {
               <Setting :size="20" />
               <span>{{ form.paymentConfig ? '已配置' : '未配置' }}</span>
             </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2 class="section-title">分销规则</h2>
+
+        <div class="form-group form-inline">
+          <label>启用分销</label>
+          <input type="checkbox" v-model="form.enableDistribution" />
+          <span class="form-tip">开启后可设置多级分销奖励</span>
+        </div>
+
+        <div class="form-row" v-if="form.enableDistribution">
+          <div class="form-group">
+            <label>分销层级</label>
+            <select v-model.number="form.distributionLevel">
+              <option :value="1">一级</option>
+              <option :value="2">二级</option>
+              <option :value="3">三级</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>一级奖励比例 (%)</label>
+            <input v-model.number="distributionRewardsForm.level1" type="number" min="0" max="100" />
+          </div>
+        </div>
+
+        <div class="form-row" v-if="form.enableDistribution && form.distributionLevel >= 2">
+          <div class="form-group">
+            <label>二级奖励比例 (%)</label>
+            <input v-model.number="distributionRewardsForm.level2" type="number" min="0" max="100" />
+          </div>
+          <div class="form-group">
+            <label>三级奖励比例 (%)</label>
+            <input v-model.number="distributionRewardsForm.level3" type="number" min="0" max="100" :disabled="form.distributionLevel < 3" />
           </div>
         </div>
       </div>
@@ -399,6 +507,21 @@ onMounted(() => {
   font-weight: 500;
   color: #374151;
   margin-bottom: 8px;
+}
+
+.form-inline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.form-inline label {
+  margin-bottom: 0;
+}
+
+.form-tip {
+  font-size: 12px;
+  color: #6b7280;
 }
 
 .form-group input,

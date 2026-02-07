@@ -8,6 +8,7 @@ import MemberExportView from './views/MemberExportView';
 import { DistributorManagementView } from './views/DistributorManagementView';
 import VerificationRecordsView from './views/VerificationRecordsView.vue';
 import PosterRecordsView from './views/PosterRecordsView.vue';
+import { resolveAdminHashRoute, type MemberRoute } from './utils/adminHashRoute';
 import './src/index.css';
 import './styles/member.css';
 
@@ -432,7 +433,10 @@ const CampaignManagementView = defineComponent({
               type: 'text',
               value: filters.keyword,
               placeholder: '搜索活动名称',
-              onInput: (e) => filters.keyword = e.target.value,
+              onInput: (e: Event) => {
+                const target = e.target as HTMLInputElement | null;
+                filters.keyword = target?.value ?? '';
+              },
               class: 'w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm'
             })
           ]),
@@ -440,7 +444,10 @@ const CampaignManagementView = defineComponent({
             h('label', { class: 'block text-sm font-medium text-slate-700 mb-2' }, '品牌'),
             h('select', {
               value: filters.brandId,
-              onChange: (e) => filters.brandId = e.target.value,
+              onChange: (e: Event) => {
+                const target = e.target as HTMLSelectElement | null;
+                filters.brandId = target?.value ?? '';
+              },
               class: 'w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm'
             }, [
               h('option', { value: '' }, '全部品牌'),
@@ -453,7 +460,10 @@ const CampaignManagementView = defineComponent({
             h('label', { class: 'block text-sm font-medium text-slate-700 mb-2' }, '状态'),
             h('select', {
               value: filters.status,
-              onChange: (e) => filters.status = e.target.value,
+              onChange: (e: Event) => {
+                const target = e.target as HTMLSelectElement | null;
+                filters.status = target?.value ?? '';
+              },
               class: 'w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm'
             }, [
               h('option', { value: '' }, '全部状态'),
@@ -467,7 +477,10 @@ const CampaignManagementView = defineComponent({
             h('input', {
               type: 'date',
               value: filters.startDate,
-              onInput: (e) => filters.startDate = e.target.value,
+              onInput: (e: Event) => {
+                const target = e.target as HTMLInputElement | null;
+                filters.startDate = target?.value ?? '';
+              },
               class: 'w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm'
             })
           ]),
@@ -476,7 +489,10 @@ const CampaignManagementView = defineComponent({
             h('input', {
               type: 'date',
               value: filters.endDate,
-              onInput: (e) => filters.endDate = e.target.value,
+              onInput: (e: Event) => {
+                const target = e.target as HTMLInputElement | null;
+                filters.endDate = target?.value ?? '';
+              },
               class: 'w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm'
             })
           ])
@@ -788,33 +804,18 @@ const AdminApp = defineComponent({
     const loginError = ref('');
     const loginLoading = ref(false);
     const activeTab = ref('dashboard');
-    const memberRoute = ref<'list' | 'detail' | 'merge' | 'export'>('list');
+    const memberRoute = ref<MemberRoute>('list');
 
 	    const syncFromHash = () => {
-	      const hash = window.location.hash || '';
-	      if (hash.startsWith('#/distributor-approval')) {
-	        activeTab.value = 'distributor-management';
-	        window.location.hash = '#/distributor-management';
-	        return;
+	      const route = resolveAdminHashRoute(window.location.hash || '');
+	      if (route.activeTab) {
+	        activeTab.value = route.activeTab;
 	      }
-	      if (hash.startsWith('#/members')) {
-	        activeTab.value = 'members';
-	        if (hash.startsWith('#/members/merge')) {
-	          memberRoute.value = 'merge';
-        } else if (hash.startsWith('#/members/export')) {
-          memberRoute.value = 'export';
-        } else if (/^#\/members\/\d+/.test(hash)) {
-          memberRoute.value = 'detail';
-        } else {
-          memberRoute.value = 'list';
-        }
-        return;
-      }
-	
-	      const tabFromHash = hash.replace('#/', '');
-	      const validTabs = new Set(['dashboard', 'users', 'brands', 'campaigns', 'system', 'distributor-management', 'verification-records', 'poster-records']);
-	      if (validTabs.has(tabFromHash)) {
-	        activeTab.value = tabFromHash;
+	      if (route.memberRoute) {
+	        memberRoute.value = route.memberRoute;
+	      }
+	      if (route.normalizedHash && window.location.hash !== route.normalizedHash) {
+	        window.location.hash = route.normalizedHash;
 	      }
 	    };
 
@@ -927,7 +928,10 @@ const AdminApp = defineComponent({
                 h('input', {
                   type: 'text',
                   value: loginForm.username,
-                  onInput: (e: any) => loginForm.username = e.target.value,
+                  onInput: (e: Event) => {
+                    const target = e.target as HTMLInputElement | null;
+                    loginForm.username = target?.value ?? '';
+                  },
                   class: 'w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent',
                   placeholder: '请输入用户名'
                 })
@@ -937,7 +941,10 @@ const AdminApp = defineComponent({
                 h('input', {
                   type: 'password',
                   value: loginForm.password,
-                  onInput: (e: any) => loginForm.password = e.target.value,
+                  onInput: (e: Event) => {
+                    const target = e.target as HTMLInputElement | null;
+                    loginForm.password = target?.value ?? '';
+                  },
                   class: 'w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent',
                   placeholder: '请输入密码'
                 })

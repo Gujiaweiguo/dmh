@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { Search, Plus, Edit2, Trash2, Eye } from 'lucide-vue-next';
+import { Search, Plus, Edit2, Trash2, Eye, Image } from 'lucide-vue-next';
 import { campaignApi } from '../services/campaignApi';
+import { posterApi } from '../services/posterApi';
 import type { Campaign } from '../types';
 
 const campaigns = ref<Campaign[]>([]);
@@ -43,6 +44,26 @@ const handleDelete = async (id: number) => {
   } catch (error) {
     console.error('Failed to delete campaign:', error);
     alert('删除失败');
+  }
+};
+
+const handleGeneratePoster = async (campaign: Campaign) => {
+  try {
+    const response = await posterApi.generateCampaignPoster(
+      campaign.id,
+      campaign.posterTemplateId
+    );
+    if (response?.posterUrl) {
+      const shouldOpen = confirm('海报生成成功，是否打开预览？');
+      if (shouldOpen) {
+        window.open(response.posterUrl, '_blank');
+      }
+    } else {
+      alert('海报生成成功，但未返回链接');
+    }
+  } catch (error) {
+    console.error('Failed to generate poster:', error);
+    alert('海报生成失败');
   }
 };
 
@@ -136,6 +157,9 @@ const emit = defineEmits(['create', 'edit', 'view']);
             <td class="actions">
               <button class="btn-icon" @click="emit('view', campaign.id)" title="查看">
                 <Eye :size="18" />
+              </button>
+              <button class="btn-icon" @click="handleGeneratePoster(campaign)" title="生成海报">
+                <Image :size="18" />
               </button>
               <button class="btn-icon" @click="emit('edit', campaign.id)" title="编辑">
                 <Edit2 :size="18" />
