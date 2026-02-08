@@ -19,6 +19,7 @@ import VerificationRecords from "../views/brand/VerificationRecords.vue";
 import CampaignDetail from "../views/CampaignDetail.vue";
 import CampaignForm from "../views/CampaignForm.vue";
 import CampaignList from "../views/CampaignList.vue";
+import FeedbackCenter from "../views/FeedbackCenter.vue";
 import DistributorApply from "../views/distributor/DistributorApply.vue";
 import DistributorCenter from "../views/distributor/DistributorCenter.vue";
 import DistributorPromotion from "../views/distributor/DistributorPromotion.vue";
@@ -51,6 +52,12 @@ const routes = [
 		path: "/orders",
 		name: "MyOrders",
 		component: MyOrders,
+	},
+	{
+		path: "/feedback",
+		name: "FeedbackCenter",
+		component: FeedbackCenter,
+		meta: { requiresAuth: true },
 	},
 	{
 		path: "/success",

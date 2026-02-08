@@ -13,6 +13,10 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-3 3-3-3a2 2 0 0 1 2.83-2.83L12 7Z"/><path d="M2 12h20"/></svg>
         <span>分销中心</span>
       </button>
+      <button class="feedback-btn" @click="goFeedback">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>帮助反馈</span>
+      </button>
     </div>
 
     <!-- 筛选标签 -->
@@ -275,6 +279,10 @@ const goDistributor = () => {
   router.push('/distributor')
 }
 
+const goFeedback = () => {
+  router.push('/feedback')
+}
+
 onMounted(() => {
   saveSource()
   init()
@@ -330,6 +338,24 @@ onMounted(() => {
 }
 
 .distributor-btn:active {
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: scale(0.95);
+}
+
+.feedback-btn {
+  background-color: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.feedback-btn:active {
   background-color: rgba(255, 255, 255, 0.3);
   transform: scale(0.95);
 }

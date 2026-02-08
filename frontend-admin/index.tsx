@@ -6,6 +6,7 @@ import MemberDetailView from './views/MemberDetailView';
 import MemberMergeView from './views/MemberMergeView';
 import MemberExportView from './views/MemberExportView';
 import { DistributorManagementView } from './views/DistributorManagementView';
+import FeedbackManagementView from './views/FeedbackManagementView.vue';
 import VerificationRecordsView from './views/VerificationRecordsView.vue';
 import PosterRecordsView from './views/PosterRecordsView.vue';
 import { resolveAdminHashRoute, type MemberRoute } from './utils/adminHashRoute';
@@ -899,6 +900,7 @@ const AdminApp = defineComponent({
 	      { id: 'campaigns', label: '活动监控', icon: 'Monitor' },
 	      { id: 'members', label: '会员管理', icon: 'Users' },
 	      { id: 'distributor-management', label: '分销监控', icon: 'TrendingUp' },
+	      { id: 'feedback', label: '反馈管理', icon: 'MessageSquare' },
 	      { id: 'verification-records', label: '核销记录', icon: 'CheckCircle' },
 	      { id: 'poster-records', label: '海报记录', icon: 'Image' },
 	      { id: 'system', label: '系统设置', icon: 'Settings' },
@@ -1040,6 +1042,7 @@ const AdminApp = defineComponent({
                 if (activeTab.value === 'distributor-management') {
                   return h(DistributorManagementView, { readOnly: true, isPlatformAdmin: true });
                 }
+                if (activeTab.value === 'feedback') return h(FeedbackManagementView);
                 if (activeTab.value === 'verification-records') return h(VerificationRecordsView);
                 if (activeTab.value === 'poster-records') return h(PosterRecordsView);
                 if (activeTab.value === 'system') return h(SystemSettingsView);

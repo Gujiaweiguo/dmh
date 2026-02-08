@@ -142,3 +142,38 @@ export const brandApi = {
     return api.get('/orders/verification-records')
   }
 }
+
+// 反馈系统 API
+export const feedbackApi = {
+  createFeedback: (data) => {
+    return api.post('/feedback', data)
+  },
+
+  listFeedback: (params = {}) => {
+    return api.get('/feedback/list', params)
+  },
+
+  getFeedbackDetail: (id) => {
+    return api.get('/feedback/detail', { id })
+  },
+
+  submitSatisfactionSurvey: (data) => {
+    return api.post('/feedback/satisfaction-survey', data)
+  },
+
+  listFaq: (params = {}) => {
+    return api.get('/feedback/faq', params)
+  },
+
+  markFaqHelpful: (id, type = 'helpful') => {
+    return api.post('/feedback/faq/helpful', { id, type })
+  },
+
+  recordFeatureUsage: (data) => {
+    return api.post('/feedback/feature-usage', data)
+  },
+
+  getFeedbackStatistics: (params = {}) => {
+    return api.get('/feedback/statistics', params)
+  }
+}
