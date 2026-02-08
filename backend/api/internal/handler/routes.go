@@ -11,6 +11,7 @@ import (
 	brand "dmh/api/internal/handler/brand"
 	campaign "dmh/api/internal/handler/campaign"
 	distributor "dmh/api/internal/handler/distributor"
+	feedback "dmh/api/internal/handler/feedback"
 	order "dmh/api/internal/handler/order"
 	poster "dmh/api/internal/handler/poster"
 	reward "dmh/api/internal/handler/reward"
@@ -228,6 +229,58 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Method:  http.MethodGet,
 				Path:    "/campaigns/:id/payment-qrcode",
 				Handler: campaign.GetPaymentQrcodeHandler(serverCtx),
+			},
+		},
+		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		rest.WithPrefix("/api/v1"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodPost,
+				Path:    "/feedback",
+				Handler: feedback.CreateFeedbackRouteHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/feedback/list",
+				Handler: feedback.ListFeedbackRouteHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/feedback/detail",
+				Handler: feedback.GetFeedbackRouteHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPut,
+				Path:    "/feedback/status",
+				Handler: feedback.UpdateFeedbackStatusRouteHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/feedback/satisfaction-survey",
+				Handler: feedback.SubmitSatisfactionSurveyRouteHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/feedback/faq",
+				Handler: feedback.ListFAQRouteHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/feedback/faq/helpful",
+				Handler: feedback.MarkFAQHelpfulRouteHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/feedback/feature-usage",
+				Handler: feedback.RecordFeatureUsageRouteHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/feedback/statistics",
+				Handler: feedback.GetFeedbackStatisticsRouteHandler(serverCtx),
 			},
 		},
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),

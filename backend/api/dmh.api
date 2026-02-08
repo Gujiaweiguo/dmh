@@ -1018,6 +1018,41 @@ service dmh-api {
 	get /campaigns/:id/payment-qrcode returns (PaymentQrcodeResp)
 }
 
+// 反馈系统
+@server (
+	prefix: /api/v1
+	group:  feedback
+	jwt:    Auth
+)
+service dmh-api {
+	@handler CreateFeedback
+	post /feedback (CreateFeedbackReq) returns (FeedbackResp)
+
+	@handler ListFeedback
+	get /feedback/list (ListFeedbackReq) returns (FeedbackListResp)
+
+	@handler GetFeedback
+	get /feedback/detail (CommonReq) returns (FeedbackResp)
+
+	@handler UpdateFeedbackStatus
+	put /feedback/status (UpdateFeedbackStatusReq) returns (FeedbackResp)
+
+	@handler SubmitSatisfactionSurvey
+	post /feedback/satisfaction-survey (SubmitSatisfactionSurveyReq) returns (SatisfactionSurveyResp)
+
+	@handler ListFAQ
+	get /feedback/faq (ListFAQReq) returns (FAQListResp)
+
+	@handler MarkFAQHelpful
+	post /feedback/faq/helpful (MarkFAQHelpfulReq) returns (FAQResp)
+
+	@handler RecordFeatureUsage
+	post /feedback/feature-usage (RecordFeatureUsageReq) returns (BaseResp)
+
+	@handler GetFeedbackStatistics
+	get /feedback/statistics (GetFeedbackStatisticsReq) returns (FeedbackStatisticsResp)
+}
+
 // 订单管理
 @server (
 	prefix: /api/v1
@@ -1409,4 +1444,3 @@ service dmh-api {
 	@handler GetMemberProfile
 	get /members/:id/profile returns (MemberProfileResp)
 }
-
