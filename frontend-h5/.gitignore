@@ -1,0 +1,33 @@
+# Dependencies
+node_modules
+.pnpm
+.yarn
+.yarn-integrity
+
+# Build outputs
+dist
+dist-ssr
+*.local
+
+# Testing
+coverage
+playwright-report
+test-results
+playwright/.cache
+
+# Editor
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+.DS_Store
+Thumbs.db
