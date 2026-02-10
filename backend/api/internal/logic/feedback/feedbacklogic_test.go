@@ -47,7 +47,7 @@ func (suite *FeedbackLogicTestSuite) TearDownSuite() {
 }
 
 func (suite *FeedbackLogicTestSuite) SetupTest() {
-	suite.db.Exec("DELETE FROM user_feedbacks")
+	suite.db.Exec("DELETE FROM user_feedback")
 	suite.db.Exec("DELETE FROM feature_satisfaction_surveys")
 	suite.db.Exec("DELETE FROM faq_items")
 	suite.db.Exec("DELETE FROM feature_usage_stats")

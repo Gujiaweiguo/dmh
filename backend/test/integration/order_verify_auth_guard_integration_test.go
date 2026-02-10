@@ -184,8 +184,8 @@ func createActiveCampaign(client *http.Client, baseURL, adminToken string) (int6
 		"name":        fmt.Sprintf("订单鉴权回归活动-%d", now.UnixNano()),
 		"description": "order verify auth guard regression",
 		"rewardRule":  10.0,
-		"startTime":   now.Add(-1 * time.Hour).Format("2006-01-02T15:04:05"),
-		"endTime":     now.Add(24 * time.Hour).Format("2006-01-02T15:04:05"),
+		"startTime":   now.Add(-1 * time.Hour).Format(time.RFC3339),
+		"endTime":     now.Add(24 * time.Hour).Format(time.RFC3339),
 		"formFields": []map[string]interface{}{
 			{
 				"type":     "text",

@@ -67,8 +67,8 @@ func (suite *RateLimitingTestSuite) createTestCampaign() {
 		"name":        "频率限制测试活动",
 		"description": "用于测试频率限制的活动",
 		"rewardRule":  10.0,
-		"startTime":   now.Add(1 * time.Hour).Format("2006-01-02T15:04:05"),
-		"endTime":     now.Add(30 * 24 * time.Hour).Format("2006-01-02T15:04:05"),
+		"startTime":   now.Add(-1 * time.Hour).Format(time.RFC3339),
+		"endTime":     now.Add(24 * time.Hour).Format(time.RFC3339),
 		"formFields": []map[string]interface{}{
 			{
 				"type":     "text",
