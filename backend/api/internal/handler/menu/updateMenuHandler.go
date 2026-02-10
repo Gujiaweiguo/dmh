@@ -4,7 +4,10 @@
 package menu
 
 import (
+	"errors"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"dmh/api/internal/logic/menu"
 	"dmh/api/internal/svc"
@@ -20,8 +23,22 @@ func UpdateMenuHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
+		path := strings.TrimPrefix(r.URL.Path, "/api/v1/menus/")
+		menuIdStr := strings.Split(path, "/")[0]
+
+		if menuIdStr == "" {
+			httpx.ErrorCtx(r.Context(), w, errors.New("menuId is required"))
+			return
+		}
+
+		menuId, err := strconv.ParseInt(menuIdStr, 10, 64)
+		if err != nil {
+			httpx.ErrorCtx(r.Context(), w, err)
+			return
+		}
+
 		l := menu.NewUpdateMenuLogic(r.Context(), svcCtx)
-		resp, err := l.UpdateMenu(&req)
+		resp, err := l.UpdateMenu(menuId, &req)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {

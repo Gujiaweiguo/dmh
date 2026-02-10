@@ -8,6 +8,7 @@ import (
 
 	"dmh/api/internal/svc"
 	"dmh/api/internal/types"
+	"dmh/model"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -27,7 +28,24 @@ func NewGetPermissionsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Ge
 }
 
 func (l *GetPermissionsLogic) GetPermissions() (resp []types.PermissionResp, err error) {
-	// todo: add your logic here and delete this line
+	var permissions []model.Permission
 
-	return
+	if err := l.svcCtx.DB.Find(&permissions).Error; err != nil {
+		l.Errorf("Failed to get permissions: %v", err)
+		return nil, err
+	}
+
+	resp = make([]types.PermissionResp, 0, len(permissions))
+	for _, p := range permissions {
+		resp = append(resp, types.PermissionResp{
+			Id:          p.ID,
+			Name:        p.Name,
+			Code:        p.Code,
+			Resource:    p.Resource,
+			Action:      p.Action,
+			Description: p.Description,
+		})
+	}
+
+	return resp, nil
 }

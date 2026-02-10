@@ -8,6 +8,7 @@ import (
 
 	"dmh/api/internal/svc"
 	"dmh/api/internal/types"
+	"dmh/model"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -26,8 +27,18 @@ func NewGetBalanceLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetBal
 	}
 }
 
-func (l *GetBalanceLogic) GetBalance() (resp *types.BalanceResp, err error) {
-	// todo: add your logic here and delete this line
+func (l *GetBalanceLogic) GetBalance(userId int64) (resp *types.BalanceResp, err error) {
+	balance := &model.UserBalance{}
+	if err := l.svcCtx.DB.Where("user_id = ?", userId).First(balance).Error; err != nil {
+		l.Errorf("Failed to get user balance: %v", err)
+		return nil, err
+	}
 
-	return
+	resp = &types.BalanceResp{
+		UserId:      balance.UserId,
+		Balance:     balance.Balance,
+		TotalReward: balance.TotalReward,
+	}
+
+	return resp, nil
 }

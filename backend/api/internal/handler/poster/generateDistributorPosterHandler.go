@@ -4,7 +4,9 @@
 package poster
 
 import (
+	"errors"
 	"net/http"
+	"strconv"
 
 	"dmh/api/internal/logic/poster"
 	"dmh/api/internal/svc"
@@ -20,12 +22,26 @@ func GenerateDistributorPosterHandler(svcCtx *svc.ServiceContext) http.HandlerFu
 			return
 		}
 
-		l := poster.NewGenerateDistributorPosterLogic(r.Context(), svcCtx)
-		resp, err := l.GenerateDistributorPoster(&req)
-		if err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
+		path := r.URL.Path
+		prefix := "/api/v1/distributors/"
+		suffix := "/poster"
+		if len(path) > len(prefix)+len(suffix) {
+			idStr := path[len(prefix) : len(path)-len(suffix)]
+			distributorId, err := strconv.ParseInt(idStr, 10, 64)
+			if err != nil {
+				httpx.ErrorCtx(r.Context(), w, err)
+				return
+			}
+
+			l := poster.NewGenerateDistributorPosterLogic(r.Context(), svcCtx)
+			resp, err := l.GenerateDistributorPoster(&req, distributorId)
+			if err != nil {
+				httpx.ErrorCtx(r.Context(), w, err)
+			} else {
+				httpx.OkJsonCtx(r.Context(), w, resp)
+			}
 		} else {
-			httpx.OkJsonCtx(r.Context(), w, resp)
+			httpx.ErrorCtx(r.Context(), w, errors.New("Invalid distributor ID in path"))
 		}
 	}
 }

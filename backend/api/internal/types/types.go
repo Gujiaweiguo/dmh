@@ -609,6 +609,11 @@ type RetrySyncResp struct {
 	TaskId  string `json:"taskId"`
 }
 
+type GetRewardsReq struct {
+	UserId  int64 `json:"userId,optional"`
+	OrderId int64 `json:"orderId,optional"`
+}
+
 type RewardResp struct {
 	Id        int64   `json:"id"`
 	UserId    int64   `json:"userId"`
@@ -621,6 +626,17 @@ type RewardResp struct {
 type RoleMenuReq struct {
 	RoleId  int64   `json:"roleId"`
 	MenuIds []int64 `json:"menuIds"`
+}
+
+type GetMenusReq struct {
+	Platform string `json:"platform,optional"`
+	Status   string `json:"status,optional"`
+	Type     string `json:"type,optional"`
+}
+
+type MenuListResp struct {
+	Total int64      `json:"total"`
+	Menus []MenuResp `json:"menus"`
 }
 
 type RolePermissionReq struct {
@@ -872,6 +888,14 @@ type WithdrawalApplyReq struct {
 	BankName    string  `json:"bankName"`
 	BankAccount string  `json:"bankAccount"`
 	AccountName string  `json:"accountName"`
+}
+
+type WithdrawalListReq struct {
+	Page     int64  `json:"page"`
+	PageSize int64  `json:"pageSize"`
+	Status   string `json:"status,optional"`
+	UserId   int64  `json:"userId,optional"`
+	BrandId  int64  `json:"brandId,optional"`
 }
 
 type WithdrawalApproveReq struct {

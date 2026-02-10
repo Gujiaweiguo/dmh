@@ -85,6 +85,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/auth/register",
 				Handler: auth.RegisterHandler(serverCtx),
 			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/auth/logout",
+				Handler: auth.LogoutHandler(serverCtx),
+			},
 		},
 		rest.WithPrefix("/api/v1"),
 	)
@@ -235,6 +240,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 		rest.WithPrefix("/api/v1"),
 	)
 
+	// Feedback API routes - Public (no authentication required)
 	server.AddRoutes(
 		[]rest.Route{
 			{
@@ -249,21 +255,6 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/feedback/detail",
-				Handler: feedback.GetFeedbackRouteHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodPut,
-				Path:    "/feedback/status",
-				Handler: feedback.UpdateFeedbackStatusRouteHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/feedback/satisfaction-survey",
-				Handler: feedback.SubmitSatisfactionSurveyRouteHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodGet,
 				Path:    "/feedback/faq",
 				Handler: feedback.ListFAQRouteHandler(serverCtx),
 			},
@@ -274,8 +265,30 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			},
 			{
 				Method:  http.MethodPost,
+				Path:    "/feedback/satisfaction-survey",
+				Handler: feedback.SubmitSatisfactionSurveyRouteHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
 				Path:    "/feedback/feature-usage",
 				Handler: feedback.RecordFeatureUsageRouteHandler(serverCtx),
+			},
+		},
+		rest.WithPrefix("/api/v1"),
+	)
+
+	// Feedback API routes - Admin only (authentication required)
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodGet,
+				Path:    "/feedback/detail",
+				Handler: feedback.GetFeedbackRouteHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPut,
+				Path:    "/feedback/status",
+				Handler: feedback.UpdateFeedbackStatusRouteHandler(serverCtx),
 			},
 			{
 				Method:  http.MethodGet,

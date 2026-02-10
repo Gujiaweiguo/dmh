@@ -5,9 +5,12 @@ package order
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"dmh/api/internal/svc"
 	"dmh/api/internal/types"
+	"dmh/model"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -26,8 +29,30 @@ func NewGetOrderLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetOrder
 	}
 }
 
-func (l *GetOrderLogic) GetOrder() (resp *types.OrderResp, err error) {
-	// todo: add your logic here and delete this line
+func (l *GetOrderLogic) GetOrder(orderId int64) (resp *types.OrderResp, err error) {
+	order := &model.Order{}
+	if err := l.svcCtx.DB.First(order, orderId).Error; err != nil {
+		l.Errorf("Order not found: %v", err)
+		return nil, fmt.Errorf("order not found")
+	}
 
-	return
+	formData := make(map[string]string)
+	if order.FormData != "" {
+		if err := json.Unmarshal([]byte(order.FormData), &formData); err != nil {
+			l.Errorf("Failed to parse form data: %v", err)
+		}
+	}
+
+	resp = &types.OrderResp{
+		Id:         order.Id,
+		CampaignId: order.CampaignId,
+		Phone:      order.Phone,
+		FormData:   formData,
+		ReferrerId: order.ReferrerId,
+		Status:     order.Status,
+		Amount:     order.Amount,
+		CreatedAt:  order.CreatedAt.Format("2006-01-02 15:04:05"),
+	}
+
+	return resp, nil
 }

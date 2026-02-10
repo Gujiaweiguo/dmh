@@ -8,6 +8,7 @@ import (
 
 	"dmh/api/internal/svc"
 	"dmh/api/internal/types"
+	"dmh/model"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -26,8 +27,36 @@ func NewGetRewardsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetRew
 	}
 }
 
-func (l *GetRewardsLogic) GetRewards() (resp []types.RewardResp, err error) {
-	// todo: add your logic here and delete this line
+func (l *GetRewardsLogic) GetRewards(req *types.GetRewardsReq) (resp []types.RewardResp, err error) {
+	var rewards []model.DistributorReward
 
-	return
+	query := l.svcCtx.DB.Model(&model.DistributorReward{})
+
+	if req.UserId > 0 {
+		query = query.Where("user_id = ?", req.UserId)
+	}
+	if req.OrderId > 0 {
+		query = query.Where("order_id = ?", req.OrderId)
+	}
+
+	if err := query.Order("created_at DESC").
+		Limit(100).
+		Find(&rewards).Error; err != nil {
+		l.Errorf("Failed to get rewards: %v", err)
+		return nil, err
+	}
+
+	resp = make([]types.RewardResp, 0, len(rewards))
+	for _, r := range rewards {
+		resp = append(resp, types.RewardResp{
+			Id:        r.Id,
+			UserId:    r.UserId,
+			OrderId:   r.OrderId,
+			Amount:    r.Amount,
+			Status:    r.Status,
+			CreatedAt: r.CreatedAt.Format("2006-01-02 15:04:05"),
+		})
+	}
+
+	return resp, nil
 }

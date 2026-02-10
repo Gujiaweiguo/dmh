@@ -96,6 +96,12 @@ func withAuth(req *http.Request, userID int64, role string) *http.Request {
 	return req.WithContext(ctx)
 }
 
+func withJWTClaims(req *http.Request, userID interface{}, roles interface{}) *http.Request {
+	ctx := context.WithValue(req.Context(), "userId", userID)
+	ctx = context.WithValue(ctx, "roles", roles)
+	return req.WithContext(ctx)
+}
+
 func (suite *FeedbackHandlerIntegrationTestSuite) TestCreateListGetFeedbackFlow() {
 	suite.createTestUser(1, "u1")
 	suite.createTestUser(2, "u2")
@@ -225,6 +231,46 @@ func (suite *FeedbackHandlerIntegrationTestSuite) TestFAQUsageAndStatisticsFlow(
 	assert.NoError(suite.T(), err)
 	assert.GreaterOrEqual(suite.T(), statsResp.TotalFeedbacks, int64(2))
 	assert.Greater(suite.T(), statsResp.AverageRating, 0.0)
+}
+
+func (suite *FeedbackHandlerIntegrationTestSuite) TestJWTClaimsContextCompatibility() {
+	suite.createTestUser(1, "u1")
+	suite.createTestUser(2, "admin")
+
+	createReq := types.CreateFeedbackReq{
+		Category: "poster",
+		Title:    "ctx兼容性",
+		Content:  "验证json.Number和roles上下文",
+	}
+	body, _ := json.Marshal(createReq)
+	createRec := httptest.NewRecorder()
+	createHTTPReq := httptest.NewRequest(http.MethodPost, "/api/v1/feedback", bytes.NewBuffer(body))
+	createHTTPReq.Header.Set("Content-Type", "application/json")
+
+	suite.createFeedbackHandler.CreateFeedback(createRec, withJWTClaims(createHTTPReq, json.Number("1"), []string{"participant"}))
+	assert.Equal(suite.T(), http.StatusOK, createRec.Code)
+
+	var created types.FeedbackResp
+	err := json.Unmarshal(createRec.Body.Bytes(), &created)
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), int64(1), created.UserId)
+
+	detailRec := httptest.NewRecorder()
+	detailReq := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/feedback?id=%d", created.Id), nil)
+	suite.getFeedbackHandler.GetFeedback(detailRec, withJWTClaims(detailReq, json.Number("1"), []string{"participant"}))
+	assert.Equal(suite.T(), http.StatusOK, detailRec.Code)
+
+	updateBody := []byte(fmt.Sprintf(`{"id":%d,"status":"resolved","response":"ok"}`, created.Id))
+	updateRec := httptest.NewRecorder()
+	updateReq := httptest.NewRequest(http.MethodPost, "/api/v1/feedback/status", bytes.NewBuffer(updateBody))
+	updateReq.Header.Set("Content-Type", "application/json")
+	suite.updateFeedbackStatusHandler.UpdateFeedbackStatus(updateRec, withJWTClaims(updateReq, json.Number("2"), []interface{}{"platform_admin"}))
+	assert.Equal(suite.T(), http.StatusOK, updateRec.Code)
+
+	statsRec := httptest.NewRecorder()
+	statsReq := httptest.NewRequest(http.MethodGet, "/api/v1/feedback/statistics", nil)
+	suite.getFeedbackStatisticsHandler.GetFeedbackStatistics(statsRec, withJWTClaims(statsReq, json.Number("2"), []interface{}{"platform_admin"}))
+	assert.Equal(suite.T(), http.StatusOK, statsRec.Code)
 }
 
 func TestFeedbackHandlerIntegrationTestSuite(t *testing.T) {

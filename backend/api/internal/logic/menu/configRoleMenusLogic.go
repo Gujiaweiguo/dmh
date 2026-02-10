@@ -8,6 +8,7 @@ import (
 
 	"dmh/api/internal/svc"
 	"dmh/api/internal/types"
+	"dmh/model"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -27,7 +28,36 @@ func NewConfigRoleMenusLogic(ctx context.Context, svcCtx *svc.ServiceContext) *C
 }
 
 func (l *ConfigRoleMenusLogic) ConfigRoleMenus(req *types.RoleMenuReq) (resp *types.CommonResp, err error) {
-	// todo: add your logic here and delete this line
+	tx := l.svcCtx.DB.Begin()
 
-	return
+	if err := tx.Where("role_id = ?", req.RoleId).Delete(&model.RoleMenu{}).Error; err != nil {
+		tx.Rollback()
+		l.Errorf("Failed to delete old role menus: %v", err)
+		return nil, err
+	}
+
+	for _, menuId := range req.MenuIds {
+		roleMenu := &model.RoleMenu{
+			RoleID: req.RoleId,
+			MenuID: menuId,
+		}
+		if err := tx.Create(roleMenu).Error; err != nil {
+			tx.Rollback()
+			l.Errorf("Failed to create role menu: %v", err)
+			return nil, err
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		l.Errorf("Failed to commit role menus: %v", err)
+		return nil, err
+	}
+
+	l.Infof("Role menus configured successfully: roleId=%d, menus=%d", req.RoleId, len(req.MenuIds))
+
+	resp = &types.CommonResp{
+		Message: "Role menus configured successfully",
+	}
+
+	return resp, nil
 }

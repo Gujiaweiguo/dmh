@@ -31,8 +31,21 @@ func NewCreateCampaignLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Cr
 }
 
 func (l *CreateCampaignLogic) CreateCampaign(req *types.CreateCampaignReq) (resp *types.CampaignResp, err error) {
-	startTime, err1 := time.Parse("2006-01-02T15:04:05", req.StartTime)
-	endTime, err2 := time.Parse("2006-01-02T15:04:05", req.EndTime)
+	var startTime, endTime time.Time
+	var err1, err2 error
+
+	startTime, err1 = time.Parse(time.RFC3339, req.StartTime)
+	endTime, err2 = time.Parse(time.RFC3339, req.EndTime)
+
+	if err1 != nil || err2 != nil {
+		startTime, err1 = time.Parse("2006-01-02T15:04:05", req.StartTime)
+		endTime, err2 = time.Parse("2006-01-02T15:04:05", req.EndTime)
+
+		if err1 != nil || err2 != nil {
+			startTime, err1 = time.Parse("2006-01-02", req.StartTime)
+			endTime, err2 = time.Parse("2006-01-02", req.EndTime)
+		}
+	}
 	if err1 != nil || err2 != nil {
 		l.Errorf("Time format error: startTime=%v, endTime=%v", err1, err2)
 		return nil, fmt.Errorf("Time format error")
@@ -76,10 +89,12 @@ func (l *CreateCampaignLogic) CreateCampaign(req *types.CreateCampaignReq) (resp
 		PosterTemplateId:    posterTemplateId,
 	}
 
+	// 序列化formFields数组为JSON字符串存储到数据库
 	if len(req.FormFields) > 0 {
 		formFieldsJSON, err := json.Marshal(req.FormFields)
 		if err == nil {
 			newCampaign.FormFields = string(formFieldsJSON)
+			l.Infof("FormFields JSON: %s", newCampaign.FormFields)
 		}
 	}
 

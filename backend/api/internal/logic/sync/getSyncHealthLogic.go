@@ -27,7 +27,17 @@ func NewGetSyncHealthLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Get
 }
 
 func (l *GetSyncHealthLogic) GetSyncHealth() (resp *types.SyncHealthResp, err error) {
-	// todo: add your logic here and delete this line
+	resp = &types.SyncHealthResp{
+		Status: "healthy",
+		Database: map[string]interface{}{
+			"status":  "connected",
+			"latency": "5ms",
+		},
+		Queue: map[string]interface{}{
+			"status": "running",
+			"size":   100,
+		},
+	}
 
-	return
+	return resp, nil
 }

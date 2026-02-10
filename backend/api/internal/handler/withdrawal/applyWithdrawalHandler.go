@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"dmh/api/internal/logic/withdrawal"
+	"dmh/api/internal/middleware"
 	"dmh/api/internal/svc"
 	"dmh/api/internal/types"
 	"github.com/zeromicro/go-zero/rest/httpx"
@@ -20,8 +21,14 @@ func ApplyWithdrawalHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
+		userId, err := middleware.GetUserIDFromContext(r.Context())
+		if err != nil {
+			httpx.ErrorCtx(r.Context(), w, err)
+			return
+		}
+
 		l := withdrawal.NewApplyWithdrawalLogic(r.Context(), svcCtx)
-		resp, err := l.ApplyWithdrawal(&req)
+		resp, err := l.ApplyWithdrawal(&req, userId)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {

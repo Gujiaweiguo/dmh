@@ -16,14 +16,13 @@ import (
 
 func GetCampaignHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		idStr := r.URL.Query().Get("id")
-		if idStr == "" {
-			httpx.ErrorCtx(r.Context(), w, fmt.Errorf("campaign id is required"))
+		var req types.GetCampaignReq
+		if err := httpx.Parse(r, &req); err != nil {
+			httpx.ErrorCtx(r.Context(), w, err)
 			return
 		}
 
-		id := int64(0)
-		fmt.Sscanf(idStr, "%d", &id)
+		id := req.Id
 
 		var campaign model.Campaign
 
@@ -33,17 +32,32 @@ func GetCampaignHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		resp := &types.CampaignResp{
-			Id:          campaign.Id,
-			BrandId:     campaign.BrandId,
-			Name:        campaign.Name,
-			Description: campaign.Description,
-			FormFields:  campaign.FormFields,
-			RewardRule:  campaign.RewardRule,
-			StartTime:   campaign.StartTime.Format("2006-01-02T15:04:05"),
-			EndTime:     campaign.EndTime.Format("2006-01-02T15:04:05"),
-			Status:      campaign.Status,
-			CreatedAt:   campaign.CreatedAt.Format("2006-01-02T15:04:05"),
-			UpdatedAt:   campaign.UpdatedAt.Format("2006-01-02T15:04:05"),
+			Id:                 campaign.Id,
+			BrandId:            campaign.BrandId,
+			Name:               campaign.Name,
+			Description:        campaign.Description,
+			FormFields:         campaign.FormFields,
+			RewardRule:         campaign.RewardRule,
+			StartTime:          campaign.StartTime.Format("2006-01-02T15:04:05"),
+			EndTime:            campaign.EndTime.Format("2006-01-02T15:04:05"),
+			Status:             campaign.Status,
+			EnableDistribution: campaign.EnableDistribution,
+			DistributionLevel:  campaign.DistributionLevel,
+			DistributionRewards: func() string {
+				if campaign.DistributionRewards != nil {
+					return *campaign.DistributionRewards
+				}
+				return ""
+			}(),
+			PaymentConfig: func() string {
+				if campaign.PaymentConfig != nil {
+					return *campaign.PaymentConfig
+				}
+				return ""
+			}(),
+			PosterTemplateId: campaign.PosterTemplateId,
+			CreatedAt:        campaign.CreatedAt.Format("2006-01-02T15:04:05"),
+			UpdatedAt:        campaign.UpdatedAt.Format("2006-01-02T15:04:05"),
 		}
 
 		httpx.OkJsonCtx(r.Context(), w, resp)
