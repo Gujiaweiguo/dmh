@@ -1,0 +1,43 @@
+name: Feedback Guard
+
+on:
+  pull_request:
+    paths:
+      - backend/api/internal/handler/feedback/**
+      - backend/api/internal/logic/feedback/**
+      - backend/api/internal/types/types.go
+      - backend/model/feedback.go
+      - backend/migrations/20250205_add_feedback_system.sql
+      - backend/scripts/init.sql
+      - .github/workflows/feedback-guard.yml
+  push:
+    branches:
+      - main
+    paths:
+      - backend/api/internal/handler/feedback/**
+      - backend/api/internal/logic/feedback/**
+      - backend/api/internal/types/types.go
+      - backend/model/feedback.go
+      - backend/migrations/20250205_add_feedback_system.sql
+      - backend/scripts/init.sql
+      - .github/workflows/feedback-guard.yml
+
+jobs:
+  feedback-guard:
+    name: Feedback tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache: true
+          cache-dependency-path: backend/go.sum
+
+      - name: Run feedback unit and handler tests
+        working-directory: backend
+        run: go test ./api/internal/handler/feedback ./api/internal/logic/feedback
