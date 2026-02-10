@@ -5,8 +5,8 @@ import "time"
 // UserFeedback 用户反馈
 type UserFeedback struct {
 	ID             int64      `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	UserID         int64      `gorm:"column:user_id;not null;index" json:"userId"`
-	Category       string     `gorm:"column:category;type:varchar(50);not null;index" json:"category"` // poster, payment, verification, other
+	UserID         int64      `gorm:"column:user_id;not null;index:idx_user_created" json:"userId"`
+	Category       string     `gorm:"column:category;type:varchar(50);not null;index:idx_category_created" json:"category"` // poster, payment, verification, other
 	Subcategory    string     `gorm:"column:subcategory;type:varchar(100)" json:"subcategory"`
 	Rating         *int       `gorm:"column:rating" json:"rating"` // 1-5星
 	Title          string     `gorm:"column:title;type:varchar(255);not null" json:"title"`
@@ -14,12 +14,12 @@ type UserFeedback struct {
 	FeatureUseCase string     `gorm:"column:feature_use_case;type:text" json:"featureUseCase"`
 	DeviceInfo     string     `gorm:"column:device_info;type:varchar(500)" json:"deviceInfo"`
 	BrowserInfo    string     `gorm:"column:browser_info;type:varchar(500)" json:"browserInfo"`
-	Priority       string     `gorm:"column:priority;type:varchar(20);default:medium;index" json:"priority"`       // low, medium, high
-	Status         string     `gorm:"column:status;type:varchar(20);not null;default:pending;index" json:"status"` // pending, reviewing, resolved, closed
+	Priority       string     `gorm:"column:priority;type:varchar(20);default:medium;index:idx_priority_created" json:"priority"`     // low, medium, high
+	Status         string     `gorm:"column:status;type:varchar(20);not null;default:pending;index:idx_status_created" json:"status"` // pending, reviewing, resolved, closed
 	AssigneeID     *int64     `gorm:"column:assignee_id" json:"assigneeId"`
 	Response       string     `gorm:"column:response;type:text" json:"response"`
 	ResolvedAt     *time.Time `gorm:"column:resolved_at" json:"resolvedAt"`
-	CreatedAt      time.Time  `gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP;index" json:"createdAt"`
+	CreatedAt      time.Time  `gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP;index:idx_user_created,idx_status_created,idx_category_created,idx_priority_created" json:"createdAt"`
 	UpdatedAt      time.Time  `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP" json:"updatedAt"`
 
 	// 关联

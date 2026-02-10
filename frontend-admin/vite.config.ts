@@ -18,6 +18,29 @@ export default defineConfig(({ mode }) => {
         },
       },
       plugins: [vue()],
+      build: {
+        // 代码分割优化
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              // 将第三方库单独打包
+              'vendor': ['vue'],
+              // 将路由组件按需加载
+              'feedback': ['./views/FeedbackManagementView.vue'],
+            },
+          },
+        },
+        // 压缩选项
+        minify: 'terser',
+        terserOptions: {
+          compress: {
+            drop_console: true,
+            drop_debugger: true,
+          },
+        },
+        // 资源内联阈值
+        assetsInlineLimit: 4096,
+      },
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
