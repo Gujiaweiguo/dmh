@@ -7,6 +7,71 @@
 
 ***
 
+## \[1.2.0] - 2026-02-10
+
+### 新增
+
+* ✨ 反馈管理系统
+  * 用户反馈提交（支持 bug、feature、other 分类）
+  * 反馈列表查看（分页、筛选、搜索）
+  * 反馈详情查看
+  * 反馈状态管理（pending、reviewing、resolved、closed）
+  * 反馈统计面板（总数、解决率、平均评分、平均解决时长）
+  * 满意度调查功能
+  * FAQ 管理功能
+  * 功能使用记录
+  * 品牌管理员和平台管理员权限控制
+
+* ✨ 完整的测试覆盖
+  * 后端单元测试（feedback handler 和 logic）
+  * 后端集成测试（feedback CRUD 操作）
+  * 前端单元测试（admin 和 h5）
+  * 前端 E2E 测试（反馈管理完整流程）
+  * 分销商逻辑测试套件
+  * CI guard workflow（feedback 核心测试）
+
+### 修复
+
+* 🐛 反馈系统数据库 schema
+  * 修复 user_feedback 表结构与 GORM 模型对齐
+  * 移除无效的索引定义
+  * 修复 TableName() 返回值
+
+* 🐛 JWT 认证上下文
+  * 硬化 feedback handler 的 JWT 解析
+  * 添加 getUserIDFromRequest/getUserRoleFromRequest 辅助函数
+  * 改进错误处理和回退机制
+
+* 🐛 E2E 测试配置
+  * 修复 Playwright baseURL 配置（3000 → 正确端口）
+  * 修正登录表单选择器（placeholder vs name）
+  * 修复反馈管理元素选择器（.table tbody tr）
+  * 使用系统 Chrome 浏览器绕过下载限制
+
+### 变更
+
+* 🔄 数据库初始化
+  * 反馈系统 6 张表合并到 init.sql
+  * 提供默认反馈数据
+
+* 🔄 部署脚本
+  * 更新本地重启脚本（支持反馈系统）
+  * 更新迁移脚本说明
+
+### 技术栈
+
+* **后端**: Go 1.23 + go-zero 1.6 + GORM + MySQL 8.0
+* **前端**: Vue 3 + Vite 5/6 + TypeScript
+* **测试**: Playwright 1.58.2 + Vitest
+
+### 文档
+
+* 📚 更新 OpenSpec 归档
+* 📚 添加测试执行报告和计划文档
+* 📚 更新 CHANGELOG.md（本条目）
+
+***
+
 ## \[1.1.0] - 2026-01-30
 
 ### 新增
