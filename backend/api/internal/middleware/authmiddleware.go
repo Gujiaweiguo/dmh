@@ -76,7 +76,7 @@ func (m *AuthMiddleware) Handle(next http.HandlerFunc) http.HandlerFunc {
 		r = r.WithContext(ctx)
 
 		// 记录访问日志
-		m.Logger.Infof("用户 %d (%s) 访问 %s %s, 角色: %v", 
+		m.Logger.Infof("用户 %d (%s) 访问 %s %s, 角色: %v",
 			claims.UserID, claims.Username, r.Method, r.URL.Path, claims.Roles)
 
 		next(w, r)
@@ -159,7 +159,7 @@ func (m *AuthMiddleware) shouldRefreshToken(claims *JWTClaims) bool {
 	if claims.ExpiresAt == nil {
 		return false
 	}
-	
+
 	// 如果token在30分钟内过期，建议刷新
 	refreshThreshold := time.Now().Add(30 * time.Minute)
 	return claims.ExpiresAt.Time.Before(refreshThreshold)
@@ -199,12 +199,12 @@ func (m *AuthMiddleware) isPublicPath(path string) bool {
 func (m *AuthMiddleware) writeErrorResponse(w http.ResponseWriter, statusCode int, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
-	
+
 	response := AuthResponse{
 		Code:    statusCode,
 		Message: message,
 	}
-	
+
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -323,7 +323,7 @@ func HasRole(ctx context.Context, role string) bool {
 	if err != nil {
 		return false
 	}
-	
+
 	for _, r := range roles {
 		if r == role || r == "platform_admin" { // 平台管理员拥有所有角色权限
 			return true

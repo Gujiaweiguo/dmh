@@ -45,11 +45,11 @@ func TestPasswordStrength(t *testing.T) {
 	}
 
 	for _, test := range passwords {
-		isStrong := len(test.password) >= 8 && 
+		isStrong := len(test.password) >= 8 &&
 			strings.ContainsAny(test.password, "ABCDEFGHIJKLMNOPQRSTUVWXYZ") &&
 			strings.ContainsAny(test.password, "abcdefghijklmnopqrstuvwxyz") &&
 			strings.ContainsAny(test.password, "0123456789")
-		
+
 		if test.strong {
 			assert.True(t, isStrong, "Password %s should be strong", test.password)
 		} else {
