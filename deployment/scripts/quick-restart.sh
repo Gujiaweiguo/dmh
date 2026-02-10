@@ -14,7 +14,7 @@ info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 # 配置
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEPLOYMENT_DIR="$(dirname "$SCRIPT_DIR")"
-COMPOSE_FILE="$DEPLOYMENT_DIR/docker-compose.yml"
+COMPOSE_FILE="$DEPLOYMENT_DIR/docker-compose-simple.yml"
 
 log "快速重启 DMH 容器..."
 cd "$DEPLOYMENT_DIR"
