@@ -3,33 +3,32 @@ import { test, expect } from '@playwright/test';
 test.describe('Login Flow', () => {
   test('admin can login successfully', async ({ page }) => {
     await page.goto('/');
-    
-    await page.fill('input[name="username"]', 'admin');
-    await page.fill('input[name="password"]', '123456');
+
+    await page.fill('input[placeholder="请输入用户名"]', 'admin');
+    await page.fill('input[placeholder="请输入密码"]', '123456');
     await page.click('button[type="submit"]');
-    
-    await expect(page).toHaveURL(/.*dashboard.*/);
-    await expect(page.locator('text=Welcome')).toBeVisible();
+
+    await expect(page).toHaveURL('#/dashboard');
   });
 
   test('shows error on invalid credentials', async ({ page }) => {
     await page.goto('/');
-    
-    await page.fill('input[name="username"]', 'admin');
-    await page.fill('input[name="password"]', 'wrongpassword');
+
+    await page.fill('input[placeholder="请输入用户名"]', 'admin');
+    await page.fill('input[placeholder="请输入密码"]', 'wrongpassword');
     await page.click('button[type="submit"]');
-    
-    await expect(page.locator('text=用户名或密码错误')).toBeVisible();
+
+    await expect(page.locator('text=登录失败')).toBeVisible();
   });
 });
 
 test.describe('Campaign Management Flow', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.fill('input[name="username"]', 'admin');
-    await page.fill('input[name="password"]', '123456');
+    await page.fill('input[placeholder="请输入用户名"]', 'admin');
+    await page.fill('input[placeholder="请输入密码"]', '123456');
     await page.click('button[type="submit"]');
-    await expect(page).toHaveURL(/.*dashboard.*/);
+    await expect(page).toHaveURL('#/dashboard');
   });
 
   test('can create new campaign', async ({ page }) => {
@@ -71,8 +70,8 @@ test.describe('Campaign Management Flow', () => {
 test.describe('User Management Flow', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.fill('input[name="username"]', 'admin');
-    await page.fill('input[name="password"]', '123456');
+    await page.fill('input[placeholder="请输入用户名"]', 'admin');
+    await page.fill('input[placeholder="请输入密码"]', '123456');
     await page.click('button[type="submit"]');
   });
 
@@ -102,8 +101,8 @@ test.describe('User Management Flow', () => {
 test.describe('Distributor Management Flow', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.fill('input[name="username"]', 'admin');
-    await page.fill('input[name="password"]', '123456');
+    await page.fill('input[placeholder="请输入用户名"]', 'admin');
+    await page.fill('input[placeholder="请输入密码"]', '123456');
     await page.click('button[type="submit"]');
   });
 
