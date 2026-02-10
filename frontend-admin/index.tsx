@@ -10,6 +10,7 @@ import FeedbackManagementView from './views/FeedbackManagementView.vue';
 import VerificationRecordsView from './views/VerificationRecordsView.vue';
 import PosterRecordsView from './views/PosterRecordsView.vue';
 import { resolveAdminHashRoute, type MemberRoute } from './utils/adminHashRoute';
+import { UserManagementView } from './views/UserManagementView';
 import './src/index.css';
 import './styles/member.css';
 
@@ -46,55 +47,7 @@ const DashboardView = defineComponent({
   }
 });
 
-// 用户管理视图
-const UserManagementView = defineComponent({
-  setup() {
-    const users = ref([
-      { id: 1, username: 'admin', realName: '系统管理员', role: '平台管理员', status: 'ACTIVE', phone: '138****8888' },
-      { id: 3, username: 'user001', realName: '张三', role: '参与者', status: 'ACTIVE', phone: '136****6666' }
-    ]);
-
-    return () => h('div', { class: 'space-y-6' }, [
-      h('div', { class: 'flex justify-between items-center' }, [
-        h('div', [
-          h('h2', { class: 'text-2xl font-black text-slate-900' }, '用户管理'),
-          h('p', { class: 'text-slate-400 text-sm mt-1' }, '管理系统用户账号和权限')
-        ]),
-        h('button', { class: 'bg-indigo-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-indigo-700 transition-colors flex items-center gap-2' }, [
-          h(LucideIcons.Plus, { size: 18 }),
-          '新增用户'
-        ])
-      ]),
-      h('div', { class: 'bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm' }, [
-        h('table', { class: 'w-full text-left' }, [
-          h('thead', { class: 'bg-slate-50' }, [
-            h('tr', [
-              'ID', '用户名', '真实姓名', '角色', '手机号', '状态', '操作'
-            ].map(th => h('th', { class: 'px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-widest' }, th)))
-          ]),
-          h('tbody', users.value.map(user => h('tr', { class: 'border-b border-slate-50 last:border-0 hover:bg-slate-50/40' }, [
-            h('td', { class: 'px-6 py-4 text-sm text-slate-400 font-mono' }, String(user.id)),
-            h('td', { class: 'px-6 py-4 text-sm font-bold text-slate-900' }, user.username),
-            h('td', { class: 'px-6 py-4 text-sm text-slate-600' }, user.realName),
-            h('td', { class: 'px-6 py-4 text-sm' }, [
-              h('span', { class: 'px-2 py-1 bg-blue-100 text-blue-800 rounded-lg text-xs font-bold' }, user.role)
-            ]),
-            h('td', { class: 'px-6 py-4 text-sm text-slate-600' }, user.phone),
-            h('td', { class: 'px-6 py-4' }, [h(Badge, { status: user.status, label: user.status === 'ACTIVE' ? '正常' : '禁用' })]),
-            h('td', { class: 'px-6 py-4' }, [
-              h('div', { class: 'flex gap-2' }, [
-                h('button', { class: 'px-3 py-1 text-xs bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100' }, '编辑'),
-                h('button', { class: 'px-3 py-1 text-xs bg-red-50 text-red-600 rounded-lg hover:bg-red-100' }, '删除')
-              ])
-            ])
-          ])))
-        ])
-      ])
-    ]);
-  }
-});
-
-// 品牌管理视图
+// 控制面板视图
 const BrandManagementView = defineComponent({
   setup() {
     const brands = ref([]);
