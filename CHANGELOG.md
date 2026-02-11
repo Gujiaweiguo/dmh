@@ -7,6 +7,34 @@
 
 ***
 
+## \[1.2.1] - 2026-02-11
+
+### 修复
+
+* 🐛 前端构建稳定性
+  * frontend-admin 构建压缩从 `terser` 切换为 `esbuild`
+  * 解决 Vite 可选依赖缺失导致的构建失败（`terser not found`）
+
+### 测试
+
+* ✅ 测试覆盖补齐（后端 + 前端）
+  * 新增 backend handler/logic/middleware/common/model/config/types/svc/api/cmd 测试
+  * 新增 frontend-admin `performanceMonitor` 单测
+  * 新增 frontend-h5 `api` 单测
+  * 后端 `go test ./... -run TestDoesNotExist` 下 `no test files` 归零
+
+### 验证
+
+* ✅ 本地回归全绿
+  * backend: `go test ./...`
+  * frontend-admin: `npm run test && npm run build`
+  * frontend-h5: `npm run test && npm run build`
+
+* ✅ 远端回归全绿
+  * `Order MySQL8 Regression` 手动触发成功
+
+***
+
 ## \[1.2.0] - 2026-02-10
 
 ### 新增
