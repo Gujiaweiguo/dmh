@@ -30,13 +30,10 @@ export default defineConfig(({ mode }) => {
             },
           },
         },
-        // 压缩选项
-        minify: 'terser',
-        terserOptions: {
-          compress: {
-            drop_console: true,
-            drop_debugger: true,
-          },
+        // 压缩选项（避免依赖可选的 terser）
+        minify: 'esbuild',
+        esbuild: {
+          drop: ['console', 'debugger'],
         },
         // 资源内联阈值
         assetsInlineLimit: 4096,
