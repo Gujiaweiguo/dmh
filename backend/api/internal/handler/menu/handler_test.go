@@ -2,6 +2,7 @@ package menu
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -143,4 +144,95 @@ func TestGetUserMenusHandler_ParseError(t *testing.T) {
 	handler(resp, req)
 
 	assert.NotEqual(t, http.StatusOK, resp.Code)
+}
+
+func TestGetMenuHandler_Success(t *testing.T) {
+	db := setupMenuHandlerTestDB(t)
+
+	menu := &model.Menu{Name: "Dashboard", Code: "dashboard", Path: "/dashboard", Type: "menu", Platform: "admin", Status: "active"}
+	db.Create(menu)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetMenuHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/menus/%d", menu.ID), nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+}
+
+func TestGetMenuHandler_NotFound(t *testing.T) {
+	db := setupMenuHandlerTestDB(t)
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetMenuHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/menus/99999", nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusOK, resp.Code)
+}
+
+func TestDeleteMenuHandler_Success(t *testing.T) {
+	db := setupMenuHandlerTestDB(t)
+
+	menu := &model.Menu{Name: "Dashboard", Code: "dashboard", Path: "/dashboard", Type: "menu", Platform: "admin", Status: "active"}
+	db.Create(menu)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := DeleteMenuHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/menus/%d", menu.ID), nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+}
+
+func TestGetMenusHandler_EmptyList(t *testing.T) {
+	db := setupMenuHandlerTestDB(t)
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetMenusHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/menus", nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+}
+
+func TestGetUserMenusHandler_Success(t *testing.T) {
+	db := setupMenuHandlerTestDB(t)
+
+	user := &model.User{Username: "testuser", Password: "pass", Phone: "13800138000", Status: "active"}
+	db.Create(user)
+
+	role := &model.Role{Name: "admin", Code: "admin"}
+	db.Create(role)
+
+	menu := &model.Menu{Name: "Dashboard", Code: "dashboard", Path: "/dashboard", Type: "menu", Platform: "admin", Status: "active"}
+	db.Create(menu)
+
+	userRole := &model.UserRole{UserID: user.Id, RoleID: role.ID}
+	db.Create(userRole)
+
+	roleMenu := &model.RoleMenu{RoleID: role.ID, MenuID: menu.ID}
+	db.Create(roleMenu)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetUserMenusHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/users/%d/menus", user.Id), nil)
+	ctx := context.WithValue(req.Context(), "userId", user.Id)
+	req = req.WithContext(ctx)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
 }

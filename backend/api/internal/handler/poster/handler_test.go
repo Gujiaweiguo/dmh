@@ -104,3 +104,52 @@ func TestGenerateDistributorPosterHandler_ParseError(t *testing.T) {
 
 	assert.NotEqual(t, http.StatusOK, resp.Code)
 }
+
+func TestGetPosterTemplatesHandler_EmptyList(t *testing.T) {
+	db := setupPosterHandlerTestDB(t)
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetPosterTemplatesHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/posters/templates", nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+}
+
+func TestGetPosterRecordsHandler_EmptyList(t *testing.T) {
+	db := setupPosterHandlerTestDB(t)
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetPosterRecordsHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/posters/records?page=1&pageSize=10", nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+}
+
+func TestGetPosterRecordsHandler_WithFilters(t *testing.T) {
+	db := setupPosterHandlerTestDB(t)
+
+	brand := &model.Brand{Name: "Test Brand", Status: "active"}
+	db.Create(brand)
+
+	campaign := &model.Campaign{Name: "Test Campaign", BrandId: brand.Id, Status: "active"}
+	db.Create(campaign)
+
+	record := &model.PosterRecord{RecordType: "personal", CampaignID: campaign.Id, TemplateName: "Template", PosterUrl: "https://example.com/poster.png"}
+	db.Create(record)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetPosterRecordsHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/posters/records?page=1&pageSize=10&recordType=personal", nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+}
