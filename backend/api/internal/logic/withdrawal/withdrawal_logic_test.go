@@ -321,3 +321,67 @@ func TestGetWithdrawalsLogic(t *testing.T) {
 		})
 	}
 }
+
+func TestGetWithdrawalLogic(t *testing.T) {
+	db := setupWithdrawalTestDB()
+
+	user := &model.User{Id: 1, Username: "testuser", Phone: "13800138000", RealName: "张三"}
+	distributor := &model.Distributor{Id: 1, UserId: 1}
+	brand := &model.Brand{Id: 1, Name: "Test Brand"}
+	db.Create(user)
+	db.Create(distributor)
+	db.Create(brand)
+
+	withdrawal := &model.Withdrawal{
+		ID:            1,
+		UserID:        1,
+		BrandId:       1,
+		DistributorId: 1,
+		Amount:        100,
+		Status:        "pending",
+		BankName:      "ICBC",
+		BankAccount:   "6222021234567890",
+		AccountName:   "张三",
+	}
+	db.Create(withdrawal)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewGetWithdrawalLogic(context.Background(), svcCtx)
+
+	tests := []struct {
+		name         string
+		withdrawalId int64
+		expectError  bool
+		errorMsg     string
+	}{
+		{
+			name:         "成功获取提现详情",
+			withdrawalId: 1,
+			expectError:  false,
+		},
+		{
+			name:         "提现记录不存在",
+			withdrawalId: 999,
+			expectError:  true,
+			errorMsg:     "withdrawal not found",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := logic.GetWithdrawal(tt.withdrawalId)
+
+			if tt.expectError {
+				assert.Error(t, err)
+				if tt.errorMsg != "" {
+					assert.Contains(t, err.Error(), tt.errorMsg)
+				}
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, resp)
+				assert.Equal(t, tt.withdrawalId, resp.Id)
+				assert.Equal(t, "testuser", resp.Username)
+			}
+		})
+	}
+}
