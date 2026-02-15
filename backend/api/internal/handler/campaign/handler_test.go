@@ -182,3 +182,148 @@ func TestDeleteCampaignHandler_ParseError(t *testing.T) {
 
 	assert.NotEqual(t, http.StatusOK, resp.Code)
 }
+
+func TestGetCampaignHandler_Success(t *testing.T) {
+	db := setupCampaignHandlerTestDB(t)
+
+	brand := &model.Brand{Name: "Test Brand", Status: "active"}
+	db.Create(brand)
+
+	campaign := &model.Campaign{
+		BrandId:    brand.Id,
+		Name:       "Test Campaign",
+		Status:     "active",
+		StartTime:  time.Now(),
+		EndTime:    time.Now().Add(24 * time.Hour),
+		FormFields: "[]",
+	}
+	db.Create(campaign)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetCampaignHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/campaigns/%d", campaign.Id), nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+}
+
+func TestGetCampaignHandler_NotFound(t *testing.T) {
+	db := setupCampaignHandlerTestDB(t)
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetCampaignHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/campaigns/99999", nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusOK, resp.Code)
+}
+
+func TestCreateCampaignHandler_Success(t *testing.T) {
+	db := setupCampaignHandlerTestDB(t)
+
+	brand := &model.Brand{Name: "Test Brand", Status: "active"}
+	db.Create(brand)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := CreateCampaignHandler(svcCtx)
+
+	now := time.Now()
+	body := fmt.Sprintf(`{"brandId":%d,"name":"New Campaign","description":"Test","startTime":"%s","endTime":"%s","formFields":[],"rewardRule":0}`,
+		brand.Id,
+		now.Format(time.RFC3339),
+		now.Add(24*time.Hour).Format(time.RFC3339),
+	)
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/campaigns", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+}
+
+func TestUpdateCampaignHandler_ParseError_InvalidID(t *testing.T) {
+	db := setupCampaignHandlerTestDB(t)
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := UpdateCampaignHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodPut, "/api/v1/campaigns/invalid", strings.NewReader(`{"name":"Updated"}`))
+	req.Header.Set("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusOK, resp.Code)
+}
+
+func TestDeleteCampaignHandler_Success(t *testing.T) {
+	db := setupCampaignHandlerTestDB(t)
+
+	brand := &model.Brand{Name: "Test Brand", Status: "active"}
+	db.Create(brand)
+
+	campaign := &model.Campaign{
+		BrandId:    brand.Id,
+		Name:       "Test Campaign",
+		Status:     "active",
+		StartTime:  time.Now(),
+		EndTime:    time.Now().Add(24 * time.Hour),
+		FormFields: "[]",
+	}
+	db.Create(campaign)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := DeleteCampaignHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/campaigns/%d", campaign.Id), nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+}
+
+func TestGetCampaignsHandler_EmptyList(t *testing.T) {
+	db := setupCampaignHandlerTestDB(t)
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetCampaignsHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/campaigns?page=1&pageSize=10", nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+}
+
+func TestGetCampaignsHandler_WithFilters(t *testing.T) {
+	db := setupCampaignHandlerTestDB(t)
+
+	brand := &model.Brand{Name: "Test Brand", Status: "active"}
+	db.Create(brand)
+
+	campaign := &model.Campaign{
+		BrandId:    brand.Id,
+		Name:       "Test Campaign",
+		Status:     "active",
+		StartTime:  time.Now(),
+		EndTime:    time.Now().Add(24 * time.Hour),
+		FormFields: "[]",
+	}
+	db.Create(campaign)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetCampaignsHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/campaigns?page=1&pageSize=10&status=active", nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+}

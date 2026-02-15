@@ -108,3 +108,83 @@ func TestUpdateMemberStatusHandler_ParseError(t *testing.T) {
 
 	assert.NotEqual(t, http.StatusOK, resp.Code)
 }
+
+func TestGetMemberHandler_Success(t *testing.T) {
+	db := setupMemberHandlerTestDB(t)
+
+	member := &model.Member{UnionID: "union123", Nickname: "Test Member", Phone: "13800138000", Status: "active"}
+	db.Create(member)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetMemberHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/members/%d", member.ID), nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+}
+
+func TestGetMemberHandler_NotFound(t *testing.T) {
+	db := setupMemberHandlerTestDB(t)
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetMemberHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/members/99999", nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusOK, resp.Code)
+}
+
+func TestGetMemberProfileHandler_Success(t *testing.T) {
+	db := setupMemberHandlerTestDB(t)
+
+	member := &model.Member{UnionID: "union123", Nickname: "Test Member", Phone: "13800138000", Status: "active"}
+	db.Create(member)
+
+	profile := &model.MemberProfile{MemberID: member.ID, TotalOrders: 5, TotalPayment: 100.00}
+	db.Create(profile)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetMemberProfileHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/members/%d/profile", member.ID), nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+}
+
+func TestGetMembersHandler_EmptyList(t *testing.T) {
+	db := setupMemberHandlerTestDB(t)
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetMembersHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/members?page=1&pageSize=10", nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+}
+
+func TestGetMembersHandler_WithFilters(t *testing.T) {
+	db := setupMemberHandlerTestDB(t)
+
+	member := &model.Member{UnionID: "union123", Nickname: "Test Member", Phone: "13800138000", Status: "active"}
+	db.Create(member)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetMembersHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/members?page=1&pageSize=10&phone=13800138000", nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+}
