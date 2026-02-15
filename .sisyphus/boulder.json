@@ -1,7 +1,23 @@
 {
-  "active_plan": "/opt/code/DMH/.sisyphus/plans/pre-release-full-regression.md",
-  "started_at": "2026-02-15T05:15:00.000Z",
-  "completed_at": "2026-02-15T05:15:00.000Z",
-  "session_ids": ["ses_3a18f1207ffeD19Nnpe0zSZSn5"],
-  "plan_name": "pre-release-full-regression"
+  "active_plan": "/opt/code/DMH/.sisyphus/plans/test-coverage-80-percent.md",
+  "started_at": "2026-02-15T09:12:40.312Z",
+  "completed_at": "2026-02-15T12:10:00.000Z",
+  "committed_at": "2026-02-15T12:10:00.000Z",
+  "commit": "ebfd4e2",
+  "session_ids": ["ses_39f7d8991ffeMi2Gg4p7bAvyLW"],
+  "plan_name": "test-coverage-80-percent",
+  "status": "completed",
+  "deliverables": [
+    "frontend-admin/vitest.config.ts (modified)",
+    "backend/api/internal/handler/testutil/ (created)",
+    ".github/workflows/coverage-gate.yml (created)",
+    "openspec/changes/improve-test-coverage-80-percent/ (created)",
+    "5 component tests (created)",
+    "25 ESLint errors fixed"
+  ],
+  "coverage_final": {
+    "backend": "70.7%",
+    "frontend_admin": "17.48%",
+    "frontend_improvement": "+10.37%"
+  }
 }

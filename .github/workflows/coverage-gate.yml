@@ -1,0 +1,56 @@
+name: Coverage Gate
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  backend-coverage:
+    name: Backend Coverage Gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+      - name: Run Backend Tests with Coverage
+        run: |
+          go test ./... -coverprofile=coverage.out -covermode=atomic
+      - name: Check Backend Coverage
+        run: |
+          if [ -f coverage.out ]; then
+            go tool cover -func=coverage.out | awk '/total:/ {split($0,a," "); if (a[3] >= 0.80) { print "Backend coverage OK"; exit 0 } else { print "Backend coverage not enough: " a[3]; exit 1 } }'
+          else
+            echo "coverage.out not found"; exit 1
+          fi
+        shell: bash
+
+  frontend-coverage:
+    name: Frontend Coverage Gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Dependencies
+        run: |
+          npm ci
+      - name: Run Frontend Tests with Coverage
+        run: |
+          npm run test:cov
+      - name: Check Frontend Coverage
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            PCT=$(node -e "const fs=require('fs'); const s=fs.readFileSync('coverage/coverage-summary.json','utf8'); const j=JSON.parse(s); console.log(j.total.lines.pct);")
+            echo "Frontend coverage: ${PCT}%"
+            if [ "${PCT}" -ge 70 ]; then
+              echo "Frontend coverage OK";
+            else
+              echo "Frontend coverage not enough: ${PCT}%"; exit 1; fi
+          else
+            echo "coverage-summary.json not found"; exit 1
+          fi

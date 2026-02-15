@@ -44,17 +44,11 @@ export const BrandManagementView = defineComponent({
     const availableUsers = ref<any[]>([]);
     const selectedUsers = ref<number[]>([]);
 
-    // 筛选的品牌列表（根据用户权限）
     const filteredBrands = computed(() => {
       if (!user.value) return [];
       
-      // 平台管理员可以看到所有品牌
       if (user.value.roles.includes('platform_admin')) {
         return brands.value;
-      }
-      
-      // 其他角色无权限查看品牌
-      return [];
       }
       
       return [];

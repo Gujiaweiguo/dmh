@@ -136,7 +136,7 @@ export const LoginView = defineComponent({
                 h('input', {
                   type: 'text',
                   value: loginForm.username,
-                  onInput: (e: any) => loginForm.username = e.target.value,
+                  onInput: (e: any) => { loginForm.username = e.target.value },
                   placeholder: '请输入用户名',
                   class: 'w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all',
                   required: true
@@ -153,7 +153,7 @@ export const LoginView = defineComponent({
                 h('input', {
                   type: 'password',
                   value: loginForm.password,
-                  onInput: (e: any) => loginForm.password = e.target.value,
+                  onInput: (e: any) => { loginForm.password = e.target.value },
                   placeholder: '请输入密码',
                   class: 'w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all',
                   required: true,
@@ -187,7 +187,7 @@ export const LoginView = defineComponent({
                 h('input', {
                   type: 'text',
                   value: registerForm.username,
-                  onInput: (e: any) => registerForm.username = e.target.value,
+                  onInput: (e: any) => { registerForm.username = e.target.value },
                   placeholder: '请输入用户名',
                   class: 'w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all',
                   required: true
@@ -204,7 +204,7 @@ export const LoginView = defineComponent({
                 h('input', {
                   type: 'tel',
                   value: registerForm.phone,
-                  onInput: (e: any) => registerForm.phone = e.target.value,
+                  onInput: (e: any) => { registerForm.phone = e.target.value },
                   placeholder: '请输入手机号',
                   class: 'w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all',
                   required: true,
@@ -222,7 +222,7 @@ export const LoginView = defineComponent({
                 h('input', {
                   type: 'text',
                   value: registerForm.realName,
-                  onInput: (e: any) => registerForm.realName = e.target.value,
+                  onInput: (e: any) => { registerForm.realName = e.target.value },
                   placeholder: '请输入真实姓名（可选）',
                   class: 'w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all'
                 })
@@ -238,7 +238,7 @@ export const LoginView = defineComponent({
                 h('input', {
                   type: 'email',
                   value: registerForm.email,
-                  onInput: (e: any) => registerForm.email = e.target.value,
+                  onInput: (e: any) => { registerForm.email = e.target.value },
                   placeholder: '请输入邮箱（可选）',
                   class: 'w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all'
                 })
@@ -254,7 +254,7 @@ export const LoginView = defineComponent({
                 h('input', {
                   type: 'password',
                   value: registerForm.password,
-                  onInput: (e: any) => registerForm.password = e.target.value,
+                  onInput: (e: any) => { registerForm.password = e.target.value },
                   placeholder: '请输入密码（至少6位）',
                   class: 'w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all',
                   required: true,

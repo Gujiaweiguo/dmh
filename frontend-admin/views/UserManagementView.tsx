@@ -317,7 +317,7 @@ export const UserManagementView = defineComponent({
               h('input', {
                 type: 'text',
                 value: searchQuery.value,
-                onInput: (e: any) => searchQuery.value = e.target.value,
+                onInput: (e: any) => { searchQuery.value = e.target.value },
                 placeholder: '搜索用户名、姓名、手机号、邮箱...',
                 class: 'w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-indigo-500 transition-colors'
               })
@@ -327,7 +327,7 @@ export const UserManagementView = defineComponent({
           // 角色筛选
           h('select', {
             value: filterRole.value,
-            onChange: (e: any) => filterRole.value = e.target.value,
+            onChange: (e: any) => { filterRole.value = e.target.value },
             class: 'px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-indigo-500 transition-colors'
           }, [
             h('option', { value: 'all' }, '全部角色'),
@@ -338,7 +338,7 @@ export const UserManagementView = defineComponent({
           // 状态筛选
           h('select', {
             value: filterStatus.value,
-            onChange: (e: any) => filterStatus.value = e.target.value,
+            onChange: (e: any) => { filterStatus.value = e.target.value },
             class: 'px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-indigo-500 transition-colors'
           }, [
             h('option', { value: 'all' }, '全部状态'),
@@ -449,7 +449,7 @@ export const UserManagementView = defineComponent({
       // 编辑用户对话框
       showEditDialog.value && editingUser.value && h('div', { 
         class: 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4',
-        onClick: () => showEditDialog.value = false
+        onClick: () => { showEditDialog.value = false }
       }, [
         h('div', { 
           class: 'bg-white rounded-3xl p-8 max-w-2xl w-full max-h-[80vh] overflow-auto',
@@ -458,7 +458,7 @@ export const UserManagementView = defineComponent({
           h('div', { class: 'flex items-center justify-between mb-6' }, [
             h('h3', { class: 'text-2xl font-black text-slate-900' }, '编辑用户'),
             h('button', {
-              onClick: () => showEditDialog.value = false,
+              onClick: () => { showEditDialog.value = false },
               class: 'p-2 hover:bg-slate-100 rounded-xl transition-colors'
             }, h(LucideIcons.X, { size: 20 }))
           ]),
@@ -469,7 +469,7 @@ export const UserManagementView = defineComponent({
               h('input', {
                 type: 'text',
                 value: editingUser.value.username,
-                onInput: (e: any) => editingUser.value.username = e.target.value,
+                onInput: (e: any) => { editingUser.value.username = e.target.value },
                 class: 'w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-indigo-500',
                 disabled: true // 用户名不可修改
               })
@@ -480,7 +480,7 @@ export const UserManagementView = defineComponent({
               h('input', {
                 type: 'text',
                 value: editingUser.value.realName,
-                onInput: (e: any) => editingUser.value.realName = e.target.value,
+                onInput: (e: any) => { editingUser.value.realName = e.target.value },
                 class: 'w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-indigo-500'
               })
             ]),
@@ -490,7 +490,7 @@ export const UserManagementView = defineComponent({
               h('input', {
                 type: 'tel',
                 value: editingUser.value.phone,
-                onInput: (e: any) => editingUser.value.phone = e.target.value,
+                onInput: (e: any) => { editingUser.value.phone = e.target.value },
                 class: 'w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-indigo-500'
               })
             ]),
@@ -500,7 +500,7 @@ export const UserManagementView = defineComponent({
               h('input', {
                 type: 'email',
                 value: editingUser.value.email,
-                onInput: (e: any) => editingUser.value.email = e.target.value,
+                onInput: (e: any) => { editingUser.value.email = e.target.value },
                 class: 'w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-indigo-500'
               })
             ]),
@@ -508,7 +508,7 @@ export const UserManagementView = defineComponent({
           
           h('div', { class: 'flex gap-3 mt-8' }, [
             h('button', {
-              onClick: () => showEditDialog.value = false,
+              onClick: () => { showEditDialog.value = false },
               class: 'flex-1 px-6 py-3 rounded-xl border border-slate-200 font-bold hover:bg-slate-50 transition-colors'
             }, '取消'),
             h('button', {
@@ -522,7 +522,7 @@ export const UserManagementView = defineComponent({
       // 重置密码对话框
       showResetPasswordDialog.value && resetPasswordUser.value && h('div', { 
         class: 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4',
-        onClick: () => showResetPasswordDialog.value = false
+        onClick: () => { showResetPasswordDialog.value = false }
       }, [
         h('div', { 
           class: 'bg-white rounded-3xl p-8 max-w-md w-full',
@@ -531,7 +531,7 @@ export const UserManagementView = defineComponent({
           h('div', { class: 'flex items-center justify-between mb-6' }, [
             h('h3', { class: 'text-2xl font-black text-slate-900' }, '重置密码'),
             h('button', {
-              onClick: () => showResetPasswordDialog.value = false,
+              onClick: () => { showResetPasswordDialog.value = false },
               class: 'p-2 hover:bg-slate-100 rounded-xl transition-colors'
             }, h(LucideIcons.X, { size: 20 }))
           ]),
@@ -552,7 +552,7 @@ export const UserManagementView = defineComponent({
               h('input', {
                 type: 'password',
                 value: newPassword.value,
-                onInput: (e: any) => newPassword.value = e.target.value,
+                onInput: (e: any) => { newPassword.value = e.target.value },
                 placeholder: '请输入新密码（至少6位）',
                 class: 'w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-indigo-500'
               })
@@ -561,7 +561,7 @@ export const UserManagementView = defineComponent({
           
           h('div', { class: 'flex gap-3 mt-8' }, [
             h('button', {
-              onClick: () => showResetPasswordDialog.value = false,
+              onClick: () => { showResetPasswordDialog.value = false },
               class: 'flex-1 px-6 py-3 rounded-xl border border-slate-200 font-bold hover:bg-slate-50 transition-colors'
             }, '取消'),
             h('button', {
@@ -575,7 +575,7 @@ export const UserManagementView = defineComponent({
       // 角色管理对话框
       showRoleDialog.value && roleUser.value && h('div', { 
         class: 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4',
-        onClick: () => showRoleDialog.value = false
+        onClick: () => { showRoleDialog.value = false }
       }, [
         h('div', { 
           class: 'bg-white rounded-3xl p-8 max-w-2xl w-full max-h-[80vh] overflow-auto',
@@ -584,7 +584,7 @@ export const UserManagementView = defineComponent({
           h('div', { class: 'flex items-center justify-between mb-6' }, [
             h('h3', { class: 'text-2xl font-black text-slate-900' }, '管理用户角色'),
             h('button', {
-              onClick: () => showRoleDialog.value = false,
+              onClick: () => { showRoleDialog.value = false },
               class: 'p-2 hover:bg-slate-100 rounded-xl transition-colors'
             }, h(LucideIcons.X, { size: 20 }))
           ]),
@@ -636,7 +636,7 @@ export const UserManagementView = defineComponent({
           
           h('div', { class: 'flex gap-3 mt-8' }, [
             h('button', {
-              onClick: () => showRoleDialog.value = false,
+              onClick: () => { showRoleDialog.value = false },
               class: 'flex-1 px-6 py-3 rounded-xl border border-slate-200 font-bold hover:bg-slate-50 transition-colors'
             }, '取消'),
             h('button', {
