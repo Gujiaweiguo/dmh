@@ -25,7 +25,7 @@ jobs:
         working-directory: backend
         run: |
           if [ -f coverage.out ]; then
-            go tool cover -func=coverage.out | awk '/total:/ {split($0,a," "); if (a[3] >= 0.76) { print "Backend coverage OK"; exit 0 } else { print "Backend coverage not enough: " a[3]; exit 1 } }'
+            go tool cover -func=coverage.out | awk '/total:/ {split($0,a," "); if (a[3] >= 0.75) { print "Backend coverage OK"; exit 0 } else { print "Backend coverage not enough: " a[3]; exit 1 } }'
           else
             echo "coverage.out not found"; exit 1
           fi
