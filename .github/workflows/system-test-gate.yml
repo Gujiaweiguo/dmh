@@ -117,6 +117,7 @@ jobs:
           mysql -h 127.0.0.1 -uroot -p'#Admin168' dmh < backend/scripts/create_member_system_tables.sql
           mysql -h 127.0.0.1 -uroot -p'#Admin168' dmh < backend/migrations/20250120_create_distributor_tables_final.sql
           mysql -h 127.0.0.1 -uroot -p'#Admin168' dmh < backend/migrations/20250124_add_advanced_features.sql
+          mysql -h 127.0.0.1 -uroot -p'#Admin168' dmh < backend/migrations/2026_01_29_add_record_tables.sql
 
       - name: Ensure orders.paid_at and verification_code schema
         run: |
