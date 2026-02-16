@@ -327,3 +327,84 @@ func TestGetCampaignsHandler_WithFilters(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, resp.Code)
 }
+
+func TestGetPageConfigHandler_CampaignNotFound(t *testing.T) {
+	db := setupCampaignHandlerTestDB(t)
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetPageConfigHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/campaigns/99999/page-config", nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusOK, resp.Code)
+}
+
+func TestSavePageConfigHandler_ParseError(t *testing.T) {
+	db := setupCampaignHandlerTestDB(t)
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := SavePageConfigHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/campaigns/invalid/page-config", strings.NewReader("{invalid"))
+	req.Header.Set("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusOK, resp.Code)
+}
+
+func TestGetCampaignsHandler_WithBrandId(t *testing.T) {
+	db := setupCampaignHandlerTestDB(t)
+
+	brand := &model.Brand{Name: "Test Brand", Status: "active"}
+	db.Create(brand)
+
+	campaign := &model.Campaign{
+		BrandId:    brand.Id,
+		Name:       "Test Campaign",
+		Status:     "active",
+		StartTime:  time.Now(),
+		EndTime:    time.Now().Add(24 * time.Hour),
+		FormFields: "[]",
+	}
+	db.Create(campaign)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetCampaignsHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/campaigns?page=1&pageSize=10&brandId=%d", brand.Id), nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+}
+
+func TestGetCampaignsHandler_WithKeyword(t *testing.T) {
+	db := setupCampaignHandlerTestDB(t)
+
+	brand := &model.Brand{Name: "Test Brand", Status: "active"}
+	db.Create(brand)
+
+	campaign := &model.Campaign{
+		BrandId:    brand.Id,
+		Name:       "Special Campaign",
+		Status:     "active",
+		StartTime:  time.Now(),
+		EndTime:    time.Now().Add(24 * time.Hour),
+		FormFields: "[]",
+	}
+	db.Create(campaign)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetCampaignsHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/campaigns?page=1&pageSize=10&keyword=Special", nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+}

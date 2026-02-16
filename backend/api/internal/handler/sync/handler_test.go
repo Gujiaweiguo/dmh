@@ -85,3 +85,17 @@ func TestGetSyncStatsHandler_Success(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, resp.Code)
 }
+
+// Ensure RetrySynHandler is wired and returns 200 OK with default logic (nil response)
+func TestRetrySynHandler_Success(t *testing.T) {
+	db := setupSyncHandlerTestDB(t)
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := RetrySynHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/sync/retry", nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+}

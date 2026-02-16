@@ -271,7 +271,7 @@ func TestGenerateDistributorPosterHandler_Success(t *testing.T) {
 	svcCtx := &svc.ServiceContext{DB: db}
 	handler := GenerateDistributorPosterHandler(svcCtx)
 
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/distributors/12345/poster", strings.NewReader(`{"templateId": 1}`))
+	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/distributors/%d/poster", distributor.Id), strings.NewReader(`{"templateId": 1}`))
 	req.Header.Set("Content-Type", "application/json")
 	resp := httptest.NewRecorder()
 
@@ -298,7 +298,74 @@ func TestGenerateDistributorPosterHandler_ValidIdPath(t *testing.T) {
 	svcCtx := &svc.ServiceContext{DB: db}
 	handler := GenerateDistributorPosterHandler(svcCtx)
 
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/distributors/999/poster", strings.NewReader(`{"templateId": 1}`))
+	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/distributors/%d/poster", distributor.Id), strings.NewReader(`{"templateId": 1}`))
+	req.Header.Set("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestGenerateDistributorPosterHandler_ExactPathLength(t *testing.T) {
+	db := setupPosterHandlerTestDB(t)
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GenerateDistributorPosterHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/distributors//poster", strings.NewReader(`{}`))
+	req.Header.Set("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusOK, resp.Code)
+}
+
+func TestGenerateCampaignPosterHandler_WithValidTemplate(t *testing.T) {
+	db := setupPosterHandlerTestDB(t)
+
+	brand := &model.Brand{Name: "Test Brand", Status: "active"}
+	db.Create(brand)
+
+	campaign := &model.Campaign{Name: "Test Campaign", BrandId: brand.Id, Status: "active", PosterTemplateId: 1}
+	db.Create(campaign)
+
+	template := &model.PosterTemplateConfig{Name: "Test Template", Status: "active"}
+	db.Create(template)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GenerateCampaignPosterHandler(svcCtx)
+
+	reqBody := fmt.Sprintf(`{"id": %d, "templateId": %d}`, campaign.Id, template.Id)
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/posters/campaign", strings.NewReader(reqBody))
+	req.Header.Set("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestGenerateDistributorPosterHandler_WithValidDistributor(t *testing.T) {
+	db := setupPosterHandlerTestDB(t)
+
+	user := &model.User{Username: "distuser", Password: "hashed", Role: "participant"}
+	db.Create(user)
+
+	brand := &model.Brand{Name: "Test Brand", Status: "active"}
+	db.Create(brand)
+
+	distributor := &model.Distributor{UserId: user.Id, BrandId: brand.Id, Level: 1, Status: "active"}
+	db.Create(distributor)
+
+	template := &model.PosterTemplateConfig{Name: "Test Template", Status: "active"}
+	db.Create(template)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GenerateDistributorPosterHandler(svcCtx)
+
+	reqBody := fmt.Sprintf(`{"templateId": %d}`, template.Id)
+	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/distributors/%d/poster", distributor.Id), strings.NewReader(reqBody))
 	req.Header.Set("Content-Type", "application/json")
 	resp := httptest.NewRecorder()
 
@@ -387,4 +454,105 @@ func TestGetPosterTemplatesHandler_WithKeyword(t *testing.T) {
 	handler(resp, req)
 
 	assert.Equal(t, http.StatusOK, resp.Code)
+}
+
+func TestGenerateDistributorPosterHandler_LongPath(t *testing.T) {
+	db := setupPosterHandlerTestDB(t)
+
+	user := &model.User{Username: "testuser3", Password: "hashed", Role: "participant"}
+	db.Create(user)
+
+	brand := &model.Brand{Name: "Test Brand", Status: "active"}
+	db.Create(brand)
+
+	distributor := &model.Distributor{UserId: user.Id, BrandId: brand.Id, Level: 1, Status: "active"}
+	db.Create(distributor)
+
+	template := &model.PosterTemplateConfig{Name: "Test Template", Status: "active"}
+	db.Create(template)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GenerateDistributorPosterHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/distributors/%d/poster", distributor.Id), strings.NewReader(`{"templateId": 1}`))
+	req.Header.Set("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestGenerateCampaignPosterHandler_WithTemplateId(t *testing.T) {
+	db := setupPosterHandlerTestDB(t)
+
+	brand := &model.Brand{Name: "Test Brand", Status: "active"}
+	db.Create(brand)
+
+	campaign := &model.Campaign{Name: "Test Campaign", BrandId: brand.Id, Status: "active", PosterTemplateId: 1}
+	db.Create(campaign)
+
+	template := &model.PosterTemplateConfig{Name: "Test Template", Status: "active"}
+	db.Create(template)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GenerateCampaignPosterHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/posters/campaign", strings.NewReader(fmt.Sprintf(`{"id": %d, "templateId": 1}`, campaign.Id)))
+	req.Header.Set("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestGetPosterTemplatesHandler_ParseError(t *testing.T) {
+	db := setupPosterHandlerTestDB(t)
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetPosterTemplatesHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/posters/templates?page=invalid", nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusOK, resp.Code)
+}
+
+func TestGetPosterRecordsHandler_WithMemberId(t *testing.T) {
+	db := setupPosterHandlerTestDB(t)
+
+	brand := &model.Brand{Name: "Test Brand", Status: "active"}
+	db.Create(brand)
+
+	campaign := &model.Campaign{Name: "Test Campaign", BrandId: brand.Id, Status: "active"}
+	db.Create(campaign)
+
+	record := &model.PosterRecord{RecordType: "personal", CampaignID: campaign.Id, TemplateName: "Template", PosterUrl: "https://example.com/poster.png"}
+	db.Create(record)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetPosterRecordsHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/posters/records?page=1&pageSize=10", nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+}
+
+func TestGenerateDistributorPosterHandler_InvalidIdFormat(t *testing.T) {
+	db := setupPosterHandlerTestDB(t)
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GenerateDistributorPosterHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/distributors/abc123/poster", strings.NewReader(`{}`))
+	req.Header.Set("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusOK, resp.Code)
 }

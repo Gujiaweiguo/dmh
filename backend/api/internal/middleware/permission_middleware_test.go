@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"dmh/model"
 
@@ -248,4 +249,94 @@ func TestIsPublicPath(t *testing.T) {
 			assert.False(t, env.middleware.isPublicPath(path))
 		})
 	}
+}
+
+func TestGetUserRolesFromContext(t *testing.T) {
+	t.Run("with valid roles slice", func(t *testing.T) {
+		ctx := context.WithValue(context.Background(), "roles", []string{"admin", "user"})
+		roles, err := GetUserRolesFromContext(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, []string{"admin", "user"}, roles)
+	})
+
+	t.Run("with empty roles", func(t *testing.T) {
+		ctx := context.WithValue(context.Background(), "roles", []string{})
+		roles, err := GetUserRolesFromContext(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, []string{}, roles)
+	})
+
+	t.Run("without roles in context", func(t *testing.T) {
+		ctx := context.Background()
+		_, err := GetUserRolesFromContext(ctx)
+		assert.Error(t, err)
+	})
+
+	t.Run("with invalid roles type", func(t *testing.T) {
+		ctx := context.WithValue(context.Background(), "roles", "invalid")
+		_, err := GetUserRolesFromContext(ctx)
+		assert.Error(t, err)
+	})
+}
+
+func TestExtractBrandIDFromPath(t *testing.T) {
+	env := newPermissionTestEnv(t)
+
+	tests := []struct {
+		name     string
+		path     string
+		expected int64
+	}{
+		{"valid brand id", "/api/v1/brands/123", 123},
+		{"brand id with trailing slash", "/api/v1/brands/456/", 456},
+		{"brand id with subpath", "/api/v1/brands/789/campaigns", 789},
+		{"no brand id in path", "/api/v1/orders", 0},
+		{"empty after brands", "/api/v1/brands/", 0},
+		{"invalid brand id", "/api/v1/brands/abc", 0},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := env.middleware.extractBrandIDFromPath(tt.path)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestClearAllCache(t *testing.T) {
+	env := newPermissionTestEnv(t)
+
+	env.middleware.cache.Set(1, &UserPermissions{UserID: 1, Permissions: map[string]bool{"test:read": true}, CachedAt: time.Now()})
+	env.middleware.cache.Set(2, &UserPermissions{UserID: 2, Permissions: map[string]bool{"test:write": true}, CachedAt: time.Now()})
+
+	assert.NotNil(t, env.middleware.cache.Get(1))
+	assert.NotNil(t, env.middleware.cache.Get(2))
+
+	env.middleware.ClearAllCache()
+
+	assert.Nil(t, env.middleware.cache.Get(1))
+	assert.Nil(t, env.middleware.cache.Get(2))
+}
+
+func TestPermissionCache_Clear(t *testing.T) {
+	cache := NewPermissionCache(time.Minute)
+
+	cache.Set(1, &UserPermissions{UserID: 1, CachedAt: time.Now()})
+	cache.Set(2, &UserPermissions{UserID: 2, CachedAt: time.Now()})
+
+	assert.NotNil(t, cache.Get(1))
+	assert.NotNil(t, cache.Get(2))
+
+	cache.Clear()
+
+	assert.Nil(t, cache.Get(1))
+	assert.Nil(t, cache.Get(2))
+}
+
+func TestGetUserBrandIDs(t *testing.T) {
+	env := newPermissionTestEnv(t)
+
+	ids, err := env.middleware.getUserBrandIDs(1)
+	require.NoError(t, err)
+	assert.Equal(t, []int64{}, ids)
 }

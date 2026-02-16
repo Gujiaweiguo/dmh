@@ -2,6 +2,7 @@ package distributor
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -445,4 +446,255 @@ func TestGetMyDistributorDashboardHandler_Construct(t *testing.T) {
 func TestTrackDistributorLinkHandler_Construct(t *testing.T) {
 	handler := TrackDistributorLinkHandler(nil)
 	assert.NotNil(t, handler)
+}
+
+func TestGetBrandDistributorHandler_WithDB(t *testing.T) {
+	db := setupDistributorHandlerTestDB(t)
+	brand := createTestBrand(t, db, "Test Brand")
+	user := createTestUser(t, db, "testuser")
+
+	distributor := &model.Distributor{
+		UserId:  user.Id,
+		BrandId: brand.Id,
+		Level:   1,
+		Status:  "active",
+	}
+	db.Create(distributor)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetBrandDistributorHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/brands/%d/distributors/%d", brand.Id, distributor.Id), nil)
+	ctx := context.WithValue(req.Context(), "distributorId", distributor.Id)
+	req = req.WithContext(ctx)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestGetDistributorLevelRewardsHandler_WithDB(t *testing.T) {
+	db := setupDistributorHandlerTestDB(t)
+	brand := createTestBrand(t, db, "Test Brand")
+
+	reward := &model.DistributorLevelReward{
+		BrandId:          brand.Id,
+		Level:            1,
+		RewardPercentage: 10.0,
+	}
+	db.Create(reward)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetDistributorLevelRewardsHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/distributors/level-rewards", nil)
+	ctx := context.WithValue(req.Context(), "brandId", brand.Id)
+	req = req.WithContext(ctx)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestUpdateDistributorStatusHandler_WithDB(t *testing.T) {
+	db := setupDistributorHandlerTestDB(t)
+	brand := createTestBrand(t, db, "Test Brand")
+	user := createTestUser(t, db, "testuser")
+
+	distributor := &model.Distributor{
+		UserId:  user.Id,
+		BrandId: brand.Id,
+		Level:   1,
+		Status:  "active",
+	}
+	db.Create(distributor)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := UpdateDistributorStatusHandler(svcCtx)
+
+	reqBody := types.UpdateDistributorStatusReq{
+		Status: "inactive",
+		Reason: "Test reason",
+	}
+	body, _ := json.Marshal(reqBody)
+	req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/distributors/%d/status", distributor.Id), bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	ctx := context.WithValue(req.Context(), "distributorId", distributor.Id)
+	req = req.WithContext(ctx)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestUpdateDistributorLevelHandler_WithDB(t *testing.T) {
+	db := setupDistributorHandlerTestDB(t)
+	brand := createTestBrand(t, db, "Test Brand")
+	user := createTestUser(t, db, "testuser")
+
+	distributor := &model.Distributor{
+		UserId:  user.Id,
+		BrandId: brand.Id,
+		Level:   1,
+		Status:  "active",
+	}
+	db.Create(distributor)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := UpdateDistributorLevelHandler(svcCtx)
+
+	reqBody := types.UpdateDistributorLevelReq{
+		Level: 2,
+	}
+	body, _ := json.Marshal(reqBody)
+	req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/distributors/%d/level", distributor.Id), bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	ctx := context.WithValue(req.Context(), "distributorId", distributor.Id)
+	req = req.WithContext(ctx)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestSetDistributorLevelRewardsHandler_WithDB(t *testing.T) {
+	db := setupDistributorHandlerTestDB(t)
+	brand := createTestBrand(t, db, "Test Brand")
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := SetDistributorLevelRewardsHandler(svcCtx)
+
+	reqBody := types.SetDistributorLevelRewardsReq{
+		Rewards: []types.SetDistributorLevelRewardReq{
+			{Level: 1, RewardPercentage: 10.0},
+		},
+	}
+	body, _ := json.Marshal(reqBody)
+	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/brands/%d/distributors/level-rewards", brand.Id), bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	ctx := context.WithValue(req.Context(), "brandId", brand.Id)
+	req = req.WithContext(ctx)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestApproveDistributorApplicationHandler_WithDB(t *testing.T) {
+	db := setupDistributorHandlerTestDB(t)
+	brand := createTestBrand(t, db, "Test Brand")
+	user := createTestUser(t, db, "applicant")
+
+	application := &model.DistributorApplication{
+		UserId:  user.Id,
+		BrandId: brand.Id,
+		Reason:  "Test reason",
+		Status:  "pending",
+	}
+	db.Create(application)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := ApproveDistributorApplicationHandler(svcCtx)
+
+	reqBody := types.ApproveDistributorReq{
+		Action: "approve",
+	}
+	body, _ := json.Marshal(reqBody)
+	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/distributors/applications/%d/approve", application.Id), bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	ctx := context.WithValue(req.Context(), "applicationId", application.Id)
+	ctx = context.WithValue(ctx, "userId", user.Id)
+	req = req.WithContext(ctx)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestGetDistributorApplicationHandler_WithDB(t *testing.T) {
+	db := setupDistributorHandlerTestDB(t)
+	brand := createTestBrand(t, db, "Test Brand")
+	user := createTestUser(t, db, "applicant")
+
+	application := &model.DistributorApplication{
+		UserId:  user.Id,
+		BrandId: brand.Id,
+		Reason:  "Test reason",
+		Status:  "pending",
+	}
+	db.Create(application)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetDistributorApplicationHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/distributors/applications/%d", application.Id), nil)
+	req.SetPathValue("id", fmt.Sprintf("%d", application.Id))
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestGetBrandDistributorApplicationHandler_WithDB(t *testing.T) {
+	db := setupDistributorHandlerTestDB(t)
+	brand := createTestBrand(t, db, "Test Brand")
+	user := createTestUser(t, db, "applicant")
+
+	application := &model.DistributorApplication{
+		UserId:  user.Id,
+		BrandId: brand.Id,
+		Reason:  "Test reason",
+		Status:  "pending",
+	}
+	db.Create(application)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetBrandDistributorApplicationHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/brands/%d/distributors/applications/%d", brand.Id, application.Id), nil)
+	req.SetPathValue("brandId", fmt.Sprintf("%d", brand.Id))
+	req.SetPathValue("id", fmt.Sprintf("%d", application.Id))
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestTrackDistributorLinkHandler_WithDB(t *testing.T) {
+	db := setupDistributorHandlerTestDB(t)
+	brand := createTestBrand(t, db, "Test Brand")
+	user := createTestUser(t, db, "testuser")
+
+	distributor := &model.Distributor{
+		UserId:  user.Id,
+		BrandId: brand.Id,
+		Level:   1,
+		Status:  "active",
+	}
+	db.Create(distributor)
+
+	link := &model.DistributorLink{
+		DistributorId: distributor.Id,
+		CampaignId:    brand.Id,
+		LinkCode:      "testcode123",
+	}
+	db.Create(link)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := TrackDistributorLinkHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/distributors/links/track?code=testcode123", nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
 }

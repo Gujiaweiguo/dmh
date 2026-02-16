@@ -236,3 +236,62 @@ func TestGetUserMenusHandler_Success(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, resp.Code)
 }
+
+func TestGetMenuHandler_ParseError(t *testing.T) {
+
+	handler := GetMenuHandler(nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/menus/invalid", nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusOK, resp.Code)
+}
+
+func TestUpdateMenuHandler_Success(t *testing.T) {
+	db := setupMenuHandlerTestDB(t)
+	// Create a sample menu to update
+	menu := &model.Menu{Name: "Dashboard", Code: "dashboard", Path: "/dashboard", Type: "menu", Platform: "admin", Status: "active"}
+	db.Create(menu)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := UpdateMenuHandler(svcCtx)
+
+	reqBody := types.UpdateMenuReq{
+		Name:     "Dashboard Updated",
+		Path:     "/dashboard-updated",
+		Type:     "menu",
+		Platform: "admin",
+		Status:   "active",
+	}
+	body, _ := json.Marshal(reqBody)
+	req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/menus/%d", menu.ID), bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+}
+
+func TestConfigRoleMenusHandler_Success(t *testing.T) {
+	db := setupMenuHandlerTestDB(t)
+	// Seed a role and a menu to associate
+	role := &model.Role{Name: "admin", Code: "admin"}
+	db.Create(role)
+	menu := &model.Menu{Name: "Dashboard", Code: "dashboard", Path: "/dashboard", Type: "menu", Platform: "admin", Status: "active"}
+	db.Create(menu)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := ConfigRoleMenusHandler(svcCtx)
+
+	reqBody := types.RoleMenuReq{RoleId: role.ID, MenuIds: []int64{menu.ID}}
+	body, _ := json.Marshal(reqBody)
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/roles/menus", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+}

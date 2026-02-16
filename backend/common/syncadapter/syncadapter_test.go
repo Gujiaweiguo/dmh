@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"dmh/model"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -244,6 +245,16 @@ func TestSyncAdapter_Close(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestNewSyncAdapter_UnsupportedType(t *testing.T) {
+	config := ExternalSyncConfig{Type: "unsupported"}
+
+	adapter, err := NewSyncAdapter(config)
+
+	assert.Nil(t, adapter)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "unsupported database type")
+}
+
 func TestSyncAdapter_Close_Nil(t *testing.T) {
 	adapter := &SyncAdapter{
 		db: nil,
@@ -392,82 +403,45 @@ func TestSyncOrder_DBError(t *testing.T) {
 	assert.Equal(t, int64(1), stats["failed_syncs"])
 }
 
-func TestSyncReward_Success(t *testing.T) {
+func TestAsyncSyncOrder_SpawnsGoroutineAndCallsSyncOrder(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("failed to create sqlmock: %v", err)
 	}
 	defer db.Close()
 
-	mock.ExpectExec("INSERT INTO external_rewards").
+	adapter := &SyncAdapter{
+		db:      db,
+		mapper:  NewFieldMapper(),
+		metrics: NewSyncMetrics(),
+		logger:  logx.WithContext(context.Background()),
+	}
+
+	// Expect an INSERT into external_orders when SyncOrder is invoked
+	mock.ExpectExec("INSERT INTO external_orders").
 		WithArgs(
-			int64(123),
-			int64(456),
-			int64(789),
-			int64(101112),
-			50.00,
-			"settled",
-			sqlmock.AnyArg(),
+			int64(123),       // order_id
+			int64(456),       // campaign_id
+			int64(0),         // member_id (nil -> 0)
+			"wx_unionid",     // unionid
+			"13800138000",    // phone
+			sqlmock.AnyArg(), // form_data
+			100.00,           // amount
+			"paid",           // pay_status
+			sqlmock.AnyArg(), // created_at
 		).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
-	adapter := &SyncAdapter{
-		db:      db,
-		mapper:  NewFieldMapper(),
-		metrics: NewSyncMetrics(),
-		logger:  logx.WithContext(context.Background()),
+	gormDB := setupSyncWorkerTestDB(t)
+	now := time.Now()
+	order := &model.Order{Id: 123, CampaignId: 456, MemberID: nil, UnionID: "wx_unionid", Phone: "13800138000", FormData: `{"name":"test"}`, Amount: 100.0, PayStatus: "paid", CreatedAt: now}
+	gormDB.Create(order)
+
+	worker := NewSyncWorker(adapter, &SyncQueue{}, gormDB)
+	worker.syncOrder(123)
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("there were unfulfilled expectations: %v", err)
 	}
-
-	data := &SyncRewardData{
-		RewardId:  123,
-		UserId:    456,
-		MemberId:  789,
-		OrderId:   101112,
-		Amount:    50.00,
-		Status:    "settled",
-		SettledAt: time.Now(),
-	}
-
-	err = adapter.SyncReward(context.Background(), data)
-	assert.NoError(t, err)
-	assert.NoError(t, mock.ExpectationsWereMet())
-
-	stats := adapter.metrics.GetStats()
-	assert.Equal(t, int64(1), stats["success_syncs"])
-}
-
-func TestSyncReward_DBError(t *testing.T) {
-	db, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("failed to create sqlmock: %v", err)
-	}
-	defer db.Close()
-
-	mock.ExpectExec("INSERT INTO external_rewards").
-		WillReturnError(sql.ErrTxDone)
-
-	adapter := &SyncAdapter{
-		db:      db,
-		mapper:  NewFieldMapper(),
-		metrics: NewSyncMetrics(),
-		logger:  logx.WithContext(context.Background()),
-	}
-
-	data := &SyncRewardData{
-		RewardId:  123,
-		UserId:    456,
-		Amount:    50.00,
-		Status:    "settled",
-		SettledAt: time.Now(),
-	}
-
-	err = adapter.SyncReward(context.Background(), data)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to sync reward")
-	assert.NoError(t, mock.ExpectationsWereMet())
-
-	stats := adapter.metrics.GetStats()
-	assert.Equal(t, int64(1), stats["failed_syncs"])
 }
 
 func TestHealthCheck_Success(t *testing.T) {

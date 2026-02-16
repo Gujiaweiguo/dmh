@@ -84,3 +84,46 @@ func TestGetBalanceHandler_Success(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, resp.Code)
 }
+
+func TestGetRewardsHandler_Error(t *testing.T) {
+	db := setupRewardHandlerTestDB(t)
+	if err := db.Migrator().DropTable(&model.DistributorReward{}); err != nil {
+		t.Fatalf("failed to drop DistributorReward table: %v", err)
+	}
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetRewardsHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/rewards?userId=1", nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusOK, resp.Code)
+}
+
+func TestGetBalanceHandler_MissingUserId(t *testing.T) {
+	db := setupRewardHandlerTestDB(t)
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetBalanceHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/rewards/balance/", nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+}
+
+func TestGetBalanceHandler_InvalidUserId(t *testing.T) {
+	db := setupRewardHandlerTestDB(t)
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetBalanceHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/rewards/balance/abc", nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+}
