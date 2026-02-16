@@ -5,7 +5,7 @@
 ### 一键启动（推荐）
 
 ```bash
-cd /opt/code/DMH/deployment/scripts
+cd /opt/code/DMH/deploy/scripts
 ./quick-start.sh
 ```
 
@@ -16,7 +16,7 @@ cd /opt/code/DMH/deployment/scripts
 ## 📋 目录结构
 
 ```
-/opt/code/DMH/deployment/
+/opt/code/DMH/deploy/
 ├── docker-compose.yml           # 完整版Docker编排（包含构建）
 ├── docker-compose-simple.yml   # 简化版Docker编排（自动安装依赖）⭐
 ├── nginx/
@@ -78,7 +78,7 @@ docker compose -f docker-compose-simple.yml up -d
 
 **或使用快速启动脚本**：
 ```bash
-cd /opt/code/DMH/deployment/scripts
+cd /opt/code/DMH/deploy/scripts
 ./quick-start.sh
 ```
 
@@ -93,7 +93,7 @@ cd /opt/code/DMH/deployment/scripts
 
 **启动命令**：
 ```bash
-cd /opt/code/DMH/deployment/scripts
+cd /opt/code/DMH/deploy/scripts
 ./deploy-containers.sh
 ```
 
@@ -220,7 +220,7 @@ docker logs dmh-nginx | tail -50
 如果需要回滚到原来的独立进程部署方式：
 
 ```bash
-cd /opt/code/DMH/deployment/scripts
+cd /opt/code/DMH/deploy/scripts
 ./rollback-containers.sh
 ```
 
@@ -261,7 +261,7 @@ wget -q -O - http://redis7:6379
 
 ### Nginx配置
 
-**文件位置**: `/opt/code/DMH/deployment/nginx/conf.d/default.conf`
+**文件位置**: `/opt/code/DMH/deploy/nginx/conf.d/default.conf`
 
 **主要配置**：
 - 管理后台监听 3000 端口

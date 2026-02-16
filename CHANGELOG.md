@@ -115,7 +115,7 @@
   * 回滚脚本（rollback-containers.sh）
   * Docker Compose 编排文件
 * ✨ 部署文档
-  * deployment/README.md - 容器化部署指南
+  * deploy/README.md - 容器化部署指南
   * 统一的部署管理文档
 * ✨ Nginx 配置优化
   * API 代理到后端容器
@@ -135,14 +135,14 @@
 * ❌ SCRIPTS.md - 已废弃（改用容器化）
 * ❌ STARTUP.md - 已废弃（改用容器化）
 * ❌ API\_TEST\_AND\_ISSUES\_ANALYSIS.md - 临时测试报告
-* ❌ Deployment\_Checklist.md - 被 deployment/README.md 替代
+* ❌ Deployment\_Checklist.md - 被 deploy/README.md 替代
 * ❌ JWT\_FIX\_AND\_API\_TEST\_REPORT.md - 临时测试报告
 * ❌ P0\_COMPLETION\_REPORT.md - 临时任务报告
 * ❌ P0\_TEST\_REPORT.md - 临时测试报告
 * ❌ deployment\_summary\_report.md - 临时报告
 * ❌ dmh-container-deployment-report.md - 临时报告
-* ❌ docker\_migration\_guide.md - 已整合到 deployment/README.md
-* ❌ docker\_quick\_reference.md - 已整合到 deployment/README.md
+* ❌ docker\_migration\_guide.md - 已整合到 deploy/README.md
+* ❌ docker\_quick\_reference.md - 已整合到 deploy/README.md
 
 ### 优化
 
@@ -163,7 +163,7 @@
 ### 文档
 
 * 📚 完整的项目文档
-* 📚 部署文档：deployment/README.md（容器化）
+* 📚 部署文档：deploy/README.md（容器化）
 * 📚 架构文档：ARCHITECTURE.md
 * 📚 API 文档：docs/API\_Documentation.md
 * 📚 用户手册：docs/User\_Manual.md

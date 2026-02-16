@@ -35,7 +35,7 @@ Keep this managed block so 'openspec update' can refresh the instructions.
   * `frontend-admin/`：Vue 3 管理后台（默认端口 `3000`）
   * `frontend-h5/`：Vue 3 H5 前端（默认端口 `3100`）
   * `openspec/`：需求规格与变更提案体系
-  * `deployment/`：容器化和部署脚本
+  * `deploy/`：容器化和部署脚本
 
 ### 2.1 项目结构
 
@@ -55,7 +55,7 @@ DMH/
 │   ├── src/              # 标准结构 (views, components, router)
 │   └── tests/unit/       # 逻辑测试 (*.logic.js)
 ├── openspec/             # 规格驱动开发系统
-├── deployment/           # Docker Compose, nginx 配置
+├── deploy/               # Docker Compose, nginx 配置
 └── docs/                 # 文档
 ```
 
@@ -207,8 +207,8 @@ OpenSpec 详细规则见 `openspec/AGENTS.md`，此处给出执行要点。
 * `redis-dmh`：Redis 缓存容器（镜像：redis:7）
 
 **Docker Compose 文件**：
-* `deployment/docker-compose-simple.yml`：简化版（推荐开发环境）
-* `deployment/docker-compose.yml`：完整版（包含镜像构建，适合生产）
+* `deploy/docker-compose-simple.yml`：简化版（推荐开发环境）
+* `deploy/docker-compose.yml`：完整版（包含镜像构建，适合生产）
 
 **服务端口**：
 
@@ -222,7 +222,7 @@ OpenSpec 详细规则见 `openspec/AGENTS.md`，此处给出执行要点。
 
 **启动所有服务**：
 ```bash
-cd deployment
+cd deploy
 docker compose -f docker-compose-simple.yml up -d
 # 或使用快速启动脚本
 ./scripts/quick-start.sh
@@ -265,12 +265,12 @@ docker compose -f docker-compose-simple.yml stop
 cd backend
 go build -o dmh-api api/dmh.go
 
-# 2. 复制到 deployment 目录
-cp dmh-api ../deployment/dmh-api
-chmod +x ../deployment/dmh-api
+# 2. 复制到 deploy 目录
+cp dmh-api ../deploy/dmh-api
+chmod +x ../deploy/dmh-api
 
 # 3. 重启容器
-cd ../deployment
+cd ../deploy
 docker restart dmh-api
 ```
 
@@ -281,7 +281,7 @@ cd frontend-admin
 npm run build
 
 # 2. 重启 nginx 容器
-cd ../deployment
+cd ../deploy
 docker restart dmh-nginx
 ```
 
@@ -319,8 +319,8 @@ go test ./test/integration/... -v -count=1
 2. **后端编译**：容器内未安装 Go，必须在宿主机编译后复制到容器
 3. **网络隔离**：容器在 my-net 网络中，容器间通过服务名通信（mysql8、redis-dmh）
 4. **配置文件**：
-   - Nginx 配置：`deployment/nginx/conf.d/default.conf`
-   - 后端配置：`deployment/dmh-api.yaml`
+   - Nginx 配置：`deploy/nginx/conf.d/default.conf`
+   - 后端配置：`deploy/dmh-api.yaml`
 
 ## 9. 常用测试命令
 

@@ -24,7 +24,7 @@ help:
 	@echo "  make update      - 更新代码并重启"
 
 # Docker Compose 命令
-COMPOSE = docker compose -f deployment/docker-compose-simple.yml
+COMPOSE = docker compose -f deploy/docker-compose-simple.yml
 
 up:
 	$(COMPOSE) up -d
@@ -139,6 +139,6 @@ update:
 
 # 完整部署
 deploy: build
-	cp backend/dmh-api deployment/
+	cp backend/dmh-api deploy/
 	$(COMPOSE) restart dmh-api
 	@echo "✓ 部署完成"

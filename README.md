@@ -70,7 +70,7 @@
 #### 一键启动
 
 ```bash
-cd /opt/code/DMH/deployment/scripts
+cd /opt/code/DMH/deploy/scripts
 ./quick-start.sh
 ```
 
@@ -84,7 +84,7 @@ cd /opt/code/DMH/deployment/scripts
 
 #### 详细文档
 
-详细部署说明：[/deployment/README.md](deployment/README.md)
+详细部署说明：[/deploy/README.md](deploy/README.md)
 
 ***
 

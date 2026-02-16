@@ -71,7 +71,7 @@ DMH/
 ├── openspec/             # 规格驱动开发
 │   ├── specs/            # 已实现的能力
 │   └── changes/          # 变更提案
-└── deployment/           # Docker Compose 部署
+└── deploy/              # Docker Compose 部署
 ```
 
 ## Project Conventions
@@ -176,6 +176,8 @@ DMH/
 | rbac-permission-system | ✅ Active |
 | feedback-system | ✅ Active |
 | spec-governance | ✅ Active |
+| system-test-execution | ✅ Active |
+| test-coverage-improvement | ✅ Active |
 
 ## External Dependencies
 

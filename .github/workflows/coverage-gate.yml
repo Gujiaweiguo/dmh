@@ -14,11 +14,15 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24'
+          go-version-file: backend/go.mod
+          cache: true
+          cache-dependency-path: backend/go.sum
       - name: Run Backend Tests with Coverage
+        working-directory: backend
         run: |
           go test ./... -coverprofile=coverage.out -covermode=atomic
       - name: Check Backend Coverage
+        working-directory: backend
         run: |
           if [ -f coverage.out ]; then
             go tool cover -func=coverage.out | awk '/total:/ {split($0,a," "); if (a[3] >= 0.80) { print "Backend coverage OK"; exit 0 } else { print "Backend coverage not enough: " a[3]; exit 1 } }'
@@ -27,8 +31,8 @@ jobs:
           fi
         shell: bash
 
-  frontend-coverage:
-    name: Frontend Coverage Gate
+  frontend-admin-coverage:
+    name: Frontend Admin Coverage Gate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,21 +40,55 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend-admin/package-lock.json
       - name: Install Dependencies
+        working-directory: frontend-admin
+        run: npm ci
+      - name: Run Frontend Admin Tests with Coverage
+        working-directory: frontend-admin
         run: |
-          npm ci
-      - name: Run Frontend Tests with Coverage
+          npm run test:cov 2>&1 | tee /tmp/admin-coverage.log
+          # 从 vitest 输出中提取 All files 行的覆盖率
+          PCT=$(grep -E "All files" /tmp/admin-coverage.log | awk '{print $2}' | tr -d '%' || echo "0")
+          echo "Frontend Admin coverage: ${PCT}%"
+          echo "ADMIN_COVERAGE=$PCT" >> $GITHUB_ENV
+      - name: Check Frontend Admin Coverage
         run: |
-          npm run test:cov
-      - name: Check Frontend Coverage
-        run: |
-          if [ -f coverage/coverage-summary.json ]; then
-            PCT=$(node -e "const fs=require('fs'); const s=fs.readFileSync('coverage/coverage-summary.json','utf8'); const j=JSON.parse(s); console.log(j.total.lines.pct);")
-            echo "Frontend coverage: ${PCT}%"
-            if [ "${PCT}" -ge 70 ]; then
-              echo "Frontend coverage OK";
-            else
-              echo "Frontend coverage not enough: ${PCT}%"; exit 1; fi
+          if [ "${ADMIN_COVERAGE%.*}" -ge 70 ]; then
+            echo "Frontend Admin coverage OK (${ADMIN_COVERAGE}%)"
           else
-            echo "coverage-summary.json not found"; exit 1
+            echo "Frontend Admin coverage not enough: ${ADMIN_COVERAGE}%"
+            exit 1
+          fi
+
+  frontend-h5-coverage:
+    name: Frontend H5 Coverage Gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend-h5/package-lock.json
+      - name: Install Dependencies
+        working-directory: frontend-h5
+        run: npm ci
+      - name: Run Frontend H5 Tests with Coverage
+        working-directory: frontend-h5
+        run: |
+          npm run test:cov 2>&1 | tee /tmp/h5-coverage.log
+          # 从 vitest 输出中提取 All files 行的覆盖率
+          PCT=$(grep -E "All files" /tmp/h5-coverage.log | awk '{print $2}' | tr -d '%' || echo "0")
+          echo "Frontend H5 coverage: ${PCT}%"
+          echo "H5_COVERAGE=$PCT" >> $GITHUB_ENV
+      - name: Check Frontend H5 Coverage
+        run: |
+          if [ "${H5_COVERAGE%.*}" -ge 70 ]; then
+            echo "Frontend H5 coverage OK (${H5_COVERAGE}%)"
+          else
+            echo "Frontend H5 coverage not enough: ${H5_COVERAGE}%"
+            exit 1
           fi
