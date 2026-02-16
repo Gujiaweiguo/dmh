@@ -75,11 +75,11 @@ jobs:
             frontend-admin/package-lock.json
             frontend-h5/package-lock.json
 
-      - name: Install OpenSpec CLI and MySQL client
+      - name: Install OpenSpec CLI and DB clients
         run: |
           npm install -g @fission-ai/openspec
           sudo apt-get update
-          sudo apt-get install -y mysql-client
+          sudo apt-get install -y mysql-client redis-tools
 
       - name: Wait for MySQL and Redis
         run: |
