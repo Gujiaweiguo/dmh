@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
+	"gorm.io/gorm"
 )
 
 type GetDashboardStatsLogic struct {
@@ -28,33 +29,39 @@ func NewGetDashboardStatsLogic(ctx context.Context, svcCtx *svc.ServiceContext) 
 	}
 }
 
+// buildOrderBaseQuery creates a fresh order query with common filters.
+// Each call returns a new query to avoid JOIN accumulation.
+func (l *GetDashboardStatsLogic) buildOrderBaseQuery(req *types.GetDashboardStatsReq) *gorm.DB {
+	query := l.svcCtx.DB.Model(&model.Order{})
+
+	if req.StartDate != "" {
+		query = query.Where("orders.created_at >= ?", req.StartDate)
+	}
+
+	if req.EndDate != "" {
+		query = query.Where("orders.created_at <= ?", req.EndDate)
+	}
+
+	if req.BrandId > 0 {
+		query = query.Joins("JOIN campaigns ON campaigns.id = orders.campaign_id").
+			Where("campaigns.brand_id = ?", req.BrandId)
+	}
+
+	return query
+}
+
 func (l *GetDashboardStatsLogic) GetDashboardStats(req *types.GetDashboardStatsReq) (resp *types.DashboardStatsResp, err error) {
 	if req.BrandId <= 0 {
 		return nil, errors.New("brandId is required")
 	}
 
-	baseQuery := l.svcCtx.DB.Model(&model.Order{}).Select("orders.*")
-
-	if req.StartDate != "" {
-		baseQuery = baseQuery.Where("orders.created_at >= ?", req.StartDate)
-	}
-
-	if req.EndDate != "" {
-		baseQuery = baseQuery.Where("orders.created_at <= ?", req.EndDate)
-	}
-
-	if req.BrandId > 0 {
-		baseQuery = baseQuery.Joins("JOIN campaigns ON campaigns.id = orders.campaign_id").
-			Where("campaigns.brand_id = ?", req.BrandId)
-	}
-
 	var totalOrders int64
-	var totalRevenue float64
-	if err := baseQuery.Select("COUNT(*)").Scan(&totalOrders).Error; err != nil {
+	if err := l.buildOrderBaseQuery(req).Select("COUNT(*)").Scan(&totalOrders).Error; err != nil {
 		return nil, err
 	}
 
-	if err := baseQuery.Select("COALESCE(SUM(orders.amount), 0)").Scan(&totalRevenue).Error; err != nil {
+	var totalRevenue float64
+	if err := l.buildOrderBaseQuery(req).Select("COALESCE(SUM(orders.amount), 0)").Scan(&totalRevenue).Error; err != nil {
 		return nil, err
 	}
 
@@ -65,33 +72,33 @@ func (l *GetDashboardStatsLogic) GetDashboardStats(req *types.GetDashboardStatsR
 
 	var todayOrders int64
 	var todayRevenue float64
-	if err := baseQuery.Where("DATE(orders.created_at) = ?", todayStart).
+	if err := l.buildOrderBaseQuery(req).Where("DATE(orders.created_at) = ?", todayStart).
 		Select("COUNT(*)").Scan(&todayOrders).Error; err != nil {
 		return nil, err
 	}
-	if err := baseQuery.Where("DATE(orders.created_at) = ?", todayStart).
+	if err := l.buildOrderBaseQuery(req).Where("DATE(orders.created_at) = ?", todayStart).
 		Select("COALESCE(SUM(orders.amount), 0)").Scan(&todayRevenue).Error; err != nil {
 		return nil, err
 	}
 
 	var weekOrders int64
 	var weekRevenue float64
-	if err := baseQuery.Where("orders.created_at >= ?", weekStart).
+	if err := l.buildOrderBaseQuery(req).Where("orders.created_at >= ?", weekStart).
 		Select("COUNT(*)").Scan(&weekOrders).Error; err != nil {
 		return nil, err
 	}
-	if err := baseQuery.Where("orders.created_at >= ?", weekStart).
+	if err := l.buildOrderBaseQuery(req).Where("orders.created_at >= ?", weekStart).
 		Select("COALESCE(SUM(orders.amount), 0)").Scan(&weekRevenue).Error; err != nil {
 		return nil, err
 	}
 
 	var monthOrders int64
 	var monthRevenue float64
-	if err := baseQuery.Where("orders.created_at >= ?", monthStart).
+	if err := l.buildOrderBaseQuery(req).Where("orders.created_at >= ?", monthStart).
 		Select("COUNT(*)").Scan(&monthOrders).Error; err != nil {
 		return nil, err
 	}
-	if err := baseQuery.Where("orders.created_at >= ?", monthStart).
+	if err := l.buildOrderBaseQuery(req).Where("orders.created_at >= ?", monthStart).
 		Select("COALESCE(SUM(orders.amount), 0)").Scan(&monthRevenue).Error; err != nil {
 		return nil, err
 	}
@@ -155,7 +162,8 @@ func (l *GetDashboardStatsLogic) GetDashboardStats(req *types.GetDashboardStatsR
 	if err := distributorQuery.Order("distributors.total_earnings DESC").
 		Limit(5).
 		Find(&topDistributors).Error; err != nil {
-		return nil, err
+		l.Logger.Errorf("failed to query top distributors: %v", err)
+		topDistributors = []types.DistributorStats{}
 	}
 
 	for i := range topDistributors {
