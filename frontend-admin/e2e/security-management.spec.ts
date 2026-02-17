@@ -1,11 +1,30 @@
 import { test, expect, type Page } from '@playwright/test';
 
+const ADMIN_USERNAME = process.env.DMH_TEST_ADMIN_USERNAME ?? 'admin';
+const ADMIN_PASSWORD = process.env.DMH_TEST_ADMIN_PASSWORD ?? '123456';
+
 async function loginAsAdmin(page: Page) {
   await page.goto('/');
-  await page.fill('input[placeholder="请输入用户名"]', 'admin');
-  await page.fill('input[placeholder="请输入密码"]', '123456');
+
+  const loginRespPromise = page.waitForResponse(
+    (resp) => resp.url().includes('/api/v1/auth/login') && resp.request().method() === 'POST'
+  );
+
+  await page.fill('input[placeholder="请输入用户名"]', ADMIN_USERNAME);
+  await page.fill('input[placeholder="请输入密码"]', ADMIN_PASSWORD);
   await page.click('button[type="submit"]');
-  await expect(page.getByRole('heading', { name: '控制面板' })).toBeVisible({ timeout: 10000 });
+
+  const loginResp = await loginRespPromise;
+  expect(loginResp.status()).toBe(200);
+
+  const loginBody = await loginResp.json();
+  expect(loginBody).toEqual(
+    expect.objectContaining({
+      token: expect.any(String),
+    })
+  );
+
+  await expect(page.getByRole('button', { name: '安全管理' })).toBeVisible({ timeout: 10000 });
 }
 
 test.describe('安全管理 E2E', () => {
