@@ -57,7 +57,9 @@ func TestSecurityLogicCurrentMethodBehavior(t *testing.T) {
 	policy := NewGetPasswordPolicyLogic(ctx, svcCtx)
 	policyResp, policyErr := policy.GetPasswordPolicy()
 	assert.NoError(t, policyErr)
-	assert.Nil(t, policyResp)
+	assert.NotNil(t, policyResp)
+	assert.Equal(t, 8, policyResp.MinLength)
+	assert.Equal(t, 5, policyResp.MaxLoginAttempts)
 
 	events := NewGetSecurityEventsLogic(ctx, svcCtx)
 	eventsResp, eventsErr := events.GetSecurityEvents()
@@ -74,13 +76,13 @@ func TestSecurityLogicCurrentMethodBehavior(t *testing.T) {
 	assert.Len(t, sessionsResp.Sessions, 0)
 
 	handle := NewHandleSecurityEventLogic(ctx, svcCtx)
-	handleResp, handleErr := handle.HandleSecurityEvent(&types.HandleSecurityEventReq{})
-	assert.NoError(t, handleErr)
+	handleResp, handleErr := handle.HandleSecurityEvent(1, &types.HandleSecurityEventReq{})
+	assert.Error(t, handleErr)
 	assert.Nil(t, handleResp)
 
 	revoke := NewRevokeSessionLogic(ctx, svcCtx)
-	revokeResp, revokeErr := revoke.RevokeSession()
-	assert.NoError(t, revokeErr)
+	revokeResp, revokeErr := revoke.RevokeSession("session-id")
+	assert.Error(t, revokeErr)
 	assert.Nil(t, revokeResp)
 
 	update := NewUpdatePasswordPolicyLogic(ctx, svcCtx)

@@ -13,8 +13,14 @@ import (
 
 func RevokeSessionHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		sessionID, err := parseSessionIDFromPath(r.URL.Path)
+		if err != nil {
+			httpx.ErrorCtx(r.Context(), w, err)
+			return
+		}
+
 		l := security.NewRevokeSessionLogic(r.Context(), svcCtx)
-		resp, err := l.RevokeSession()
+		resp, err := l.RevokeSession(sessionID)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {

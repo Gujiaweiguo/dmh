@@ -61,6 +61,12 @@ func TestGetPasswordPolicyHandler_Success(t *testing.T) {
 	handler(resp, req)
 
 	assert.Equal(t, http.StatusOK, resp.Code)
+
+	var got types.PasswordPolicyResp
+	err := json.Unmarshal(resp.Body.Bytes(), &got)
+	assert.NoError(t, err)
+	assert.Equal(t, 8, got.MinLength)
+	assert.True(t, got.RequireUppercase)
 }
 
 func TestGetAuditLogsHandler_Success(t *testing.T) {
@@ -187,7 +193,12 @@ func TestRevokeSessionHandler_Success(t *testing.T) {
 
 	handler(resp, req)
 
-	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+	assert.Equal(t, http.StatusOK, resp.Code)
+
+	var updated model.UserSession
+	err := db.Where("id = ?", session.ID).First(&updated).Error
+	assert.NoError(t, err)
+	assert.Equal(t, "revoked", updated.Status)
 }
 
 func TestForceLogoutUserHandler_Success(t *testing.T) {
@@ -228,7 +239,13 @@ func TestHandleSecurityEventHandler_Success(t *testing.T) {
 
 	handler(resp, req)
 
-	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+	assert.Equal(t, http.StatusOK, resp.Code)
+
+	var updated model.SecurityEvent
+	err := db.Where("id = ?", event.ID).First(&updated).Error
+	assert.NoError(t, err)
+	assert.True(t, updated.Handled)
+	assert.Contains(t, updated.Details, "Handled test event")
 }
 
 func TestCheckPasswordStrengthHandler_Success(t *testing.T) {

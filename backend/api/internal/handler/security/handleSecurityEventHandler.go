@@ -14,6 +14,12 @@ import (
 
 func HandleSecurityEventHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		eventID, err := parseEventIDFromPath(r.URL.Path)
+		if err != nil {
+			httpx.ErrorCtx(r.Context(), w, err)
+			return
+		}
+
 		var req types.HandleSecurityEventReq
 		if err := httpx.Parse(r, &req); err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
@@ -21,7 +27,7 @@ func HandleSecurityEventHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		l := security.NewHandleSecurityEventLogic(r.Context(), svcCtx)
-		resp, err := l.HandleSecurityEvent(&req)
+		resp, err := l.HandleSecurityEvent(eventID, &req)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {
