@@ -1,0 +1,195 @@
+name: Stability Checks
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - backend/**
+      - frontend-admin/**
+      - .github/workflows/stability-checks.yml
+  push:
+    branches:
+      - main
+    paths:
+      - backend/**
+      - frontend-admin/**
+      - .github/workflows/stability-checks.yml
+
+jobs:
+  stability-checks:
+    name: Backend full tests + Admin unit + Security E2E
+    runs-on: ubuntu-latest
+
+    services:
+      mysql8:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: "#Admin168"
+          MYSQL_DATABASE: dmh
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -p'#Admin168' --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    env:
+      CI: "true"
+      DMH_INTEGRATION_BASE_URL: http://127.0.0.1:8889
+      DMH_TEST_ADMIN_USERNAME: ${{ vars.DMH_TEST_ADMIN_USERNAME || 'admin' }}
+      DMH_TEST_ADMIN_PASSWORD: ${{ secrets.DMH_TEST_ADMIN_PASSWORD || '123456' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache: true
+          cache-dependency-path: backend/go.sum
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend-admin/package-lock.json
+
+      - name: Install DB clients
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mysql-client redis-tools
+
+      - name: Wait for MySQL and Redis
+        run: |
+          mysql_ready=0
+          for i in {1..60}; do
+            if mysqladmin ping -h 127.0.0.1 -uroot -p'#Admin168' --silent; then
+              echo "MySQL is ready"
+              mysql_ready=1
+              break
+            fi
+            sleep 2
+          done
+          if [ "$mysql_ready" -ne 1 ]; then
+            echo "MySQL did not become ready in time"
+            exit 1
+          fi
+
+          redis_ready=0
+          for i in {1..60}; do
+            if redis-cli -h 127.0.0.1 -p 6379 ping | grep -q PONG; then
+              echo "Redis is ready"
+              redis_ready=1
+              break
+            fi
+            sleep 2
+          done
+          if [ "$redis_ready" -ne 1 ]; then
+            echo "Redis did not become ready in time"
+            exit 1
+          fi
+
+      - name: Initialize schema and baseline migrations
+        run: |
+          mysql -h 127.0.0.1 -uroot -p'#Admin168' dmh < backend/scripts/init.sql
+          mysql -h 127.0.0.1 -uroot -p'#Admin168' dmh < backend/scripts/create_member_system_tables.sql
+          mysql -h 127.0.0.1 -uroot -p'#Admin168' dmh < backend/migrations/20250120_create_distributor_tables_final.sql
+          mysql -h 127.0.0.1 -uroot -p'#Admin168' dmh < backend/migrations/20250124_add_advanced_features.sql
+          mysql -h 127.0.0.1 -uroot -p'#Admin168' dmh < backend/migrations/2026_01_29_add_record_tables.sql
+
+      - name: Ensure orders.paid_at and verification_code schema
+        run: |
+          mysql -h 127.0.0.1 -uroot -p'#Admin168' dmh <<'SQL'
+          SET @col_exists = (
+            SELECT COUNT(*)
+            FROM information_schema.columns
+            WHERE table_schema = 'dmh' AND table_name = 'orders' AND column_name = 'paid_at'
+          );
+          SET @ddl = IF(
+            @col_exists = 0,
+            'ALTER TABLE orders ADD COLUMN paid_at DATETIME NULL COMMENT ''支付时间'' AFTER trade_no',
+            'SELECT "Column paid_at already exists"'
+          );
+          PREPARE stmt FROM @ddl;
+          EXECUTE stmt;
+          DEALLOCATE PREPARE stmt;
+
+          ALTER TABLE orders
+          MODIFY COLUMN verification_code VARCHAR(255) NULL COMMENT '核销码（包含签名）';
+          SQL
+
+      - name: Start backend API
+        run: |
+          cd backend
+          nohup go run ./api/dmh.go -f ./api/etc/dmh-api.yaml > /tmp/dmh-api.log 2>&1 &
+          echo $! > /tmp/dmh-api.pid
+
+      - name: Wait for backend readiness
+        run: |
+          for i in {1..60}; do
+            code=$(curl -s -o /tmp/dmh-api-ready.out -w "%{http_code}" http://127.0.0.1:8889/api/v1/auth/login || true)
+            if [ "$code" != "000" ]; then
+              echo "API is reachable (status: $code)"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "API did not become reachable in time"
+          cat /tmp/dmh-api.log || true
+          exit 1
+
+      - name: Run backend full test suite
+        run: |
+          cd backend
+          DMH_INTEGRATION_BASE_URL=$DMH_INTEGRATION_BASE_URL \
+          DMH_TEST_ADMIN_USERNAME=$DMH_TEST_ADMIN_USERNAME \
+          DMH_TEST_ADMIN_PASSWORD=$DMH_TEST_ADMIN_PASSWORD \
+          go test ./...
+
+      - name: Install frontend dependencies
+        working-directory: frontend-admin
+        run: npm ci
+
+      - name: Install Playwright browser
+        working-directory: frontend-admin
+        run: npx playwright install --with-deps chrome
+
+      - name: Run frontend-admin unit tests
+        working-directory: frontend-admin
+        run: npm run test
+
+      - name: Run security E2E regression
+        working-directory: frontend-admin
+        run: npm run test:e2e:headless -- e2e/security-management.spec.ts --reporter=line
+
+      - name: Upload debug artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stability-checks-debug
+          path: |
+            /tmp/dmh-api.log
+            frontend-admin/playwright-report
+            frontend-admin/test-results
+
+      - name: Stop backend service
+        if: always()
+        run: |
+          if [ -f /tmp/dmh-api.pid ]; then
+            kill "$(cat /tmp/dmh-api.pid)" || true
+          fi
