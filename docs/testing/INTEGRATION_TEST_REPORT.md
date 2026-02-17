@@ -193,8 +193,8 @@ bash backend/scripts/run_order_logic_tests.sh
 ### 8.2 已执行操作
 
 ```bash
-docker exec -i mysql8 mysql -uroot -p'#Admin168' dmh < backend/migrations/20260214_fix_faq_items_counter_columns.sql
-docker exec mysql8 mysql -uroot -p'#Admin168' -D dmh -e "SHOW COLUMNS FROM faq_items;"
+docker exec -i mysql8 mysql -uroot -p'Admin168' dmh < backend/migrations/20260214_fix_faq_items_counter_columns.sql
+docker exec mysql8 mysql -uroot -p'Admin168' -D dmh -e "SHOW COLUMNS FROM faq_items;"
 ```
 
 ### 8.3 结果验证
@@ -219,7 +219,7 @@ docker exec mysql8 mysql -uroot -p'#Admin168' -D dmh -e "SHOW COLUMNS FROM faq_i
 ### 9.2 已执行操作
 
 ```bash
-docker exec -i mysql8 mysql -uroot -p'#Admin168' dmh < backend/migrations/20260214_create_members_tables.sql
+docker exec -i mysql8 mysql -uroot -p'Admin168' dmh < backend/migrations/20260214_create_members_tables.sql
 ```
 
 ### 9.3 结果验证

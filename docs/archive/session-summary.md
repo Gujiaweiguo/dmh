@@ -166,7 +166,7 @@ curl -X POST http://localhost:8889/api/v1/auth/login \
 
 ```bash
 # 创建 verification_records 表（如果不存在）
-docker exec -i mysql8 mysql -uroot -p'#Admin168' dmh << 'SQL'
+docker exec -i mysql8 mysql -uroot -p'Admin168' dmh << 'SQL'
 CREATE TABLE IF NOT EXISTS verification_records (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     order_id BIGINT NOT NULL,
@@ -254,7 +254,7 @@ cd deployment/scripts
 
 # 或手动回滚
 docker compose -f docker-compose-dmh.yml down
-docker exec -i mysql8 mysql -uroot -p'#Admin168' dmh < deployment/scripts/rollback-advanced-features.sql
+docker exec -i mysql8 mysql -uroot -p'Admin168' dmh < deployment/scripts/rollback-advanced-features.sql
 cp backups/{LATEST_BACKUP}/bin/dmh-api backend/bin/
 cp -r backups/{LATEST_BACKUP}/h5-dist frontend-h5/dist/
 cp -r backups/{LATEST_BACKUP}/admin-dist frontend-admin/dist/

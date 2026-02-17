@@ -245,7 +245,7 @@ sudo mkdir -p /opt/data/mysql
 sudo docker run -d \
   --name mysql8 \
   -p 3306:3306 \
-  -e MYSQL_ROOT_PASSWORD='#Admin168' \
+  -e MYSQL_ROOT_PASSWORD='Admin168' \
   -e MYSQL_DATABASE=dmh \
   -v /opt/data/mysql:/var/lib/mysql \
   --restart unless-stopped \
@@ -264,7 +264,7 @@ sleep 30
 | Host | `127.0.0.1` 或 `172.17.0.1` (Docker 网关) |
 | Port | `3306` |
 | User | `root` |
-| Password | `#Admin168` |
+| Password | `Admin168` |
 | Database | `dmh` |
 
 ## 六、初始化数据库
@@ -282,18 +282,18 @@ sleep 30
 
 ```bash
 # 1. 主初始化脚本（必需）
-sudo docker exec -i mysql8 mysql -uroot -p'#Admin168' \
+sudo docker exec -i mysql8 mysql -uroot -p'Admin168' \
   --default-character-set=utf8mb4 < backend/scripts/init.sql
 
 # 2. 会员系统表（必需）
-sudo docker exec -i mysql8 mysql -uroot -p'#Admin168' \
+sudo docker exec -i mysql8 mysql -uroot -p'Admin168' \
   --default-character-set=utf8mb4 dmh < backend/scripts/create_member_system_tables.sql
 
 # 3. 测试数据（开发环境推荐）
-sudo docker exec -i mysql8 mysql -uroot -p'#Admin168' \
+sudo docker exec -i mysql8 mysql -uroot -p'Admin168' \
   --default-character-set=utf8mb4 dmh < backend/scripts/test_data.sql
 
-sudo docker exec -i mysql8 mysql -uroot -p'#Admin168' \
+sudo docker exec -i mysql8 mysql -uroot -p'Admin168' \
   --default-character-set=utf8mb4 dmh < backend/scripts/seed_member_campaign_data.sql
 ```
 
@@ -399,7 +399,7 @@ docker pull mirror.ccs.tencentyun.com/library/mysql:8.0
 优先检查数据库是否初始化成功（必须有 `users` 表和测试账号数据）。
 
 ```bash
-docker exec -i mysql8 mysql -uroot -p'#Admin168' dmh -e "SHOW TABLES LIKE 'users'; SELECT username,role,status FROM users;"
+docker exec -i mysql8 mysql -uroot -p'Admin168' dmh -e "SHOW TABLES LIKE 'users'; SELECT username,role,status FROM users;"
 ```
 
 ### MySQL 连接失败
@@ -408,7 +408,7 @@ docker exec -i mysql8 mysql -uroot -p'#Admin168' dmh -e "SHOW TABLES LIKE 'users
 # WSL2 中需使用 Docker 网关 IP
 # 修改 backend/api/etc/dmh-api.yaml
 Mysql:
-  DataSource: root:#Admin168@tcp(172.17.0.1:3306)/dmh?charset=utf8mb4&parseTime=true&loc=Local
+  DataSource: root:Admin168@tcp(172.17.0.1:3306)/dmh?charset=utf8mb4&parseTime=true&loc=Local
 
 ## 生产环境（Docker Compose，推荐）⭐
 

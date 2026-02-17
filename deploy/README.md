@@ -299,7 +299,7 @@ wget -q -O - http://redis7:6379
 
 1. **生产环境部署前请修改**：
    - JWT Secret（当前：`dmh-access-secret-key`）
-   - 数据库密码（当前：`#Admin168`）
+   - 数据库密码（当前：`Admin168`）
    - 微信支付配置
 
 2. **网络安全**：

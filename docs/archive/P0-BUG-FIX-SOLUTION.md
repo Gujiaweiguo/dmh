@@ -183,10 +183,10 @@ WHERE u.username = 'brand_manager';
 
 ```bash
 # 1. 执行修复脚本
-docker exec -i mysql8 mysql -uroot -p'#Admin168' dmh < backend/scripts/fix_brand_manager_role.sql
+docker exec -i mysql8 mysql -uroot -p'Admin168' dmh < backend/scripts/fix_brand_manager_role.sql
 
 # 2. 验证角色配置
-docker exec -i mysql8 mysql -uroot -p'#Admin168' dmh -e "
+docker exec -i mysql8 mysql -uroot -p'Admin168' dmh -e "
 SELECT 
     u.username,
     u.role,
@@ -453,7 +453,7 @@ curl http://localhost:8889/health
 
 ```bash
 # 检查 verification_records 表是否存在
-docker exec -i mysql8 mysql -uroot -p'#Admin168' dmh -e "
+docker exec -i mysql8 mysql -uroot -p'Admin168' dmh -e "
 SHOW TABLES LIKE 'verification_records';
 "
 ```
@@ -560,7 +560,7 @@ echo ""
 
 # 1. 修复 BUG-001: 品牌管理员角色
 echo "[1/3] 修复品牌管理员角色配置..."
-docker exec -i mysql8 mysql -uroot -p'#Admin168' dmh << 'SQL'
+docker exec -i mysql8 mysql -uroot -p'Admin168' dmh << 'SQL'
 -- 确保品牌管理员角色存在
 INSERT INTO roles (code, name, description, status, created_at, updated_at)
 VALUES ('brand_admin', '品牌管理员', '品牌管理员可以管理品牌活动和数据', 'active', NOW(), NOW())

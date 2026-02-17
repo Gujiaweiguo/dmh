@@ -8,7 +8,7 @@ CorsOrigins:
 
 # 数据库配置（容器环境）
 Mysql:
-  DataSource: root:#Admin168@tcp(mysql8:3306)/dmh?charset=utf8mb4&parseTime=true&loc=Local
+  DataSource: root:Admin168@tcp(mysql8:3306)/dmh?charset=utf8mb4&parseTime=true&loc=Local
 
 # Redis配置（容器环境）
 Redis:
@@ -67,7 +67,7 @@ ExternalSync:
     Host: 172.21.45.24
     Port: 3306
     User: root
-    Password: "#Admin168"
+    Password: "Admin168"
     Database: dmh
     Schema: ""
     Charset: utf8mb4

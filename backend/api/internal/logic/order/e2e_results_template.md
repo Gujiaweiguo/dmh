@@ -49,7 +49,7 @@
 - Consider adding additional edge case tests for order processing
 
 ## Test Environment Details
-- **Database**: Connected via Docker container (mysql8) with root user and password #Admin168
+- **Database**: Connected via Docker container (mysql8) with root user and password Admin168
 - **API Endpoint**: http://localhost:8889/api/v1/orders
 - **Test Data**: Using placeholder phone numbers (13800138001, 13800138002, 13800138003) and test campaign IDs
 

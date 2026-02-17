@@ -42,7 +42,7 @@ services:
       - DB_HOST=mysql8
       - DB_PORT=3306
       - DB_USER=root
-      - "DB_PASSWORD=#Admin168"
+      - "DB_PASSWORD=Admin168"
       - DB_NAME=dmh
       - REDIS_HOST=redis-dmh
       - REDIS_PORT=6379

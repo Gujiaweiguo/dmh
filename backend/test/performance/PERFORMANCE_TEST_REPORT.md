@@ -106,7 +106,7 @@ docker start mysql8
 2. **运行数据库迁移**:
 ```bash
 cd backend
-mysql -h127.0.0.1 -uroot -p#Admin168 dmh < migrations/20250124_add_advanced_features.sql
+mysql -h127.0.0.1 -uroot -pAdmin168 dmh < migrations/20250124_add_advanced_features.sql
 ```
 
 3. **确保 Redis 可用**:
@@ -195,7 +195,7 @@ go test -v -run Test_12_4_ConcurrentPosterStressTest
 ps aux | grep dmh-test
 
 # 查看数据库连接数
-mysql -h127.0.0.1 -uroot -p#Admin168 -e "SHOW PROCESSLIST" dmh
+mysql -h127.0.0.1 -uroot -pAdmin168 -e "SHOW PROCESSLIST" dmh
 
 # 查看 Redis 内存使用
 redis-cli -p 16379 INFO memory
@@ -243,10 +243,10 @@ Redis:
 **解决方案**:
 ```bash
 # 检查数据库中是否有测试数据
-mysql -h127.0.0.1 -uroot -p#Admin168 dmh -e "SELECT * FROM users;"
+mysql -h127.0.0.1 -uroot -pAdmin168 dmh -e "SELECT * FROM users;"
 
 # 如果没有数据，运行初始化脚本
-mysql -h127.0.0.1 -uroot -p#Admin168 dmh < backend/migrations/insert_test_data.sql
+mysql -h127.0.0.1 -uroot -pAdmin168 dmh < backend/migrations/insert_test_data.sql
 ```
 
 ### 问题4: 海报生成失败
@@ -256,7 +256,7 @@ mysql -h127.0.0.1 -uroot -p#Admin168 dmh < backend/migrations/insert_test_data.s
 **解决方案**:
 ```bash
 # 检查活动是否存在
-mysql -h127.0.0.1 -uroot -p#Admin168 dmh -e "SELECT * FROM campaigns LIMIT 1;"
+mysql -h127.0.0.1 -uroot -pAdmin168 dmh -e "SELECT * FROM campaigns LIMIT 1;"
 
 # 检查海报目录权限
 ls -la /tmp/dmh/posters/

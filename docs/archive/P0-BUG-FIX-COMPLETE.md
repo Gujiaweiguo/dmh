@@ -135,7 +135,7 @@ if (activeTab.value === 'users') {
 
 1. **执行 migration SQL**：
    ```bash
-   docker exec -i mysql8 mysql -uroot -p'#Admin168' dmh < /opt/code/DMH/backend/migrations/2026_01_29_add_record_tables.sql
+   docker exec -i mysql8 mysql -uroot -p'Admin168' dmh < /opt/code/DMH/backend/migrations/2026_01_29_add_record_tables.sql
    ```
 
 2. **重启后端服务**：

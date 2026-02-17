@@ -11,7 +11,7 @@ echo "Starting at: $(date)"
 # Configuration
 TEST_DB="dmh"
 TEST_USER="root"
-TEST_PASSWORD="#Admin168"
+TEST_PASSWORD="Admin168"
 TEST_HOST="127.0.0.1"
 TEST_PORT="3306"
 

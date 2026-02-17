@@ -8,7 +8,7 @@ set -e
 # 配置
 MYSQL_CONTAINER="mysql8"
 MYSQL_USER="root"
-MYSQL_PASSWORD="#Admin168"
+MYSQL_PASSWORD="Admin168"
 DATABASE="dmh"
 BACKUP_DIR="/tmp"
 TEST_DATA_SQL="/opt/code/DMH/backend/scripts/dmh_test_data_20260131_final.sql"

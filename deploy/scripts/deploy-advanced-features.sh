@@ -69,7 +69,7 @@ run_database_migrations() {
     
     # 检查 MySQL 连接
     log "检查 MySQL 连接..."
-    if ! docker exec mysql8 mysql -uroot -p'#Admin168' dmh -e "SELECT 1" &> /dev/null; then
+    if ! docker exec mysql8 mysql -uroot -p'Admin168' dmh -e "SELECT 1" &> /dev/null; then
         log_error "MySQL 连接失败"
         exit 1
     fi
@@ -78,7 +78,7 @@ run_database_migrations() {
     for migration in $BACKEND_DIR/migrations/202*.sql; do
         if [ -f "$migration" ]; then
             log "执行迁移脚本: $(basename $migration)"
-            docker exec -i mysql8 mysql -uroot -p'#Admin168' dmh < "$migration"
+            docker exec -i mysql8 mysql -uroot -p'Admin168' dmh < "$migration"
         fi
     done
     
@@ -210,25 +210,25 @@ verify_deployment() {
     
     # 检查数据库迁移
     log "验证数据库迁移..."
-    if docker exec mysql8 mysql -uroot -p'#Admin168' dmh -e "SHOW COLUMNS FROM campaigns LIKE 'payment_config'" &> /dev/null; then
+    if docker exec mysql8 mysql -uroot -p'Admin168' dmh -e "SHOW COLUMNS FROM campaigns LIKE 'payment_config'" &> /dev/null; then
         log "✓ payment_config 字段存在"
     else
         log_error "payment_config 字段不存在"
     fi
     
-    if docker exec mysql8 mysql -uroot -p'#Admin168' dmh -e "SHOW COLUMNS FROM campaigns LIKE 'poster_template_id'" &> /dev/null; then
+    if docker exec mysql8 mysql -uroot -p'Admin168' dmh -e "SHOW COLUMNS FROM campaigns LIKE 'poster_template_id'" &> /dev/null; then
         log "✓ poster_template_id 字段存在"
     else
         log_error "poster_template_id 字段不存在"
     fi
     
-    if docker exec mysql8 mysql -uroot -p'#Admin168' dmh -e "SHOW COLUMNS FROM orders LIKE 'verification_status'" &> /dev/null; then
+    if docker exec mysql8 mysql -uroot -p'Admin168' dmh -e "SHOW COLUMNS FROM orders LIKE 'verification_status'" &> /dev/null; then
         log "✓ verification_status 字段存在"
     else
         log_error "verification_status 字段不存在"
     fi
     
-    if docker exec mysql8 mysql -uroot -p'#Admin168' dmh -e "SELECT COUNT(*) FROM poster_template_configs" &> /dev/null; then
+    if docker exec mysql8 mysql -uroot -p'Admin168' dmh -e "SELECT COUNT(*) FROM poster_template_configs" &> /dev/null; then
         log "✓ 海报模板表存在"
     else
         log_error "海报模板表不存在"

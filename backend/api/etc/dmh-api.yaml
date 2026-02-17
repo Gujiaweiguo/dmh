@@ -8,7 +8,7 @@ CorsOrigins:
 
 # 数据库配置
 Mysql:
-  DataSource: root:#Admin168@tcp(127.0.0.1:3306)/dmh?charset=utf8mb4&parseTime=true&loc=Local
+  DataSource: root:Admin168@tcp(127.0.0.1:3306)/dmh?charset=utf8mb4&parseTime=true&loc=Local
 
 # Redis配置
 Redis:
@@ -64,7 +64,7 @@ ExternalSync:
     Host: 172.21.45.24
     Port: 3306
     User: root
-    Password: "#Admin168"
+    Password: "Admin168"
     Database: dmh
     Schema: ""  # SQL Server 专用
     Charset: utf8mb4

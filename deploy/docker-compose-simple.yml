@@ -11,7 +11,7 @@ services:
     image: mysql:8.0
     container_name: mysql8
     environment:
-      - MYSQL_ROOT_PASSWORD=#Admin168
+      - MYSQL_ROOT_PASSWORD=Admin168
       - MYSQL_DATABASE=dmh
       - MYSQL_ROOT_HOST=%
     networks:
@@ -22,7 +22,7 @@ services:
       - mysql8_data:/var/lib/mysql
     restart: on-failure
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p#Admin168"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pAdmin168"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -82,7 +82,7 @@ services:
       - DB_HOST=mysql8
       - DB_PORT=3306
       - DB_USER=root
-      - "DB_PASSWORD=#Admin168"
+      - "DB_PASSWORD=Admin168"
       - DB_NAME=dmh
       - REDIS_HOST=redis-dmh
       - REDIS_PORT=6379

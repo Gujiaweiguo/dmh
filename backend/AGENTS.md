@@ -128,7 +128,7 @@ gofmt -w .
 echo "-- Migration: Description" > migrations/$(date +%Y%m%d)_description.sql
 
 # Run migration
-docker exec -i mysql8 mysql -uroot -p'#Admin168' dmh < migrations/xxx.sql
+docker exec -i mysql8 mysql -uroot -p'Admin168' dmh < migrations/xxx.sql
 ```
 
 ## Config Files
