@@ -20,8 +20,14 @@ func ResetUserPasswordHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
+		userId, err := parseUserIDFromPath(r.URL.Path)
+		if err != nil {
+			httpx.ErrorCtx(r.Context(), w, err)
+			return
+		}
+
 		l := admin.NewResetUserPasswordLogic(r.Context(), svcCtx)
-		resp, err := l.ResetUserPassword(&req)
+		resp, err := l.ResetUserPassword(userId, &req)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {

@@ -28,10 +28,9 @@ func NewUpdateUserLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Update
 	}
 }
 
-func (l *UpdateUserLogic) UpdateUser(req *types.AdminUpdateUserReq) (resp *types.UserInfoResp, err error) {
-	userId, ok := l.ctx.Value("userId").(int64)
-	if !ok || userId == 0 {
-		return nil, errors.New("无法从context中获取用户ID")
+func (l *UpdateUserLogic) UpdateUser(userId int64, req *types.AdminUpdateUserReq) (resp *types.UserInfoResp, err error) {
+	if userId <= 0 {
+		return nil, errors.New("用户ID无效")
 	}
 
 	var user model.User

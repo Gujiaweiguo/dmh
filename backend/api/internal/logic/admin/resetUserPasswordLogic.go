@@ -29,10 +29,9 @@ func NewResetUserPasswordLogic(ctx context.Context, svcCtx *svc.ServiceContext) 
 	}
 }
 
-func (l *ResetUserPasswordLogic) ResetUserPassword(req *types.AdminResetPasswordReq) (resp *types.CommonResp, err error) {
-	userId, ok := l.ctx.Value("userId").(int64)
-	if !ok || userId == 0 {
-		return nil, errors.New("无法从context中获取用户ID")
+func (l *ResetUserPasswordLogic) ResetUserPassword(userId int64, req *types.AdminResetPasswordReq) (resp *types.CommonResp, err error) {
+	if userId <= 0 {
+		return nil, errors.New("用户ID无效")
 	}
 
 	var user model.User

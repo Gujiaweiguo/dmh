@@ -277,9 +277,7 @@ func (suite *AdminLogicTestSuite) TestUpdateUser_Success() {
 	}
 	suite.svcCtx.DB.Create(&user)
 
-	// 设置 context 中的 userId
-	ctx := context.WithValue(suite.ctx, "userId", user.Id)
-	logic := NewUpdateUserLogic(ctx, suite.svcCtx)
+	logic := NewUpdateUserLogic(suite.ctx, suite.svcCtx)
 
 	req := &types.AdminUpdateUserReq{
 		RealName: "新名字",
@@ -288,7 +286,7 @@ func (suite *AdminLogicTestSuite) TestUpdateUser_Success() {
 		Role:     "brand_admin",
 	}
 
-	resp, err := logic.UpdateUser(req)
+	resp, err := logic.UpdateUser(user.Id, req)
 
 	assert.NoError(suite.T(), err)
 	assert.NotNil(suite.T(), resp)
@@ -304,22 +302,21 @@ func (suite *AdminLogicTestSuite) TestUpdateUser_NoUserIdInContext() {
 		RealName: "新名字",
 	}
 
-	resp, err := logic.UpdateUser(req)
+	resp, err := logic.UpdateUser(0, req)
 
 	assert.Error(suite.T(), err)
 	assert.Nil(suite.T(), resp)
-	assert.Equal(suite.T(), "无法从context中获取用户ID", err.Error())
+	assert.Equal(suite.T(), "用户ID无效", err.Error())
 }
 
 func (suite *AdminLogicTestSuite) TestUpdateUser_UserNotFound() {
-	ctx := context.WithValue(suite.ctx, "userId", int64(99999))
-	logic := NewUpdateUserLogic(ctx, suite.svcCtx)
+	logic := NewUpdateUserLogic(suite.ctx, suite.svcCtx)
 
 	req := &types.AdminUpdateUserReq{
 		RealName: "新名字",
 	}
 
-	resp, err := logic.UpdateUser(req)
+	resp, err := logic.UpdateUser(99999, req)
 
 	assert.Error(suite.T(), err)
 	assert.Nil(suite.T(), resp)
@@ -338,15 +335,14 @@ func (suite *AdminLogicTestSuite) TestUpdateUser_PartialUpdate() {
 	}
 	suite.svcCtx.DB.Create(&user)
 
-	ctx := context.WithValue(suite.ctx, "userId", user.Id)
-	logic := NewUpdateUserLogic(ctx, suite.svcCtx)
+	logic := NewUpdateUserLogic(suite.ctx, suite.svcCtx)
 
 	// 只更新邮箱
 	req := &types.AdminUpdateUserReq{
 		Email: "updated@test.com",
 	}
 
-	resp, err := logic.UpdateUser(req)
+	resp, err := logic.UpdateUser(user.Id, req)
 
 	assert.NoError(suite.T(), err)
 	assert.NotNil(suite.T(), resp)
@@ -366,13 +362,13 @@ func (suite *AdminLogicTestSuite) TestDeleteUser_Success() {
 	}
 	suite.svcCtx.DB.Create(&user)
 
-	ctx := context.WithValue(suite.ctx, "userId", user.Id)
-	logic := NewDeleteUserLogic(ctx, suite.svcCtx)
+	logic := NewDeleteUserLogic(suite.ctx, suite.svcCtx)
 
-	resp, err := logic.DeleteUser()
+	resp, err := logic.DeleteUser(user.Id)
 
 	assert.NoError(suite.T(), err)
-	assert.Nil(suite.T(), resp)
+	assert.NotNil(suite.T(), resp)
+	assert.Equal(suite.T(), "删除成功", resp.Message)
 
 	// 验证用户已被删除
 	var deletedUser model.User
@@ -383,18 +379,17 @@ func (suite *AdminLogicTestSuite) TestDeleteUser_Success() {
 func (suite *AdminLogicTestSuite) TestDeleteUser_NoUserIdInContext() {
 	logic := NewDeleteUserLogic(suite.ctx, suite.svcCtx)
 
-	resp, err := logic.DeleteUser()
+	resp, err := logic.DeleteUser(0)
 
 	assert.Error(suite.T(), err)
 	assert.Nil(suite.T(), resp)
-	assert.Equal(suite.T(), "无法从context中获取用户ID", err.Error())
+	assert.Equal(suite.T(), "用户ID无效", err.Error())
 }
 
 func (suite *AdminLogicTestSuite) TestDeleteUser_UserNotFound() {
-	ctx := context.WithValue(suite.ctx, "userId", int64(99999))
-	logic := NewDeleteUserLogic(ctx, suite.svcCtx)
+	logic := NewDeleteUserLogic(suite.ctx, suite.svcCtx)
 
-	resp, err := logic.DeleteUser()
+	resp, err := logic.DeleteUser(99999)
 
 	assert.Error(suite.T(), err)
 	assert.Nil(suite.T(), resp)
@@ -494,14 +489,13 @@ func (suite *AdminLogicTestSuite) TestResetUserPassword_Success() {
 	}
 	suite.svcCtx.DB.Create(&user)
 
-	ctx := context.WithValue(suite.ctx, "userId", user.Id)
-	logic := NewResetUserPasswordLogic(ctx, suite.svcCtx)
+	logic := NewResetUserPasswordLogic(suite.ctx, suite.svcCtx)
 
 	req := &types.AdminResetPasswordReq{
 		NewPassword: "newpassword123",
 	}
 
-	resp, err := logic.ResetUserPassword(req)
+	resp, err := logic.ResetUserPassword(user.Id, req)
 
 	assert.NoError(suite.T(), err)
 	assert.NotNil(suite.T(), resp)
@@ -525,22 +519,21 @@ func (suite *AdminLogicTestSuite) TestResetUserPassword_NoUserIdInContext() {
 		NewPassword: "newpassword123",
 	}
 
-	resp, err := logic.ResetUserPassword(req)
+	resp, err := logic.ResetUserPassword(0, req)
 
 	assert.Error(suite.T(), err)
 	assert.Nil(suite.T(), resp)
-	assert.Equal(suite.T(), "无法从context中获取用户ID", err.Error())
+	assert.Equal(suite.T(), "用户ID无效", err.Error())
 }
 
 func (suite *AdminLogicTestSuite) TestResetUserPassword_UserNotFound() {
-	ctx := context.WithValue(suite.ctx, "userId", int64(99999))
-	logic := NewResetUserPasswordLogic(ctx, suite.svcCtx)
+	logic := NewResetUserPasswordLogic(suite.ctx, suite.svcCtx)
 
 	req := &types.AdminResetPasswordReq{
 		NewPassword: "newpassword123",
 	}
 
-	resp, err := logic.ResetUserPassword(req)
+	resp, err := logic.ResetUserPassword(99999, req)
 
 	assert.Error(suite.T(), err)
 	assert.Nil(suite.T(), resp)

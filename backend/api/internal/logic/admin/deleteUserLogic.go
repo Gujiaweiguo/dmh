@@ -28,10 +28,9 @@ func NewDeleteUserLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Delete
 	}
 }
 
-func (l *DeleteUserLogic) DeleteUser() (resp *types.CommonResp, err error) {
-	userId, ok := l.ctx.Value("userId").(int64)
-	if !ok || userId == 0 {
-		return nil, errors.New("无法从context中获取用户ID")
+func (l *DeleteUserLogic) DeleteUser(userId int64) (resp *types.CommonResp, err error) {
+	if userId <= 0 {
+		return nil, errors.New("用户ID无效")
 	}
 
 	var user model.User
@@ -44,5 +43,5 @@ func (l *DeleteUserLogic) DeleteUser() (resp *types.CommonResp, err error) {
 		return nil, errors.New("删除用户失败")
 	}
 
-	return nil, nil
+	return &types.CommonResp{Message: "删除成功"}, nil
 }

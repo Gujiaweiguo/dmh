@@ -20,8 +20,14 @@ func UpdateUserHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
+		userId, err := parseUserIDFromPath(r.URL.Path)
+		if err != nil {
+			httpx.ErrorCtx(r.Context(), w, err)
+			return
+		}
+
 		l := admin.NewUpdateUserLogic(r.Context(), svcCtx)
-		resp, err := l.UpdateUser(&req)
+		resp, err := l.UpdateUser(userId, &req)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {

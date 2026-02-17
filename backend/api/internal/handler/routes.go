@@ -13,6 +13,7 @@ import (
 	distributor "dmh/api/internal/handler/distributor"
 	feedback "dmh/api/internal/handler/feedback"
 	member "dmh/api/internal/handler/member"
+	menu "dmh/api/internal/handler/menu"
 	order "dmh/api/internal/handler/order"
 	poster "dmh/api/internal/handler/poster"
 	reward "dmh/api/internal/handler/reward"
@@ -549,6 +550,48 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Method:  http.MethodGet,
 				Path:    "/users/:id/permissions",
 				Handler: role.GetUserPermissionsHandler(serverCtx),
+			},
+		},
+		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		rest.WithPrefix("/api/v1"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodPost,
+				Path:    "/menus",
+				Handler: menu.CreateMenuHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/menus",
+				Handler: menu.GetMenusHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/menus/:id",
+				Handler: menu.GetMenuHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPut,
+				Path:    "/menus/:id",
+				Handler: menu.UpdateMenuHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodDelete,
+				Path:    "/menus/:id",
+				Handler: menu.DeleteMenuHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/roles/menus",
+				Handler: menu.ConfigRoleMenusHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/users/menus",
+				Handler: menu.GetUserMenusHandler(serverCtx),
 			},
 		},
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),

@@ -81,6 +81,14 @@ func TestGetAuditLogsHandler_Success(t *testing.T) {
 	handler(resp, req)
 
 	assert.Equal(t, http.StatusOK, resp.Code)
+
+	var got types.AuditLogListResp
+	err := json.Unmarshal(resp.Body.Bytes(), &got)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(1), got.Total)
+	assert.Len(t, got.Logs, 1)
+	assert.Equal(t, "admin", got.Logs[0].Username)
+	assert.Equal(t, "login", got.Logs[0].Action)
 }
 
 func TestGetLoginAttemptsHandler_Success(t *testing.T) {

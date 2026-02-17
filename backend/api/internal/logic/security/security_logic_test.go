@@ -43,7 +43,9 @@ func TestSecurityLogicCurrentMethodBehavior(t *testing.T) {
 	audit := NewGetAuditLogsLogic(ctx, svcCtx)
 	auditResp, auditErr := audit.GetAuditLogs()
 	assert.NoError(t, auditErr)
-	assert.Nil(t, auditResp)
+	assert.NotNil(t, auditResp)
+	assert.Equal(t, int64(0), auditResp.Total)
+	assert.Len(t, auditResp.Logs, 0)
 
 	attempts := NewGetLoginAttemptsLogic(ctx, svcCtx)
 	attemptsResp, attemptsErr := attempts.GetLoginAttempts()

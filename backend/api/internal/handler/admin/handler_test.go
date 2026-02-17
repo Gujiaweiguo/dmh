@@ -14,6 +14,7 @@ import (
 	"dmh/model"
 
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -230,4 +231,81 @@ func TestUpdateUserHandler_Success(t *testing.T) {
 	handler(resp, req)
 
 	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestUpdateUserHandler_UsesPathID(t *testing.T) {
+	db := setupAdminHandlerTestDB(t)
+	user1 := &model.User{Username: "u1", Password: "pass", Phone: "13800138101", RealName: "用户1", Status: "active"}
+	user2 := &model.User{Username: "u2", Password: "pass", Phone: "13800138102", RealName: "用户2", Status: "active"}
+	db.Create(user1)
+	db.Create(user2)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := UpdateUserHandler(svcCtx)
+
+	reqBody := types.AdminUpdateUserReq{RealName: "被修改"}
+	body, _ := json.Marshal(reqBody)
+	req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/admin/users/%d", user2.Id), bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+	assert.Equal(t, http.StatusOK, resp.Code)
+
+	var got1, got2 model.User
+	db.First(&got1, user1.Id)
+	db.First(&got2, user2.Id)
+	assert.Equal(t, "用户1", got1.RealName)
+	assert.Equal(t, "被修改", got2.RealName)
+}
+
+func TestDeleteUserHandler_UsesPathID(t *testing.T) {
+	db := setupAdminHandlerTestDB(t)
+	user1 := &model.User{Username: "d1", Password: "pass", Phone: "13800138111", Status: "active"}
+	user2 := &model.User{Username: "d2", Password: "pass", Phone: "13800138112", Status: "active"}
+	db.Create(user1)
+	db.Create(user2)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := DeleteUserHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/admin/users/%d", user2.Id), nil)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+	assert.Equal(t, http.StatusOK, resp.Code)
+
+	var got1, got2 model.User
+	err1 := db.First(&got1, user1.Id).Error
+	err2 := db.First(&got2, user2.Id).Error
+	assert.NoError(t, err1)
+	assert.Error(t, err2)
+}
+
+func TestResetUserPasswordHandler_UsesPathID(t *testing.T) {
+	db := setupAdminHandlerTestDB(t)
+	old1, _ := bcrypt.GenerateFromPassword([]byte("oldpass1"), bcrypt.DefaultCost)
+	old2, _ := bcrypt.GenerateFromPassword([]byte("oldpass2"), bcrypt.DefaultCost)
+	user1 := &model.User{Username: "r1", Password: string(old1), Phone: "13800138121", Status: "active"}
+	user2 := &model.User{Username: "r2", Password: string(old2), Phone: "13800138122", Status: "active"}
+	db.Create(user1)
+	db.Create(user2)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := ResetUserPasswordHandler(svcCtx)
+
+	reqBody := types.AdminResetPasswordReq{NewPassword: "new-password-2"}
+	body, _ := json.Marshal(reqBody)
+	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/admin/users/%d/reset-password", user2.Id), bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+	assert.Equal(t, http.StatusOK, resp.Code)
+
+	var got1, got2 model.User
+	db.First(&got1, user1.Id)
+	db.First(&got2, user2.Id)
+	assert.NoError(t, bcrypt.CompareHashAndPassword([]byte(got1.Password), []byte("oldpass1")))
+	assert.NoError(t, bcrypt.CompareHashAndPassword([]byte(got2.Password), []byte("new-password-2")))
 }
