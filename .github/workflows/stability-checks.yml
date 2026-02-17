@@ -26,12 +26,12 @@ jobs:
       mysql8:
         image: mysql:8.0
         env:
-          MYSQL_ROOT_PASSWORD: "#Admin168"
+          MYSQL_ROOT_PASSWORD: "Admin168"
           MYSQL_DATABASE: dmh
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -p'#Admin168' --silent"
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -p'Admin168' --silent"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=20
@@ -78,7 +78,7 @@ jobs:
         run: |
           mysql_ready=0
           for i in {1..60}; do
-            if mysqladmin ping -h 127.0.0.1 -uroot -p'#Admin168' --silent; then
+            if mysqladmin ping -h 127.0.0.1 -uroot -p'Admin168' --silent; then
               echo "MySQL is ready"
               mysql_ready=1
               break
@@ -106,15 +106,15 @@ jobs:
 
       - name: Initialize schema and baseline migrations
         run: |
-          mysql -h 127.0.0.1 -uroot -p'#Admin168' dmh < backend/scripts/init.sql
-          mysql -h 127.0.0.1 -uroot -p'#Admin168' dmh < backend/scripts/create_member_system_tables.sql
-          mysql -h 127.0.0.1 -uroot -p'#Admin168' dmh < backend/migrations/20250120_create_distributor_tables_final.sql
-          mysql -h 127.0.0.1 -uroot -p'#Admin168' dmh < backend/migrations/20250124_add_advanced_features.sql
-          mysql -h 127.0.0.1 -uroot -p'#Admin168' dmh < backend/migrations/2026_01_29_add_record_tables.sql
+          mysql -h 127.0.0.1 -uroot -p'Admin168' dmh < backend/scripts/init.sql
+          mysql -h 127.0.0.1 -uroot -p'Admin168' dmh < backend/scripts/create_member_system_tables.sql
+          mysql -h 127.0.0.1 -uroot -p'Admin168' dmh < backend/migrations/20250120_create_distributor_tables_final.sql
+          mysql -h 127.0.0.1 -uroot -p'Admin168' dmh < backend/migrations/20250124_add_advanced_features.sql
+          mysql -h 127.0.0.1 -uroot -p'Admin168' dmh < backend/migrations/2026_01_29_add_record_tables.sql
 
       - name: Ensure orders.paid_at and verification_code schema
         run: |
-          mysql -h 127.0.0.1 -uroot -p'#Admin168' dmh <<'SQL'
+          mysql -h 127.0.0.1 -uroot -p'Admin168' dmh <<'SQL'
           SET @col_exists = (
             SELECT COUNT(*)
             FROM information_schema.columns
