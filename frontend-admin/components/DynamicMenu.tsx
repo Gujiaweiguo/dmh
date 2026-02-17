@@ -1,6 +1,7 @@
 import { defineComponent, h, ref, onMounted, computed } from 'vue';
 import * as LucideIcons from 'lucide-vue-next';
 import { PermissionGuard, usePermission } from './PermissionGuard';
+import { menuApi } from '../services/menuApi';
 
 // 菜单项接口
 interface MenuItem {
@@ -18,6 +19,28 @@ interface MenuItem {
   role?: string;
   children?: MenuItem[];
 }
+
+const fallbackMenus: MenuItem[] = [
+  { id: 1, name: '仪表板', code: 'dashboard', path: '/dashboard', icon: 'LayoutDashboard', parentId: undefined, sort: 1, type: 'menu', platform: 'admin', status: 'active' },
+  { id: 2, name: '用户管理', code: 'user-management', path: '/users', icon: 'Users', parentId: undefined, sort: 2, type: 'menu', platform: 'admin', status: 'active', permission: 'user:read' },
+  { id: 3, name: '品牌管理', code: 'brand-management', path: '/brands', icon: 'Building', parentId: undefined, sort: 3, type: 'menu', platform: 'admin', status: 'active', permission: 'brand:read' },
+  { id: 4, name: '活动管理', code: 'campaign-management', path: '/campaigns', icon: 'Target', parentId: undefined, sort: 4, type: 'menu', platform: 'admin', status: 'active', permission: 'campaign:read' },
+  { id: 5, name: '订单管理', code: 'order-management', path: '/orders', icon: 'ShoppingCart', parentId: undefined, sort: 5, type: 'menu', platform: 'admin', status: 'active', permission: 'order:read' },
+  { id: 6, name: '奖励管理', code: 'reward-management', path: '/rewards', icon: 'Gift', parentId: undefined, sort: 6, type: 'menu', platform: 'admin', status: 'active', permission: 'reward:read' },
+  { id: 7, name: '提现管理', code: 'withdrawal-management', path: '/withdrawals', icon: 'Wallet', parentId: undefined, sort: 7, type: 'menu', platform: 'admin', status: 'active', permission: 'withdrawal:approve' },
+  { id: 8, name: '系统管理', code: 'system-management', path: '/system', icon: 'Settings', parentId: undefined, sort: 8, type: 'menu', platform: 'admin', status: 'active', role: 'platform_admin' },
+  { id: 9, name: '用户列表', code: 'user-list', path: '/users/list', parentId: 2, sort: 1, type: 'menu', platform: 'admin', status: 'active', permission: 'user:read' },
+  { id: 10, name: '创建用户', code: 'user-create', path: '/users/create', parentId: 2, sort: 2, type: 'menu', platform: 'admin', status: 'active', permission: 'user:create' },
+  { id: 11, name: '品牌列表', code: 'brand-list', path: '/brands/list', parentId: 3, sort: 1, type: 'menu', platform: 'admin', status: 'active', permission: 'brand:read' },
+  { id: 12, name: '创建品牌', code: 'brand-create', path: '/brands/create', parentId: 3, sort: 2, type: 'menu', platform: 'admin', status: 'active', permission: 'brand:create' },
+  { id: 13, name: '品牌关系管理', code: 'brand-relation', path: '/brands/relations', parentId: 3, sort: 3, type: 'menu', platform: 'admin', status: 'active', permission: 'user:update' },
+  { id: 14, name: '活动列表', code: 'campaign-list', path: '/campaigns/list', parentId: 4, sort: 1, type: 'menu', platform: 'admin', status: 'active', permission: 'campaign:read' },
+  { id: 15, name: '创建活动', code: 'campaign-create', path: '/campaigns/create', parentId: 4, sort: 2, type: 'menu', platform: 'admin', status: 'active', permission: 'campaign:create' },
+  { id: 16, name: '页面配置', code: 'campaign-config', path: '/campaigns/config', parentId: 4, sort: 3, type: 'menu', platform: 'admin', status: 'active', permission: 'campaign:update' },
+  { id: 17, name: '角色管理', code: 'role-management', path: '/system/roles', parentId: 8, sort: 1, type: 'menu', platform: 'admin', status: 'active', role: 'platform_admin' },
+  { id: 18, name: '菜单管理', code: 'menu-management', path: '/system/menus', parentId: 8, sort: 2, type: 'menu', platform: 'admin', status: 'active', role: 'platform_admin' },
+  { id: 19, name: '权限配置', code: 'permission-config', path: '/system/permissions', parentId: 8, sort: 3, type: 'menu', platform: 'admin', status: 'active', role: 'platform_admin' },
+];
 
 // 动态菜单组件
 export const DynamicMenu = defineComponent({
@@ -41,50 +64,19 @@ export const DynamicMenu = defineComponent({
     const loadMenus = async () => {
       loading.value = true;
       try {
-        // TODO: 调用真实API
-        // const response = await fetch('/api/v1/users/menus', {
-        //   headers: { 'Authorization': `Bearer ${localStorage.getItem('dmh_token')}` }
-        // });
-        // const data = await response.json();
-        // menuItems.value = data.menus;
-        
-        // 模拟菜单数据
-        const allMenus: MenuItem[] = [
-          // 一级菜单
-          { id: 1, name: '仪表板', code: 'dashboard', path: '/dashboard', icon: 'LayoutDashboard', parentId: undefined, sort: 1, type: 'menu', platform: 'admin', status: 'active' },
-          { id: 2, name: '用户管理', code: 'user-management', path: '/users', icon: 'Users', parentId: undefined, sort: 2, type: 'menu', platform: 'admin', status: 'active', permission: 'user:read' },
-          { id: 3, name: '品牌管理', code: 'brand-management', path: '/brands', icon: 'Building', parentId: undefined, sort: 3, type: 'menu', platform: 'admin', status: 'active', permission: 'brand:read' },
-          { id: 4, name: '活动管理', code: 'campaign-management', path: '/campaigns', icon: 'Target', parentId: undefined, sort: 4, type: 'menu', platform: 'admin', status: 'active', permission: 'campaign:read' },
-          { id: 5, name: '订单管理', code: 'order-management', path: '/orders', icon: 'ShoppingCart', parentId: undefined, sort: 5, type: 'menu', platform: 'admin', status: 'active', permission: 'order:read' },
-          { id: 6, name: '奖励管理', code: 'reward-management', path: '/rewards', icon: 'Gift', parentId: undefined, sort: 6, type: 'menu', platform: 'admin', status: 'active', permission: 'reward:read' },
-          { id: 7, name: '提现管理', code: 'withdrawal-management', path: '/withdrawals', icon: 'Wallet', parentId: undefined, sort: 7, type: 'menu', platform: 'admin', status: 'active', permission: 'withdrawal:approve' },
-          { id: 8, name: '系统管理', code: 'system-management', path: '/system', icon: 'Settings', parentId: undefined, sort: 8, type: 'menu', platform: 'admin', status: 'active', role: 'platform_admin' },
-          
-          // 二级菜单 - 用户管理
-          { id: 9, name: '用户列表', code: 'user-list', path: '/users/list', parentId: 2, sort: 1, type: 'menu', platform: 'admin', status: 'active', permission: 'user:read' },
-          { id: 10, name: '创建用户', code: 'user-create', path: '/users/create', parentId: 2, sort: 2, type: 'menu', platform: 'admin', status: 'active', permission: 'user:create' },
-          
-          // 二级菜单 - 品牌管理
-          { id: 11, name: '品牌列表', code: 'brand-list', path: '/brands/list', parentId: 3, sort: 1, type: 'menu', platform: 'admin', status: 'active', permission: 'brand:read' },
-          { id: 12, name: '创建品牌', code: 'brand-create', path: '/brands/create', parentId: 3, sort: 2, type: 'menu', platform: 'admin', status: 'active', permission: 'brand:create' },
-          { id: 13, name: '品牌关系管理', code: 'brand-relation', path: '/brands/relations', parentId: 3, sort: 3, type: 'menu', platform: 'admin', status: 'active', permission: 'user:update' },
-          
-          // 二级菜单 - 活动管理
-          { id: 14, name: '活动列表', code: 'campaign-list', path: '/campaigns/list', parentId: 4, sort: 1, type: 'menu', platform: 'admin', status: 'active', permission: 'campaign:read' },
-          { id: 15, name: '创建活动', code: 'campaign-create', path: '/campaigns/create', parentId: 4, sort: 2, type: 'menu', platform: 'admin', status: 'active', permission: 'campaign:create' },
-          { id: 16, name: '页面配置', code: 'campaign-config', path: '/campaigns/config', parentId: 4, sort: 3, type: 'menu', platform: 'admin', status: 'active', permission: 'campaign:update' },
-          
-          // 二级菜单 - 系统管理
-          { id: 17, name: '角色管理', code: 'role-management', path: '/system/roles', parentId: 8, sort: 1, type: 'menu', platform: 'admin', status: 'active', role: 'platform_admin' },
-          { id: 18, name: '菜单管理', code: 'menu-management', path: '/system/menus', parentId: 8, sort: 2, type: 'menu', platform: 'admin', status: 'active', role: 'platform_admin' },
-          { id: 19, name: '权限配置', code: 'permission-config', path: '/system/permissions', parentId: 8, sort: 3, type: 'menu', platform: 'admin', status: 'active', role: 'platform_admin' },
-        ];
-        
-        menuItems.value = allMenus.filter(menu => 
-          menu.platform === props.platform && menu.status === 'active'
-        );
+        const menus = await menuApi.getUserMenus(props.platform);
+        if (menus.length > 0) {
+          menuItems.value = menus;
+        } else {
+          menuItems.value = fallbackMenus.filter(menu =>
+            menu.platform === props.platform && menu.status === 'active'
+          );
+        }
       } catch (error) {
         console.error('加载菜单失败', error);
+        menuItems.value = fallbackMenus.filter(menu =>
+          menu.platform === props.platform && menu.status === 'active'
+        );
       } finally {
         loading.value = false;
       }

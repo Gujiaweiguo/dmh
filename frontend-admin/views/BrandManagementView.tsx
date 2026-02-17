@@ -1,6 +1,8 @@
 import { defineComponent, h, ref, onMounted, reactive, computed } from 'vue';
 import * as LucideIcons from 'lucide-vue-next';
 import { PermissionGuard, usePermission } from '../components/PermissionGuard';
+import { brandApi } from '../services/brandApi';
+import { userApi } from '../services/userApi';
 
 // 品牌管理视图
 export const BrandManagementView = defineComponent({
@@ -58,48 +60,12 @@ export const BrandManagementView = defineComponent({
     const loadBrands = async () => {
       loading.value = true;
       try {
-        // TODO: 调用真实API
-        // const response = await fetch('/api/v1/brands', {
-        //   headers: { 'Authorization': `Bearer ${localStorage.getItem('dmh_token')}` }
-        // });
-        // brands.value = await response.json();
-        
-        // 模拟数据
-        brands.value = [
-          {
-            id: 1,
-            name: '品牌A',
-            logo: 'https://via.placeholder.com/150',
-            description: '这是品牌A的描述',
-            status: 'active',
-            createdAt: '2025-01-01 10:00:00',
-            updatedAt: '2025-01-01 10:00:00'
-          },
-          {
-            id: 2,
-            name: '品牌B',
-            logo: 'https://via.placeholder.com/150',
-            description: '这是品牌B的描述',
-            status: 'active',
-            createdAt: '2025-01-01 10:00:00',
-            updatedAt: '2025-01-01 10:00:00'
-          },
-          {
-            id: 3,
-            name: '品牌C',
-            logo: 'https://via.placeholder.com/150',
-            description: '这是品牌C的描述',
-            status: 'disabled',
-            createdAt: '2025-01-01 10:00:00',
-            updatedAt: '2025-01-01 10:00:00'
-          }
-        ];
+        brands.value = await brandApi.getBrands();
         
         // 默认选择第一个品牌
         if (filteredBrands.value.length > 0) {
           selectedBrand.value = filteredBrands.value[0];
-          loadBrandAssets();
-          loadBrandStats();
+          await Promise.all([loadBrandAssets(), loadBrandStats()]);
         }
       } catch (error) {
         console.error('加载品牌列表失败', error);
@@ -113,41 +79,7 @@ export const BrandManagementView = defineComponent({
       if (!selectedBrand.value) return;
       
       try {
-        // TODO: 调用真实API
-        // const response = await fetch(`/api/v1/brands/${selectedBrand.value.id}/assets`, {
-        //   headers: { 'Authorization': `Bearer ${localStorage.getItem('dmh_token')}` }
-        // });
-        // brandAssets.value = await response.json();
-        
-        // 模拟数据
-        brandAssets.value = [
-          {
-            id: 1,
-            brandId: selectedBrand.value.id,
-            name: '宣传海报1',
-            type: 'image',
-            category: '海报',
-            tags: '促销,限时',
-            fileUrl: 'https://via.placeholder.com/400x600',
-            fileSize: 1024000,
-            description: '春季促销活动海报',
-            createdAt: '2025-01-01 10:00:00',
-            updatedAt: '2025-01-01 10:00:00'
-          },
-          {
-            id: 2,
-            brandId: selectedBrand.value.id,
-            name: '产品介绍视频',
-            type: 'video',
-            category: '视频',
-            tags: '产品,介绍',
-            fileUrl: 'https://example.com/video.mp4',
-            fileSize: 5120000,
-            description: '产品功能介绍视频',
-            createdAt: '2025-01-01 10:00:00',
-            updatedAt: '2025-01-01 10:00:00'
-          }
-        ];
+        brandAssets.value = await brandApi.getBrandAssets(selectedBrand.value.id);
       } catch (error) {
         console.error('加载品牌素材失败', error);
       }
@@ -158,24 +90,7 @@ export const BrandManagementView = defineComponent({
       if (!selectedBrand.value) return;
       
       try {
-        // TODO: 调用真实API
-        // const response = await fetch(`/api/v1/brands/${selectedBrand.value.id}/stats`, {
-        //   headers: { 'Authorization': `Bearer ${localStorage.getItem('dmh_token')}` }
-        // });
-        // brandStats.value = await response.json();
-        
-        // 模拟数据
-        brandStats.value = {
-          brandId: selectedBrand.value.id,
-          totalCampaigns: 12,
-          activeCampaigns: 8,
-          totalOrders: 1284,
-          totalRevenue: 42050.00,
-          totalRewards: 8410.00,
-          participantCount: 856,
-          conversionRate: 68.5,
-          lastUpdated: '2025-01-02 15:30:00'
-        };
+        brandStats.value = await brandApi.getBrandStats(selectedBrand.value.id);
       } catch (error) {
         console.error('加载品牌统计失败', error);
       }
@@ -184,22 +99,21 @@ export const BrandManagementView = defineComponent({
     // 加载品牌关系
     const loadBrandRelations = async () => {
       try {
-        // TODO: 调用真实API
-        // 模拟数据
-        brandRelations.value = [
-          {
-            id: 1,
-            userId: 2,
-            username: 'brand_manager',
-            realName: '品牌经理',
-            brandIds: [1, 2],
-            createdAt: '2025-01-01 10:00:00'
-          }
-        ];
-        
-        availableUsers.value = [
-          { id: 4, username: 'user002', realName: '李四', roles: ['participant'] }
-        ];
+        const [relationsResp, usersResp] = await Promise.all([
+          userApi.getUsers({ page: 1, pageSize: 200, role: 'brand_admin' }),
+          userApi.getUsers({ page: 1, pageSize: 200 }),
+        ]);
+
+        brandRelations.value = (relationsResp.users || []).map((u) => ({
+          id: u.id,
+          userId: u.id,
+          username: u.username,
+          realName: u.realName || '',
+          brandIds: u.brandIds || [],
+          createdAt: u.createdAt,
+        }));
+
+        availableUsers.value = (usersResp.users || []).filter((u) => !u.roles.includes('brand_admin'));
       } catch (error) {
         console.error('加载品牌关系失败', error);
       }
@@ -227,19 +141,20 @@ export const BrandManagementView = defineComponent({
     const saveBrand = async () => {
       try {
         if (editingBrand.value) {
-          // 更新品牌
-          // TODO: 调用真实API
-          Object.assign(editingBrand.value, brandForm);
+          const updated = await brandApi.updateBrand(editingBrand.value.id, {
+            name: brandForm.name,
+            logo: brandForm.logo,
+            description: brandForm.description,
+            status: brandForm.status,
+          });
+          Object.assign(editingBrand.value, updated);
         } else {
-          // 创建品牌
-          // TODO: 调用真实API
-          const newBrand = {
-            id: Date.now(),
-            ...brandForm,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          };
-          brands.value.push(newBrand);
+          const created = await brandApi.createBrand({
+            name: brandForm.name,
+            logo: brandForm.logo,
+            description: brandForm.description,
+          });
+          brands.value.push(created);
         }
         
         showBrandDialog.value = false;
@@ -277,19 +192,18 @@ export const BrandManagementView = defineComponent({
     // 保存素材
     const saveAsset = async () => {
       try {
+        if (!selectedBrand.value) return;
+
         if (editingAsset.value) {
-          // 更新素材
-          Object.assign(editingAsset.value, assetForm);
+          const updated = await brandApi.updateBrandAsset(
+            selectedBrand.value.id,
+            editingAsset.value.id,
+            { ...assetForm }
+          );
+          Object.assign(editingAsset.value, updated);
         } else {
-          // 创建素材
-          const newAsset = {
-            id: Date.now(),
-            brandId: selectedBrand.value.id,
-            ...assetForm,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          };
-          brandAssets.value.push(newAsset);
+          const created = await brandApi.createBrandAsset(selectedBrand.value.id, { ...assetForm });
+          brandAssets.value.push(created);
         }
         
         showAssetDialog.value = false;
@@ -305,7 +219,8 @@ export const BrandManagementView = defineComponent({
       if (!confirm(`确定要删除素材"${asset.name}"吗？`)) return;
       
       try {
-        // TODO: 调用真实API
+        if (!selectedBrand.value) return;
+        await brandApi.deleteBrandAsset(selectedBrand.value.id, asset.id);
         brandAssets.value = brandAssets.value.filter(a => a.id !== asset.id);
         alert('素材删除成功');
       } catch (error) {

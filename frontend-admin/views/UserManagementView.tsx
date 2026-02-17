@@ -1,5 +1,8 @@
 import { defineComponent, h, ref, onMounted, reactive, computed } from 'vue';
 import * as LucideIcons from 'lucide-vue-next';
+import { userApi } from '../services/userApi';
+import { roleApi } from '../services/roleApi';
+import { brandApi } from '../services/brandApi';
 
 // 用户管理视图
 export const UserManagementView = defineComponent({
@@ -27,6 +30,7 @@ export const UserManagementView = defineComponent({
       { code: 'participant', name: '活动参与者', description: '可参与活动、分享和提现' },
     ]);
     const selectedRoles = ref<string[]>([]);
+    const selectedBrands = ref<number[]>([]);
     
     const availableBrands = ref<any[]>([]);
 
@@ -34,54 +38,19 @@ export const UserManagementView = defineComponent({
     const loadUsers = async () => {
       loading.value = true;
       try {
-        // TODO: 调用真实API
-        // const response = await fetch('/api/v1/users', {
-        //   headers: { 'Authorization': `Bearer ${localStorage.getItem('dmh_token')}` }
-        // });
-        // users.value = await response.json();
-        
-        // 模拟数据
-        users.value = [
-          {
-            id: 1,
-            username: 'admin',
-            realName: '系统管理员',
-            phone: '13800000001',
-            email: 'admin@dmh.com',
-            status: 'active',
-            roles: ['platform_admin'],
-            brandIds: [],
-            createdAt: '2025-01-01 10:00:00',
-          },
-          {
-            id: 3,
-            username: 'user001',
-            realName: '张三',
-            phone: '13800000003',
-            email: 'user001@dmh.com',
-            status: 'active',
-            roles: ['participant'],
-            brandIds: [],
-            createdAt: '2025-01-03 10:00:00',
-          },
-          {
-            id: 4,
-            username: 'user002',
-            realName: '李四',
-            phone: '13800000004',
-            email: 'user002@dmh.com',
-            status: 'disabled',
-            roles: ['participant'],
-            brandIds: [],
-            createdAt: '2025-01-04 10:00:00',
-          },
-        ];
-        
-        availableBrands.value = [
-          { id: 1, name: '品牌A' },
-          { id: 2, name: '品牌B' },
-          { id: 3, name: '品牌C' },
-        ];
+        const [userResp, brandsResp, rolesResp] = await Promise.all([
+          userApi.getUsers({ page: 1, pageSize: 200 }),
+          brandApi.getBrands(),
+          roleApi.getRoles(),
+        ]);
+
+        users.value = userResp.users || [];
+        availableBrands.value = brandsResp.map((b) => ({ id: b.id, name: b.name }));
+        availableRoles.value = rolesResp.map((r) => ({
+          code: r.code,
+          name: r.name,
+          description: r.description,
+        }));
       } catch (error) {
         console.error('加载用户列表失败', error);
       } finally {
@@ -126,19 +95,18 @@ export const UserManagementView = defineComponent({
     // 保存用户信息
     const saveUser = async () => {
       try {
-        // TODO: 调用真实API
-        // await fetch(`/api/v1/users/${editingUser.value.id}`, {
-        //   method: 'PUT',
-        //   headers: {
-        //     'Authorization': `Bearer ${localStorage.getItem('dmh_token')}`,
-        //     'Content-Type': 'application/json',
-        //   },
-        //   body: JSON.stringify(editingUser.value),
-        // });
+        const updated = await userApi.updateUser(editingUser.value.id, {
+          realName: editingUser.value.realName,
+          email: editingUser.value.email,
+        });
         
         const index = users.value.findIndex(u => u.id === editingUser.value.id);
         if (index !== -1) {
-          users.value[index] = { ...editingUser.value };
+          users.value[index] = {
+            ...users.value[index],
+            ...editingUser.value,
+            ...updated,
+          };
         }
         showEditDialog.value = false;
         editingUser.value = null;
@@ -158,16 +126,7 @@ export const UserManagementView = defineComponent({
       }
       
       try {
-        // TODO: 调用真实API
-        // await fetch(`/api/v1/users/${user.id}/status`, {
-        //   method: 'PUT',
-        //   headers: {
-        //     'Authorization': `Bearer ${localStorage.getItem('dmh_token')}`,
-        //     'Content-Type': 'application/json',
-        //   },
-        //   body: JSON.stringify({ status: newStatus }),
-        // });
-        
+        await userApi.updateUser(user.id, { status: newStatus });
         user.status = newStatus;
       } catch (error) {
         console.error('切换用户状态失败', error);
@@ -190,15 +149,7 @@ export const UserManagementView = defineComponent({
       }
       
       try {
-        // TODO: 调用真实API
-        // await fetch(`/api/v1/users/${resetPasswordUser.value.id}/reset-password`, {
-        //   method: 'POST',
-        //   headers: {
-        //     'Authorization': `Bearer ${localStorage.getItem('dmh_token')}`,
-        //     'Content-Type': 'application/json',
-        //   },
-        //   body: JSON.stringify({ newPassword: newPassword.value }),
-        // });
+        await userApi.resetUserPassword(resetPasswordUser.value.id, newPassword.value);
         
         alert('密码重置成功');
         showResetPasswordDialog.value = false;
@@ -221,18 +172,11 @@ export const UserManagementView = defineComponent({
     // 保存角色
     const saveRoles = async () => {
       try {
-        // TODO: 调用真实API
-        // await fetch(`/api/v1/users/${roleUser.value.id}/roles`, {
-        //   method: 'PUT',
-        //   headers: {
-        //     'Authorization': `Bearer ${localStorage.getItem('dmh_token')}`,
-        //     'Content-Type': 'application/json',
-        //   },
-        //   body: JSON.stringify({ 
-        //     roles: selectedRoles.value,
-        //     brandIds: selectedBrands.value,
-        //   }),
-        // });
+        const nextRole = selectedRoles.value[0] || 'participant';
+        await userApi.updateUser(roleUser.value.id, {
+          role: nextRole,
+          brandIds: selectedBrands.value,
+        });
         
         roleUser.value.roles = [...selectedRoles.value];
         roleUser.value.brandIds = [...selectedBrands.value];
@@ -251,14 +195,7 @@ export const UserManagementView = defineComponent({
       }
       
       try {
-        // TODO: 调用真实API
-        // await fetch(`/api/v1/users/${user.id}`, {
-        //   method: 'DELETE',
-        //   headers: {
-        //     'Authorization': `Bearer ${localStorage.getItem('dmh_token')}`,
-        //   },
-        // });
-        
+        await userApi.deleteUser(user.id);
         users.value = users.value.filter(u => u.id !== user.id);
       } catch (error) {
         console.error('删除用户失败', error);
@@ -280,6 +217,7 @@ export const UserManagementView = defineComponent({
     const getRoleName = (roleCode: string) => {
       const names: Record<string, string> = {
         platform_admin: '平台管理员',
+        brand_admin: '品牌管理员',
         participant: '活动参与者',
       };
       return names[roleCode] || roleCode;

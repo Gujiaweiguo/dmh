@@ -1,6 +1,7 @@
 import { defineComponent, h, ref, onMounted, reactive, computed } from 'vue';
 import * as LucideIcons from 'lucide-vue-next';
 import { PermissionGuard, usePermission } from '../components/PermissionGuard';
+import { roleApi } from '../services/roleApi';
 
 // 角色权限管理视图
 export const RolePermissionView = defineComponent({
@@ -36,39 +37,7 @@ export const RolePermissionView = defineComponent({
     const loadRoles = async () => {
       loading.value = true;
       try {
-        // TODO: 调用真实API
-        // const response = await fetch('/api/v1/roles', {
-        //   headers: { 'Authorization': `Bearer ${localStorage.getItem('dmh_token')}` }
-        // });
-        // roles.value = await response.json();
-        
-        // 模拟数据
-        roles.value = [
-          {
-            id: 1,
-            name: '平台管理员',
-            code: 'platform_admin',
-            description: '拥有系统所有权限的超级管理员',
-            permissions: ['*'],
-            createdAt: '2025-01-01 10:00:00'
-          },
-          {
-            id: 3,
-            name: '参与者',
-            code: 'participant',
-            description: '普通用户，可参与活动',
-            permissions: ['campaign:read', 'order:create', 'reward:read'],
-            createdAt: '2025-01-01 10:00:00'
-          },
-          {
-            id: 4,
-            name: '匿名用户',
-            code: 'anonymous',
-            description: '未登录的访客用户',
-            permissions: [],
-            createdAt: '2025-01-01 10:00:00'
-          }
-        ];
+        roles.value = await roleApi.getRoles();
       } catch (error) {
         console.error('加载角色列表失败', error);
       } finally {
@@ -79,45 +48,7 @@ export const RolePermissionView = defineComponent({
     // 加载权限列表
     const loadPermissions = async () => {
       try {
-        // TODO: 调用真实API
-        // const response = await fetch('/api/v1/permissions', {
-        //   headers: { 'Authorization': `Bearer ${localStorage.getItem('dmh_token')}` }
-        // });
-        // permissions.value = await response.json();
-        
-        // 模拟数据
-        permissions.value = [
-          // 用户管理权限
-          { id: 1, name: '用户查看', code: 'user:read', resource: 'user', action: 'read', description: '查看用户信息' },
-          { id: 2, name: '用户创建', code: 'user:create', resource: 'user', action: 'create', description: '创建新用户' },
-          { id: 3, name: '用户更新', code: 'user:update', resource: 'user', action: 'update', description: '更新用户信息' },
-          { id: 4, name: '用户删除', code: 'user:delete', resource: 'user', action: 'delete', description: '删除用户' },
-          
-          // 品牌管理权限
-          { id: 5, name: '品牌查看', code: 'brand:read', resource: 'brand', action: 'read', description: '查看品牌信息' },
-          { id: 6, name: '品牌创建', code: 'brand:create', resource: 'brand', action: 'create', description: '创建新品牌' },
-          { id: 7, name: '品牌更新', code: 'brand:update', resource: 'brand', action: 'update', description: '更新品牌信息' },
-          { id: 8, name: '品牌删除', code: 'brand:delete', resource: 'brand', action: 'delete', description: '删除品牌' },
-          
-          // 活动管理权限
-          { id: 9, name: '活动查看', code: 'campaign:read', resource: 'campaign', action: 'read', description: '查看活动信息' },
-          { id: 10, name: '活动创建', code: 'campaign:create', resource: 'campaign', action: 'create', description: '创建新活动' },
-          { id: 11, name: '活动更新', code: 'campaign:update', resource: 'campaign', action: 'update', description: '更新活动信息' },
-          { id: 12, name: '活动删除', code: 'campaign:delete', resource: 'campaign', action: 'delete', description: '删除活动' },
-          
-          // 订单管理权限
-          { id: 13, name: '订单查看', code: 'order:read', resource: 'order', action: 'read', description: '查看订单信息' },
-          { id: 14, name: '订单创建', code: 'order:create', resource: 'order', action: 'create', description: '创建新订单' },
-          { id: 15, name: '订单更新', code: 'order:update', resource: 'order', action: 'update', description: '更新订单信息' },
-          
-          // 奖励管理权限
-          { id: 16, name: '奖励查看', code: 'reward:read', resource: 'reward', action: 'read', description: '查看奖励信息' },
-          { id: 17, name: '奖励发放', code: 'reward:grant', resource: 'reward', action: 'grant', description: '发放奖励' },
-          
-          // 提现管理权限
-          { id: 18, name: '提现申请', code: 'withdrawal:apply', resource: 'withdrawal', action: 'apply', description: '申请提现' },
-          { id: 19, name: '提现审核', code: 'withdrawal:approve', resource: 'withdrawal', action: 'approve', description: '审核提现申请' },
-        ];
+        permissions.value = await roleApi.getPermissions();
       } catch (error) {
         console.error('加载权限列表失败', error);
       }
@@ -126,34 +57,10 @@ export const RolePermissionView = defineComponent({
     // 加载审计日志
     const loadAuditLogs = async () => {
       try {
-        // TODO: 调用真实API
-        // 模拟数据
-        auditLogs.value = [
-          {
-            id: 1,
-            userId: 1,
-            username: 'admin',
-            action: '修改角色权限',
-            target: '参与者',
-            details: '添加了"订单查看"权限',
-            ip: '192.168.1.100',
-            userAgent: 'Mozilla/5.0...',
-            createdAt: '2025-01-02 14:30:00'
-          },
-          {
-            id: 2,
-            userId: 1,
-            username: 'admin',
-            action: '创建用户',
-            target: 'user002',
-            details: '创建了新用户，分配参与者角色',
-            ip: '192.168.1.100',
-            userAgent: 'Mozilla/5.0...',
-            createdAt: '2025-01-02 10:15:00'
-          }
-        ];
+        auditLogs.value = await roleApi.getAuditLogs();
       } catch (error) {
         console.error('加载审计日志失败', error);
+        auditLogs.value = [];
       }
     };
 
@@ -173,15 +80,7 @@ export const RolePermissionView = defineComponent({
           permissions.value.find(p => p.id === id)?.code
         ).filter(Boolean);
         
-        // TODO: 调用真实API
-        // await fetch(`/api/v1/roles/${editingRole.value.id}/permissions`, {
-        //   method: 'POST',
-        //   headers: {
-        //     'Authorization': `Bearer ${localStorage.getItem('dmh_token')}`,
-        //     'Content-Type': 'application/json',
-        //   },
-        //   body: JSON.stringify({ permissionIds: selectedPermissions.value }),
-        // });
+        await roleApi.configRolePermissions(editingRole.value.id, selectedPermissions.value);
         
         // 更新本地数据
         editingRole.value.permissions = permissionCodes;

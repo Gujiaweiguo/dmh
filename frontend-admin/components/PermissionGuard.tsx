@@ -62,8 +62,6 @@ export const PermissionProvider = defineComponent({
       
       // 其他角色无品牌访问权限
       return false;
-      
-      return false;
     };
 
     const permissionContext = {
@@ -216,7 +214,7 @@ export const usePermission = () => {
 // 路由权限守卫
 export const createRouteGuard = () => {
   return {
-    beforeEnter: (to: any, from: any, next: any) => {
+    beforeEnter: async (to: any, from: any, next: any) => {
       const token = authApi.getToken();
       
       if (!token) {
@@ -226,12 +224,63 @@ export const createRouteGuard = () => {
       }
       
       // 检查路由权限
-      const requiredRole = to.meta?.role as UserRole;
+      const requiredRole = to.meta?.role as string;
       const requiredPermission = to.meta?.permission as string;
       
-      if (requiredRole || requiredPermission) {
-        // TODO: 从当前用户信息中检查权限
-        // 这里需要获取当前用户信息，可以从全局状态或API获取
+      if (!requiredRole && !requiredPermission) {
+        next();
+        return;
+      }
+
+      try {
+        const userResp = await fetch('/api/v1/auth/userinfo', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!userResp.ok) {
+          throw new Error('获取用户信息失败');
+        }
+
+        const user = await userResp.json() as { id: number; roles?: string[] };
+        const roles = Array.isArray(user.roles) ? user.roles : [];
+        const isPlatformAdmin = roles.includes('platform_admin');
+
+        if (requiredRole && !roles.includes(requiredRole)) {
+          next('/dashboard');
+          return;
+        }
+
+        if (!requiredPermission || isPlatformAdmin) {
+          next();
+          return;
+        }
+
+        const permResp = await fetch(`/api/v1/users/${user.id}/permissions`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!permResp.ok) {
+          throw new Error('获取用户权限失败');
+        }
+
+        const permissionData = await permResp.json() as { permissions?: string[] };
+        const permissions = Array.isArray(permissionData.permissions)
+          ? permissionData.permissions
+          : [];
+
+        if (!permissions.includes(requiredPermission)) {
+          next('/dashboard');
+          return;
+        }
+      } catch (error) {
+        console.error('路由权限校验失败', error);
+        authApi.logout();
+        next('/login');
+        return;
       }
       
       next();
