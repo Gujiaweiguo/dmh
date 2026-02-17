@@ -4,10 +4,10 @@ import { RolePermissionView } from '../../views/RolePermissionView';
 
 vi.mock('../../services/roleApi', () => ({
   roleApi: {
-    getRoles: vi.fn().mockResolvedValue({ list: [], total: 0 }),
-    createRole: vi.fn().mockResolvedValue({}),
-    updateRole: vi.fn().mockResolvedValue({}),
-    deleteRole: vi.fn().mockResolvedValue({}),
+    getRoles: vi.fn().mockResolvedValue([]),
+    getPermissions: vi.fn().mockResolvedValue([]),
+    getAuditLogs: vi.fn().mockResolvedValue([]),
+    configRolePermissions: vi.fn().mockResolvedValue(undefined),
   },
 }));
 
