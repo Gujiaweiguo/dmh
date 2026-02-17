@@ -14,6 +14,7 @@
 - `TEST_RESULT_TEMPLATE.md`: 测试结果记录模板
 - `RISK_WAIVER_TEMPLATE.md`: 风险豁免模板
 - `CI_ALIGNMENT.md`: CI 守卫与执行矩阵对齐
+- `STABILITY_CHECKS_WORKFLOW.md`: 稳定性 CI 工作流说明（backend 全量 + admin 单测 + security E2E）
 - `PREMERGE_MIN_SUITE.md`: 合并前最小必跑集
 - `FAILURE_PLAYBOOK.md`: 失败回滚与重试手册
 
