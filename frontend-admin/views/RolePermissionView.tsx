@@ -17,11 +17,32 @@ export const RolePermissionView = defineComponent({
     const showRolePermissionDialog = ref(false);
     const editingRole = ref<any>(null);
     const selectedPermissions = ref<number[]>([]);
+
+    const normalizeArray = <T,>(value: unknown, keys: string[]): T[] => {
+      if (Array.isArray(value)) {
+        return value as T[];
+      }
+
+      if (value && typeof value === 'object') {
+        for (const key of keys) {
+          const candidate = (value as Record<string, unknown>)[key];
+          if (Array.isArray(candidate)) {
+            return candidate as T[];
+          }
+        }
+      }
+
+      return [];
+    };
+
+    const roleList = computed(() => normalizeArray<any>(roles.value, ['list', 'roles', 'items']));
+    const permissionList = computed(() => normalizeArray<any>(permissions.value, ['list', 'permissions', 'items']));
+    const auditLogList = computed(() => normalizeArray<any>(auditLogs.value, ['list', 'logs', 'items']));
     
     // 权限分组
     const permissionGroups = computed(() => {
       const groups: Record<string, any[]> = {};
-      permissions.value.forEach(permission => {
+      permissionList.value.forEach(permission => {
         const resource = permission.resource;
         if (!groups[resource]) {
           groups[resource] = [];
@@ -35,9 +56,10 @@ export const RolePermissionView = defineComponent({
     const loadRoles = async () => {
       loading.value = true;
       try {
-        roles.value = await roleApi.getRoles();
+        roles.value = normalizeArray(await roleApi.getRoles(), ['list', 'roles', 'items']);
       } catch (error) {
         console.error('加载角色列表失败', error);
+        roles.value = [];
       } finally {
         loading.value = false;
       }
@@ -46,16 +68,17 @@ export const RolePermissionView = defineComponent({
     // 加载权限列表
     const loadPermissions = async () => {
       try {
-        permissions.value = await roleApi.getPermissions();
+        permissions.value = normalizeArray(await roleApi.getPermissions(), ['list', 'permissions', 'items']);
       } catch (error) {
         console.error('加载权限列表失败', error);
+        permissions.value = [];
       }
     };
 
     // 加载审计日志
     const loadAuditLogs = async () => {
       try {
-        auditLogs.value = await roleApi.getAuditLogs();
+        auditLogs.value = normalizeArray(await roleApi.getAuditLogs(), ['list', 'logs', 'items']);
       } catch (error) {
         console.error('加载审计日志失败', error);
         auditLogs.value = [];
@@ -65,17 +88,18 @@ export const RolePermissionView = defineComponent({
     // 打开角色权限配置对话框
     const openRolePermissionDialog = (role: any) => {
       editingRole.value = role;
-      selectedPermissions.value = role.permissions.includes('*') 
-        ? permissions.value.map(p => p.id)
-        : permissions.value.filter(p => role.permissions.includes(p.code)).map(p => p.id);
+      const rolePermissions = Array.isArray(role?.permissions) ? role.permissions : [];
+      selectedPermissions.value = rolePermissions.includes('*')
+        ? permissionList.value.map(p => p.id)
+        : permissionList.value.filter(p => rolePermissions.includes(p.code)).map(p => p.id);
       showRolePermissionDialog.value = true;
     };
 
     // 保存角色权限
     const saveRolePermissions = async () => {
       try {
-        const permissionCodes = selectedPermissions.value.map(id => 
-          permissions.value.find(p => p.id === id)?.code
+        const permissionCodes = selectedPermissions.value.map(id =>
+          permissionList.value.find(p => p.id === id)?.code
         ).filter(Boolean);
         
         await roleApi.configRolePermissions(editingRole.value.id, selectedPermissions.value);
@@ -181,7 +205,11 @@ export const RolePermissionView = defineComponent({
           loading.value
             ? h('div', { class: 'text-center py-20 text-slate-400' }, '加载中...')
             : h('div', { class: 'grid grid-cols-1 md:grid-cols-2 gap-6' }, 
-                roles.value.map(role => h('div', { class: 'bg-white rounded-3xl border border-slate-100 p-8 hover:shadow-lg transition-all' }, [
+                roleList.value.map(role => {
+                  const rolePermissions = Array.isArray(role?.permissions) ? role.permissions : [];
+                  const hasAllPermissions = rolePermissions.includes('*');
+
+                  return h('div', { class: 'bg-white rounded-3xl border border-slate-100 p-8 hover:shadow-lg transition-all' }, [
                   h('div', { class: 'flex items-start justify-between mb-6' }, [
                     h('div', { class: 'flex items-center gap-4' }, [
                       h('div', { class: `w-12 h-12 rounded-2xl flex items-center justify-center ${
@@ -209,7 +237,7 @@ export const RolePermissionView = defineComponent({
                     h('div', { class: 'flex items-center justify-between' }, [
                       h('span', { class: 'text-sm font-bold text-slate-700' }, '权限数量'),
                       h('span', { class: 'text-sm text-slate-500' }, 
-                        role.permissions.includes('*') ? '全部权限' : `${role.permissions.length} 个权限`
+                        hasAllPermissions ? '全部权限' : `${rolePermissions.length} 个权限`
                       )
                     ]),
                     h('div', { class: 'flex items-center justify-between' }, [
@@ -217,7 +245,8 @@ export const RolePermissionView = defineComponent({
                       h('span', { class: 'text-sm text-slate-500' }, role.createdAt)
                     ])
                   ])
-                ]))
+                  ]);
+                })
               )
         ]),
 
@@ -262,10 +291,10 @@ export const RolePermissionView = defineComponent({
             h('h3', { class: 'text-lg font-black text-slate-900' }, '权限操作日志'),
             h('p', { class: 'text-sm text-slate-500 mt-1' }, '记录所有权限相关的操作和变更')
           ]),
-          auditLogs.value.length === 0
+          auditLogList.value.length === 0
             ? h('div', { class: 'text-center py-20 text-slate-400' }, '暂无操作日志')
             : h('div', { class: 'divide-y divide-slate-100' }, 
-                auditLogs.value.map(log => 
+                auditLogList.value.map(log => 
                   h('div', { class: 'p-6 hover:bg-slate-50 transition-colors' }, [
                     h('div', { class: 'flex items-start justify-between' }, [
                       h('div', { class: 'flex items-start gap-4' }, [
