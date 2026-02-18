@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Admin Dashboard E2E', () => {
   test.beforeEach(async ({ page }) => {
     // 访问首页并登录
-    await page.goto('http://localhost:3000');
+    await page.goto('/');
     await page.fill('input[placeholder="请输入用户名"]', 'admin');
     await page.fill('input[placeholder="请输入密码"]', '123456');
     await page.click('button[type="submit"]');
@@ -53,7 +53,7 @@ test.describe('Admin Dashboard E2E', () => {
 
 test.describe('Navigation and Responsive E2E', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:3000');
+    await page.goto('/');
     await page.fill('input[placeholder="请输入用户名"]', 'admin');
     await page.fill('input[placeholder="请输入密码"]', '123456');
     await page.click('button[type="submit"]');
