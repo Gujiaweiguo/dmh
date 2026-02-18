@@ -1,22 +1,22 @@
-import { ref, onMounted, computed, type Ref } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { memberApi } from '../services/memberApi';
 
-// 公开接口类型定义
+// 公开接口类型定义 (Vue component instance 自动解包 Ref)
 export interface MemberListViewInstance {
-  members: Ref<any[]>;
-  loading: Ref<boolean>;
-  total: Ref<number>;
-  currentPage: Ref<number>;
-  pageSize: Ref<number>;
-  filters: Ref<{
+  members: any[];
+  loading: boolean;
+  total: number;
+  currentPage: number;
+  pageSize: number;
+  filters: {
     keyword: string;
     brandId: number | null;
     source: string;
     status: string;
     startDate: string;
     endDate: string;
-  }>;
-  selectedMembers: Ref<number[]>;
+  };
+  selectedMembers: number[];
   loadMembers: () => Promise<void>;
   handleSearch: () => void;
   handleReset: () => void;

@@ -17,7 +17,7 @@ describe('memberApi service', () => {
       ok: true,
       status: 200,
       json: async () => ({ total: 0, members: [] }),
-    } as Response);
+    } as unknown as Response);
 
     await memberApi.getMembers({
       page: 2,
@@ -54,7 +54,7 @@ describe('memberApi service', () => {
       ok: false,
       status: 401,
       json: async () => ({ message: 'expired' }),
-    } as Response);
+    } as unknown as Response);
 
     await expect(memberApi.getMember(11)).rejects.toThrow('登录已过期，请重新登录');
     expect(removeSpy).toHaveBeenCalledWith('dmh_token');
@@ -66,7 +66,7 @@ describe('memberApi service', () => {
       ok: false,
       status: 500,
       json: async () => ({ message: 'server error' }),
-    } as Response);
+    } as unknown as Response);
 
     await expect(memberApi.getMember(2)).rejects.toThrow('server error');
   });
@@ -79,7 +79,7 @@ describe('memberApi service', () => {
       json: async () => {
         throw new Error('invalid json');
       },
-    } as Response);
+    } as unknown as Response);
 
     await expect(memberApi.getMember(3)).rejects.toThrow('请求失败');
   });
@@ -91,7 +91,7 @@ describe('memberApi service', () => {
       ok: true,
       status: 200,
       json: async () => ({ id: 1, ...payload }),
-    } as Response);
+    } as unknown as Response);
 
     await memberApi.createTag(payload);
 
@@ -107,7 +107,7 @@ describe('memberApi service', () => {
       ok: true,
       status: 200,
       json: async () => ({ total: 0, items: [] }),
-    } as Response);
+    } as unknown as Response);
 
     await memberApi.getExportRequests({ page: 1, pageSize: 10, brandId: 99, status: 'pending' });
 

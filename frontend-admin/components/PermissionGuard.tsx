@@ -25,6 +25,15 @@ export const PermissionProvider = defineComponent({
       // 根据角色检查权限
       const rolePermissions: Record<UserRole, string[]> = {
         platform_admin: ['*'], // 所有权限
+        brand_admin: [
+          'campaign:read',
+          'campaign:create',
+          'campaign:update',
+          'order:read',
+          'order:create',
+          'reward:read',
+          'withdrawal:apply'
+        ],
         participant: [
           'campaign:read',
           'order:create',

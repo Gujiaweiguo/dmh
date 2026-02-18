@@ -1,16 +1,16 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
-import { ref, type Ref } from 'vue';
+import { ref } from 'vue';
 
-// Mock 组件实例类型
+// Mock 组件实例类型 (Vue component instance 自动解包 Ref)
 interface CampaignListVMockInstance {
-  campaigns: Ref<any[]>;
-  total: Ref<number>;
-  page: Ref<number>;
-  pageSize: Ref<number>;
-  keyword: Ref<string>;
-  statusFilter: Ref<string>;
-  loading: Ref<boolean>;
+  campaigns: any[];
+  total: number;
+  page: number;
+  pageSize: number;
+  keyword: string;
+  statusFilter: string;
+  loading: boolean;
   fetchCampaigns: ReturnType<typeof vi.fn>;
   handleSearch: ReturnType<typeof vi.fn>;
   handleDelete: ReturnType<typeof vi.fn>;
@@ -141,14 +141,14 @@ describe('CampaignListView Component', () => {
 
   it('should have formatDate method', () => {
     const wrapper = mount(createCampaignListView());
-    const vm = wrapper.vm as CampaignListVMockInstance;
+    const vm = wrapper.vm as unknown as CampaignListVMockInstance;
     expect(vm.formatDate('')).toBe('-');
     expect(vm.formatDate('2024-01-01T00:00:00Z')).toBeTruthy();
   });
 
   it('should have getStatusText method', () => {
     const wrapper = mount(createCampaignListView());
-    const vm = wrapper.vm as CampaignListVMockInstance;
+    const vm = wrapper.vm as unknown as CampaignListVMockInstance;
     expect(vm.getStatusText('active')).toBe('进行中');
     expect(vm.getStatusText('paused')).toBe('已暂停');
     expect(vm.getStatusText('ended')).toBe('已结束');
@@ -157,7 +157,7 @@ describe('CampaignListView Component', () => {
 
   it('should have getStatusClass method', () => {
     const wrapper = mount(createCampaignListView());
-    const vm = wrapper.vm as CampaignListVMockInstance;
+    const vm = wrapper.vm as unknown as CampaignListVMockInstance;
     expect(vm.getStatusClass('active')).toBe('bg-green-100 text-green-800');
     expect(vm.getStatusClass('paused')).toBe('bg-yellow-100 text-yellow-800');
     expect(vm.getStatusClass('ended')).toBe('bg-gray-100 text-gray-800');
@@ -166,7 +166,7 @@ describe('CampaignListView Component', () => {
 
   it('should have initial values set correctly', () => {
     const wrapper = mount(createCampaignListView());
-    const vm = wrapper.vm as CampaignListVMockInstance;
+    const vm = wrapper.vm as unknown as CampaignListVMockInstance;
     expect(vm.keyword).toBe('');
     expect(vm.statusFilter).toBe('');
     expect(vm.page).toBe(1);

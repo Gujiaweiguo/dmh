@@ -1,25 +1,25 @@
-import { ref, onMounted, type Ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { memberApi } from '../services/memberApi';
 
-// 公开接口类型定义
+// 公开接口类型定义 (Vue component instance 自动解包 Ref)
 export interface MemberExportViewInstance {
-  loading: Ref<boolean>;
-  exportRequests: Ref<any[]>;
-  total: Ref<number>;
-  currentPage: Ref<number>;
-  pageSize: Ref<number>;
-  showCreateDialog: Ref<boolean>;
-  createForm: Ref<{
+  loading: boolean;
+  exportRequests: any[];
+  total: number;
+  currentPage: number;
+  pageSize: number;
+  showCreateDialog: boolean;
+  createForm: {
     brandId: number | null;
     reason: string;
     filters: string;
-  }>;
-  showApproveDialog: Ref<boolean>;
-  approveForm: Ref<{
+  };
+  showApproveDialog: boolean;
+  approveForm: {
     requestId: number;
     approve: boolean;
     reason: string;
-  }>;
+  };
   loadExportRequests: () => Promise<void>;
   handleCreate: () => Promise<void>;
   openApproveDialog: (request: any, approve: boolean) => void;

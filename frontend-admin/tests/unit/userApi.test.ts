@@ -13,7 +13,7 @@ describe('userApi service', () => {
 
   it('getUsers builds query and skips all filters', async () => {
     localStorage.setItem('dmh_token', 'token-user');
-    vi.mocked(fetch).mockResolvedValue({ ok: true, status: 200, json: async () => ({ total: 0, users: [] }) } as Response);
+    vi.mocked(fetch).mockResolvedValue({ ok: true, status: 200, json: async () => ({ total: 0, users: [] }) } as unknown as Response);
 
     await userApi.getUsers({ page: 2, pageSize: 10, role: 'all', status: 'active', keyword: 'alice' });
 
@@ -35,7 +35,7 @@ describe('userApi service', () => {
       ok: true,
       status: 200,
       json: async () => ({ id: 8, username: 'u', phone: '1', status: 'active', roles: [], createdAt: '2026-01-01' }),
-    } as Response);
+    } as unknown as Response);
 
     await userApi.updateUser(8, { realName: 'Alice', brandIds: [1, 2] });
 
@@ -47,7 +47,7 @@ describe('userApi service', () => {
 
   it('reset and delete user send expected methods', async () => {
     localStorage.setItem('dmh_token', 'token-user');
-    vi.mocked(fetch).mockResolvedValue({ ok: true, status: 200, json: async () => ({ message: 'ok' }) } as Response);
+    vi.mocked(fetch).mockResolvedValue({ ok: true, status: 200, json: async () => ({ message: 'ok' }) } as unknown as Response);
 
     await userApi.resetUserPassword(3, 'NewPassword123!');
     await userApi.deleteUser(3);
@@ -65,7 +65,7 @@ describe('userApi service', () => {
   it('clears token and throws on 401 response', async () => {
     localStorage.setItem('dmh_token', 'expired-user-token');
     const removeSpy = vi.spyOn(Storage.prototype, 'removeItem');
-    vi.mocked(fetch).mockResolvedValue({ ok: false, status: 401, json: async () => ({ message: 'expired' }) } as Response);
+    vi.mocked(fetch).mockResolvedValue({ ok: false, status: 401, json: async () => ({ message: 'expired' }) } as unknown as Response);
 
     await expect(userApi.getUsers()).rejects.toThrow('登录已过期，请重新登录');
     expect(removeSpy).toHaveBeenCalledWith('dmh_token');
@@ -79,7 +79,7 @@ describe('userApi service', () => {
       json: async () => {
         throw new Error('invalid json');
       },
-    } as Response);
+    } as unknown as Response);
 
     await expect(userApi.getUsers()).rejects.toThrow('请求失败');
   });

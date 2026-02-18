@@ -33,7 +33,7 @@ describe('MemberMergeView Component', () => {
 
   it('should have component instance with required properties', () => {
     const wrapper = mount(MemberMergeView);
-    const vm = wrapper.vm as MemberMergeViewInstance;
+    const vm = wrapper.vm as unknown as MemberMergeViewInstance;
     expect(vm.loading).toBeDefined();
     expect(vm.sourceMemberId).toBeDefined();
     expect(vm.targetMemberId).toBeDefined();
@@ -44,25 +44,25 @@ describe('MemberMergeView Component', () => {
 
   it('should have reason initialized as empty string', () => {
     const wrapper = mount(MemberMergeView);
-    const vm = wrapper.vm as MemberMergeViewInstance;
+    const vm = wrapper.vm as unknown as MemberMergeViewInstance;
     expect(vm.reason).toBe('');
   });
 
   it('should have showPreview initialized as false', () => {
     const wrapper = mount(MemberMergeView);
-    const vm = wrapper.vm as MemberMergeViewInstance;
+    const vm = wrapper.vm as unknown as MemberMergeViewInstance;
     expect(vm.showPreview).toBe(false);
   });
 
   it('should have preview initialized as null', () => {
     const wrapper = mount(MemberMergeView);
-    const vm = wrapper.vm as MemberMergeViewInstance;
+    const vm = wrapper.vm as unknown as MemberMergeViewInstance;
     expect(vm.preview).toBeNull();
   });
 
   it('should have formatAmount method', () => {
     const wrapper = mount(MemberMergeView);
-    const vm = wrapper.vm as MemberMergeViewInstance;
+    const vm = wrapper.vm as unknown as MemberMergeViewInstance;
     expect(vm.formatAmount(100)).toBe('¥100.00');
     expect(vm.formatAmount(0)).toBe('¥0.00');
     expect(vm.formatAmount(1234.5)).toBe('¥1234.50');
@@ -70,19 +70,19 @@ describe('MemberMergeView Component', () => {
 
   it('should have handlePreview method', () => {
     const wrapper = mount(MemberMergeView);
-    const vm = wrapper.vm as MemberMergeViewInstance;
+    const vm = wrapper.vm as unknown as MemberMergeViewInstance;
     expect(typeof vm.handlePreview).toBe('function');
   });
 
   it('should have handleMerge method', () => {
     const wrapper = mount(MemberMergeView);
-    const vm = wrapper.vm as MemberMergeViewInstance;
+    const vm = wrapper.vm as unknown as MemberMergeViewInstance;
     expect(typeof vm.handleMerge).toBe('function');
   });
 
   it('should have goBack method', () => {
     const wrapper = mount(MemberMergeView);
-    const vm = wrapper.vm as MemberMergeViewInstance;
+    const vm = wrapper.vm as unknown as MemberMergeViewInstance;
     expect(typeof vm.goBack).toBe('function');
   });
 });

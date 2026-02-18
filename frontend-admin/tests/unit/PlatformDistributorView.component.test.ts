@@ -31,7 +31,7 @@ describe('PlatformDistributorView Component', () => {
 
   it('should have component instance with required properties', () => {
     const wrapper = mount(PlatformDistributorView);
-    const vm = wrapper.vm as PlatformDistributorViewInstance;
+    const vm = wrapper.vm as unknown as PlatformDistributorViewInstance;
     expect(vm.distributors).toBeDefined();
     expect(vm.loading).toBeDefined();
     expect(vm.total).toBeDefined();
@@ -43,7 +43,7 @@ describe('PlatformDistributorView Component', () => {
 
   it('should have filter properties initialized', () => {
     const wrapper = mount(PlatformDistributorView);
-    const vm = wrapper.vm as PlatformDistributorViewInstance;
+    const vm = wrapper.vm as unknown as PlatformDistributorViewInstance;
     expect(vm.filters.keyword).toBe('');
     expect(vm.filters.brandId).toBeNull();
     expect(vm.filters.level).toBeNull();
@@ -52,7 +52,7 @@ describe('PlatformDistributorView Component', () => {
 
   it('should have formatAmount method', () => {
     const wrapper = mount(PlatformDistributorView);
-    const vm = wrapper.vm as PlatformDistributorViewInstance;
+    const vm = wrapper.vm as unknown as PlatformDistributorViewInstance;
     expect(vm.formatAmount(100)).toBe('¥100.00');
     expect(vm.formatAmount(0)).toBe('¥0.00');
     expect(vm.formatAmount(1234.5)).toBe('¥1234.50');
@@ -60,14 +60,14 @@ describe('PlatformDistributorView Component', () => {
 
   it('should have formatDate method', () => {
     const wrapper = mount(PlatformDistributorView);
-    const vm = wrapper.vm as PlatformDistributorViewInstance;
+    const vm = wrapper.vm as unknown as PlatformDistributorViewInstance;
     expect(vm.formatDate('')).toBe('-');
     expect(vm.formatDate(null)).toBe('-');
   });
 
   it('should have statusText method', () => {
     const wrapper = mount(PlatformDistributorView);
-    const vm = wrapper.vm as PlatformDistributorViewInstance;
+    const vm = wrapper.vm as unknown as PlatformDistributorViewInstance;
     expect(vm.statusText('active')).toBe('激活');
     expect(vm.statusText('suspended')).toBe('暂停');
     expect(vm.statusText('pending')).toBe('待审核');
@@ -76,7 +76,7 @@ describe('PlatformDistributorView Component', () => {
 
   it('should have levelText method', () => {
     const wrapper = mount(PlatformDistributorView);
-    const vm = wrapper.vm as PlatformDistributorViewInstance;
+    const vm = wrapper.vm as unknown as PlatformDistributorViewInstance;
     expect(vm.levelText(1)).toBe('一级');
     expect(vm.levelText(2)).toBe('二级');
     expect(vm.levelText(3)).toBe('三级');
@@ -85,7 +85,7 @@ describe('PlatformDistributorView Component', () => {
 
   it('should have statusColor method', () => {
     const wrapper = mount(PlatformDistributorView);
-    const vm = wrapper.vm as PlatformDistributorViewInstance;
+    const vm = wrapper.vm as unknown as PlatformDistributorViewInstance;
     expect(vm.statusColor('active')).toBe('green');
     expect(vm.statusColor('suspended')).toBe('orange');
     expect(vm.statusColor('pending')).toBe('gray');
@@ -94,7 +94,7 @@ describe('PlatformDistributorView Component', () => {
 
   it('should have handleSearch method', () => {
     const wrapper = mount(PlatformDistributorView);
-    const vm = wrapper.vm as PlatformDistributorViewInstance;
+    const vm = wrapper.vm as unknown as PlatformDistributorViewInstance;
     expect(typeof vm.handleSearch).toBe('function');
     vm.currentPage = 5;
     vm.handleSearch();
@@ -103,7 +103,7 @@ describe('PlatformDistributorView Component', () => {
 
   it('should have handleReset method', () => {
     const wrapper = mount(PlatformDistributorView);
-    const vm = wrapper.vm as PlatformDistributorViewInstance;
+    const vm = wrapper.vm as unknown as PlatformDistributorViewInstance;
     vm.filters.keyword = 'test';
     vm.filters.status = 'active';
     vm.handleReset();
@@ -113,37 +113,37 @@ describe('PlatformDistributorView Component', () => {
 
   it('should have handlePageChange method', () => {
     const wrapper = mount(PlatformDistributorView);
-    const vm = wrapper.vm as PlatformDistributorViewInstance;
+    const vm = wrapper.vm as unknown as PlatformDistributorViewInstance;
     expect(typeof vm.handlePageChange).toBe('function');
   });
 
   it('should have viewDetail method', () => {
     const wrapper = mount(PlatformDistributorView);
-    const vm = wrapper.vm as PlatformDistributorViewInstance;
+    const vm = wrapper.vm as unknown as PlatformDistributorViewInstance;
     expect(typeof vm.viewDetail).toBe('function');
   });
 
   it('should have adjustLevel method', () => {
     const wrapper = mount(PlatformDistributorView);
-    const vm = wrapper.vm as PlatformDistributorViewInstance;
+    const vm = wrapper.vm as unknown as PlatformDistributorViewInstance;
     expect(typeof vm.adjustLevel).toBe('function');
   });
 
   it('should have toggleStatus method', () => {
     const wrapper = mount(PlatformDistributorView);
-    const vm = wrapper.vm as PlatformDistributorViewInstance;
+    const vm = wrapper.vm as unknown as PlatformDistributorViewInstance;
     expect(typeof vm.toggleStatus).toBe('function');
   });
 
   it('should have loadDistributors method', () => {
     const wrapper = mount(PlatformDistributorView);
-    const vm = wrapper.vm as PlatformDistributorViewInstance;
+    const vm = wrapper.vm as unknown as PlatformDistributorViewInstance;
     expect(typeof vm.loadDistributors).toBe('function');
   });
 
   it('should have loadBrands method', () => {
     const wrapper = mount(PlatformDistributorView);
-    const vm = wrapper.vm as PlatformDistributorViewInstance;
+    const vm = wrapper.vm as unknown as PlatformDistributorViewInstance;
     expect(vm.loadBrands || typeof vm.loadBrands === 'function' || true).toBeTruthy();
   });
 });

@@ -55,7 +55,7 @@ describe('LoginView Component', () => {
         },
       },
     });
-    const vm = wrapper.vm as LoginViewInstance;
+    const vm = wrapper.vm as unknown as LoginViewInstance;
     if (vm.toggleMode) {
       const initialMode = vm.isLogin;
       vm.toggleMode();

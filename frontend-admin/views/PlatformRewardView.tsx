@@ -1,14 +1,14 @@
-import { ref, onMounted, type Ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import axios from '../services/axios';
 
-// 公开接口类型定义
+// 公开接口类型定义 (Vue component instance 自动解包 Ref)
 export interface PlatformRewardViewInstance {
-  rewards: Ref<any[]>;
-  loading: Ref<boolean>;
-  total: Ref<number>;
-  currentPage: Ref<number>;
-  pageSize: Ref<number>;
-  filters: Ref<{
+  rewards: any[];
+  loading: boolean;
+  total: number;
+  currentPage: number;
+  pageSize: number;
+  filters: {
     keyword: string;
     brandId: number | null;
     campaignId: number | null;
@@ -16,9 +16,9 @@ export interface PlatformRewardViewInstance {
     status: string;
     startDate: string;
     endDate: string;
-  }>;
-  brands: Ref<any[]>;
-  campaigns: Ref<any[]>;
+  };
+  brands: any[];
+  campaigns: any[];
   loadRewards: () => Promise<void>;
   handleSearch: () => void;
   handleReset: () => void;

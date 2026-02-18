@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach, beforeAll } from 'vitest';
 import { api } from '../../services/mockApi';
 import type { ContentLibraryItem, MarketingTask } from '../../types';
+import { TaskType } from '../../types';
 
 const localStorageMock = (() => {
   let store: Record<string, string> = {};
@@ -104,7 +105,7 @@ describe('MockApiService', () => {
         id: '',
         contentId: 'c-1',
         title: 'Test Task',
-        type: 'PAYMENT' as const,
+        type: TaskType.PAYMENT,
         rewardAmount: 10.0,
         entryFee: 5.0,
         status: 'ACTIVE',

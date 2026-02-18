@@ -1,13 +1,13 @@
-import { ref, onMounted, type Ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { memberApi } from '../services/memberApi';
 
-// 公开接口类型定义
+// 公开接口类型定义 (Vue component instance 自动解包 Ref)
 export interface MemberDetailViewInstance {
-  member: Ref<any>;
-  loading: Ref<boolean>;
-  showTagDialog: Ref<boolean>;
-  availableTags: Ref<any[]>;
-  selectedTags: Ref<number[]>;
+  member: any;
+  loading: boolean;
+  showTagDialog: boolean;
+  availableTags: any[];
+  selectedTags: number[];
   handleAddTags: () => Promise<void>;
   formatAmount: (amount: number) => string;
   formatDate: (date: string) => string;

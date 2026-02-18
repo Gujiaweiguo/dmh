@@ -27,14 +27,14 @@ describe('DynamicMenu Component', () => {
   });
 
   it('should have props defined', () => {
-    const props = (DynamicMenu as ComponentWithProps).props;
+    const props = (DynamicMenu as unknown as ComponentWithProps).props;
     expect(props).toBeDefined();
     expect(props.platform).toBeDefined();
     expect(props.currentPath).toBeDefined();
   });
 
   it('should have emits defined', () => {
-    const emits = (DynamicMenu as ComponentWithProps).emits;
+    const emits = (DynamicMenu as unknown as ComponentWithProps).emits;
     expect(emits).toBeDefined();
     expect(emits).toContain('navigate');
   });
@@ -47,14 +47,14 @@ describe('Breadcrumb Component', () => {
   });
 
   it('should have props defined', () => {
-    const props = (Breadcrumb as ComponentWithProps).props;
+    const props = (Breadcrumb as unknown as ComponentWithProps).props;
     expect(props).toBeDefined();
     expect(props.items).toBeDefined();
     expect(props.items.required).toBe(true);
   });
 
   it('should have emits defined', () => {
-    const emits = (Breadcrumb as ComponentWithProps).emits;
+    const emits = (Breadcrumb as unknown as ComponentWithProps).emits;
     expect(emits).toBeDefined();
     expect(emits).toContain('navigate');
   });
@@ -67,7 +67,7 @@ describe('PageHeader Component', () => {
   });
 
   it('should have props defined', () => {
-    const props = (PageHeader as ComponentWithProps).props;
+    const props = (PageHeader as unknown as ComponentWithProps).props;
     expect(props).toBeDefined();
     expect(props.title).toBeDefined();
     expect(props.description).toBeDefined();
@@ -75,7 +75,7 @@ describe('PageHeader Component', () => {
   });
 
   it('should have emits defined', () => {
-    const emits = (PageHeader as ComponentWithProps).emits;
+    const emits = (PageHeader as unknown as ComponentWithProps).emits;
     expect(emits).toBeDefined();
     expect(emits).toContain('navigate');
   });

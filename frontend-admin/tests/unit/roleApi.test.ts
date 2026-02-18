@@ -17,7 +17,7 @@ describe('roleApi service', () => {
       ok: true,
       status: 200,
       json: async () => [{ id: 1, name: 'admin', code: 'platform_admin', description: '', permissions: [], createdAt: '' }],
-    } as Response);
+    } as unknown as Response);
 
     const roles = await roleApi.getRoles();
     expect(roles).toHaveLength(1);
@@ -26,7 +26,7 @@ describe('roleApi service', () => {
 
   it('configRolePermissions sends POST payload', async () => {
     localStorage.setItem('dmh_token', 'token-role');
-    vi.mocked(fetch).mockResolvedValue({ ok: true, status: 200, json: async () => ({ message: 'ok' }) } as Response);
+    vi.mocked(fetch).mockResolvedValue({ ok: true, status: 200, json: async () => ({ message: 'ok' }) } as unknown as Response);
 
     await roleApi.configRolePermissions(7, [1, 2, 3]);
 
@@ -38,7 +38,7 @@ describe('roleApi service', () => {
 
   it('getAuditLogs returns empty array when logs missing', async () => {
     localStorage.setItem('dmh_token', 'token-role');
-    vi.mocked(fetch).mockResolvedValue({ ok: true, status: 200, json: async () => ({ total: 9 }) } as Response);
+    vi.mocked(fetch).mockResolvedValue({ ok: true, status: 200, json: async () => ({ total: 9 }) } as unknown as Response);
 
     const logs = await roleApi.getAuditLogs();
     expect(logs).toEqual([]);
@@ -51,7 +51,7 @@ describe('roleApi service', () => {
   it('clears token and throws on 401 response', async () => {
     localStorage.setItem('dmh_token', 'expired-role-token');
     const removeSpy = vi.spyOn(Storage.prototype, 'removeItem');
-    vi.mocked(fetch).mockResolvedValue({ ok: false, status: 401, json: async () => ({ message: 'expired' }) } as Response);
+    vi.mocked(fetch).mockResolvedValue({ ok: false, status: 401, json: async () => ({ message: 'expired' }) } as unknown as Response);
 
     await expect(roleApi.getPermissions()).rejects.toThrow('登录已过期，请重新登录');
     expect(removeSpy).toHaveBeenCalledWith('dmh_token');
@@ -65,7 +65,7 @@ describe('roleApi service', () => {
       json: async () => {
         throw new Error('invalid json');
       },
-    } as Response);
+    } as unknown as Response);
 
     await expect(roleApi.getPermissions()).rejects.toThrow('请求失败');
   });

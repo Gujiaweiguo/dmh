@@ -1,30 +1,32 @@
-import { ref, onMounted, computed, type Ref } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import axios from '../services/axios';
 
-// 公开接口类型定义
+// 公开接口类型定义 (Vue component instance 自动解包 Ref)
 export interface CustomerListViewInstance {
-  customers: Ref<any[]>;
-  loading: Ref<boolean>;
-  total: Ref<number>;
-  currentPage: Ref<number>;
-  pageSize: Ref<number>;
-  filters: Ref<{
+  customers: any[];
+  loading: boolean;
+  total: number;
+  currentPage: number;
+  pageSize: number;
+  filters: {
     keyword: string;
     brandId: number | null;
     campaignId: number | null;
     status: string;
     startDate: string;
     endDate: string;
-  }>;
-  brands: Ref<any[]>;
-  campaigns: Ref<any[]>;
+  };
+  brands: any[];
+  campaigns: any[];
   loadCustomers: () => Promise<void>;
+  loadBrands: () => Promise<void>;
+  loadCampaigns: () => Promise<void>;
   handleSearch: () => void;
   handleReset: () => void;
   handlePageChange: (page: number) => void;
   viewDetail: (customerId: number) => void;
   formatAmount: (amount: number) => string;
-  formatDate: (date: string) => string;
+  formatDate: (date: string | null) => string;
   paymentStatusText: (status: string) => string;
   paymentStatusColor: (status: string) => string;
 }
@@ -197,6 +199,8 @@ export default {
       brands,
       campaigns,
       loadCustomers,
+      loadBrands,
+      loadCampaigns,
       handleSearch,
       handleReset,
       handlePageChange,

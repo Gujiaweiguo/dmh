@@ -17,7 +17,7 @@ describe('menuApi service', () => {
       ok: true,
       status: 200,
       json: async () => ({ userId: 1, platform: 'admin', menus: [{ id: 1, name: 'Dashboard', code: 'dash', path: '/dashboard', sort: 1, type: 'menu', platform: 'admin', status: 'active' }] }),
-    } as Response);
+    } as unknown as Response);
 
     const menus = await menuApi.getUserMenus('admin');
     const [url, options] = vi.mocked(fetch).mock.calls[0];
@@ -34,7 +34,7 @@ describe('menuApi service', () => {
       ok: true,
       status: 200,
       json: async () => ({ userId: 1, platform: 'admin', menus: null }),
-    } as Response);
+    } as unknown as Response);
 
     const menus = await menuApi.getUserMenus();
     expect(menus).toEqual([]);
@@ -47,7 +47,7 @@ describe('menuApi service', () => {
   it('clears token and throws on 401 response', async () => {
     localStorage.setItem('dmh_token', 'expired-menu-token');
     const removeSpy = vi.spyOn(Storage.prototype, 'removeItem');
-    vi.mocked(fetch).mockResolvedValue({ ok: false, status: 401, json: async () => ({ message: 'expired' }) } as Response);
+    vi.mocked(fetch).mockResolvedValue({ ok: false, status: 401, json: async () => ({ message: 'expired' }) } as unknown as Response);
 
     await expect(menuApi.getUserMenus()).rejects.toThrow('登录已过期，请重新登录');
     expect(removeSpy).toHaveBeenCalledWith('dmh_token');
@@ -55,7 +55,7 @@ describe('menuApi service', () => {
 
   it('throws backend message on non-OK response', async () => {
     localStorage.setItem('dmh_token', 'token-menu');
-    vi.mocked(fetch).mockResolvedValue({ ok: false, status: 500, json: async () => ({ message: 'menu failed' }) } as Response);
+    vi.mocked(fetch).mockResolvedValue({ ok: false, status: 500, json: async () => ({ message: 'menu failed' }) } as unknown as Response);
 
     await expect(menuApi.getUserMenus()).rejects.toThrow('menu failed');
   });
@@ -68,7 +68,7 @@ describe('menuApi service', () => {
       json: async () => {
         throw new Error('invalid json');
       },
-    } as Response);
+    } as unknown as Response);
 
     await expect(menuApi.getUserMenus()).rejects.toThrow('请求失败');
   });

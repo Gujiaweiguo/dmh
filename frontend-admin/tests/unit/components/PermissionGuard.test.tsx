@@ -2,14 +2,21 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { defineComponent, h } from 'vue'
 import { PermissionProvider, PermissionGuard, PermissionButton, usePermission } from '../../../components/PermissionGuard'
-import type { UserRole } from '../../../types'
+import type { UserRole, CurrentUser } from '../../../types'
+
+const createTestUser = (roles: UserRole[], username: string = 'test'): CurrentUser => ({
+  id: 1,
+  username,
+  phone: '13800138000',
+  email: 'test@test.com',
+  realName: 'Test User',
+  avatar: '',
+  status: 'active',
+  roles
+})
 
 describe('PermissionGuard', () => {
-  const mockUser = {
-    username: 'admin',
-    roles: ['platform_admin'] as const,
-    token: 'test-token'
-  }
+  const mockUser = createTestUser(['platform_admin'], 'admin')
 
   describe('PermissionProvider', () => {
     it('provides permission context to children', () => {
@@ -53,15 +60,11 @@ describe('PermissionGuard', () => {
         }
       })
 
+      const anonymousUser = createTestUser(['anonymous'], 'guest')
+
       const wrapper = mount(() => h(
         PermissionProvider,
-        {
-          user: {
-            username: 'guest',
-            roles: ['anonymous'],
-            token: ''
-          }
-        },
+        { user: anonymousUser },
         () => h(Child)
       ))
 
@@ -69,11 +72,7 @@ describe('PermissionGuard', () => {
     })
 
     it('hasRole returns correct value', () => {
-      const userWithRoles = {
-        username: 'test',
-        roles: ['participant'] as const,
-        token: 'test-token'
-      }
+      const userWithRoles = createTestUser(['participant'])
 
       const Child = defineComponent({
         setup() {
@@ -92,16 +91,12 @@ describe('PermissionGuard', () => {
     })
 
     it('hasRole returns false for non-matching role', () => {
-      const userWithDifferentRole = {
-        username: 'test',
-        roles: ['brand_admin'] as const,
-        token: 'test-token'
-      }
+      const userWithDifferentRole = createTestUser(['participant'])
 
       const Child = defineComponent({
         setup() {
           const { hasRole } = usePermission()
-          return () => h('div', { 'data-testid': 'result' }, String(hasRole('participant')))
+          return () => h('div', { 'data-testid': 'result' }, String(hasRole('platform_admin')))
         }
       })
 
@@ -148,11 +143,7 @@ describe('PermissionGuard', () => {
     })
 
     it('does not render children when no permission', () => {
-      const userNoPerm = {
-        username: 'user',
-        roles: ['participant'] as const,
-        token: 'test-token'
-      }
+      const userNoPerm = createTestUser(['participant'])
 
       const wrapper = mount(() => h(
         PermissionProvider,
@@ -168,11 +159,7 @@ describe('PermissionGuard', () => {
     })
 
     it('renders fallback when provided and no permission', () => {
-      const userNoPerm = {
-        username: 'user',
-        roles: ['participant'] as const,
-        token: 'test-token'
-      }
+      const userNoPerm = createTestUser(['participant'])
 
       const wrapper = mount(() => h(
         PermissionProvider,
@@ -189,11 +176,7 @@ describe('PermissionGuard', () => {
     })
 
     it('checks role correctly', () => {
-      const userParticipant = {
-        username: 'user',
-        roles: ['participant'] as const,
-        token: 'test-token'
-      }
+      const userParticipant = createTestUser(['participant'])
 
       const wrapper = mount(() => h(
         PermissionProvider,
@@ -209,11 +192,7 @@ describe('PermissionGuard', () => {
     })
 
     it('checks roles array correctly', () => {
-      const userParticipant = {
-        username: 'user',
-        roles: ['participant'] as const,
-        token: 'test-token'
-      }
+      const userParticipant = createTestUser(['participant'])
 
       const wrapper = mount(() => h(
         PermissionProvider,
@@ -246,11 +225,7 @@ describe('PermissionGuard', () => {
     })
 
     it('does not render button when no permission', () => {
-      const userNoPerm = {
-        username: 'user',
-        roles: ['participant'] as const,
-        token: 'test-token'
-      }
+      const userNoPerm = createTestUser(['participant'])
 
       const wrapper = mount(() => h(
         PermissionProvider,
@@ -283,11 +258,7 @@ describe('PermissionGuard', () => {
     })
 
     it('button does not render when no permission', () => {
-      const userNoPerm = {
-        username: 'user',
-        roles: ['participant'] as const,
-        token: 'test-token'
-      }
+      const userNoPerm = createTestUser(['participant'])
 
       const wrapper = mount(() => h(
         PermissionProvider,

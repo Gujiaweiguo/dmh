@@ -17,7 +17,7 @@ describe('securityApi service', () => {
       ok: true,
       status: 200,
       json: async () => ({ id: 1, minLength: 8 }),
-    } as Response);
+    } as unknown as Response);
 
     await securityApi.getPasswordPolicy();
 
@@ -42,7 +42,7 @@ describe('securityApi service', () => {
       sessionTimeout: 120,
       maxConcurrentSessions: 3,
     };
-    vi.mocked(fetch).mockResolvedValue({ ok: true, status: 200, json: async () => payload } as Response);
+    vi.mocked(fetch).mockResolvedValue({ ok: true, status: 200, json: async () => payload } as unknown as Response);
 
     await securityApi.updatePasswordPolicy(payload);
 
@@ -55,8 +55,8 @@ describe('securityApi service', () => {
   it('getUserSessions and getSecurityEvents append pagination query', async () => {
     localStorage.setItem('dmh_token', 'token-security');
     vi.mocked(fetch)
-      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ total: 0, sessions: [] }) } as Response)
-      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ total: 0, events: [] }) } as Response);
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ total: 0, sessions: [] }) } as unknown as Response)
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ total: 0, events: [] }) } as unknown as Response);
 
     await securityApi.getUserSessions(2, 30);
     await securityApi.getSecurityEvents(3, 40);
@@ -68,8 +68,8 @@ describe('securityApi service', () => {
   it('forceLogoutUser and handleSecurityEvent send default payload values', async () => {
     localStorage.setItem('dmh_token', 'token-security');
     vi.mocked(fetch)
-      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ message: 'ok' }) } as Response)
-      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ message: 'ok' }) } as Response);
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ message: 'ok' }) } as unknown as Response)
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ message: 'ok' }) } as unknown as Response);
 
     await securityApi.forceLogoutUser(9);
     await securityApi.handleSecurityEvent(11);
@@ -87,7 +87,7 @@ describe('securityApi service', () => {
   it('clears token and throws on 401 response', async () => {
     localStorage.setItem('dmh_token', 'expired-security-token');
     const removeSpy = vi.spyOn(Storage.prototype, 'removeItem');
-    vi.mocked(fetch).mockResolvedValue({ ok: false, status: 401, json: async () => ({ message: 'expired' }) } as Response);
+    vi.mocked(fetch).mockResolvedValue({ ok: false, status: 401, json: async () => ({ message: 'expired' }) } as unknown as Response);
 
     await expect(securityApi.revokeSession('s1')).rejects.toThrow('登录已过期，请重新登录');
     expect(removeSpy).toHaveBeenCalledWith('dmh_token');
@@ -101,7 +101,7 @@ describe('securityApi service', () => {
       json: async () => {
         throw new Error('invalid json');
       },
-    } as Response);
+    } as unknown as Response);
 
     await expect(securityApi.getPasswordPolicy()).rejects.toThrow('请求失败');
   });

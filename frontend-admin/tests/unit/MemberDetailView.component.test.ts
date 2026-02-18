@@ -28,7 +28,7 @@ describe('MemberDetailView Component', () => {
 
   it('should have formatAmount method', () => {
     const wrapper = mount(MemberDetailView);
-    const vm = wrapper.vm as MemberDetailViewInstance;
+    const vm = wrapper.vm as unknown as MemberDetailViewInstance;
     expect(vm.formatAmount(100)).toBe('¥100.00');
     expect(vm.formatAmount(0)).toBe('¥0.00');
     expect(vm.formatAmount(1234.5)).toBe('¥1234.50');
@@ -36,14 +36,14 @@ describe('MemberDetailView Component', () => {
 
   it('should have formatDate method', () => {
     const wrapper = mount(MemberDetailView);
-    const vm = wrapper.vm as MemberDetailViewInstance;
+    const vm = wrapper.vm as unknown as MemberDetailViewInstance;
     expect(vm.formatDate('')).toBe('-');
     expect(vm.formatDate(null)).toBe('-');
   });
 
   it('should have genderText method', () => {
     const wrapper = mount(MemberDetailView);
-    const vm = wrapper.vm as MemberDetailViewInstance;
+    const vm = wrapper.vm as unknown as MemberDetailViewInstance;
     expect(vm.genderText(0)).toBe('未知');
     expect(vm.genderText(1)).toBe('男');
     expect(vm.genderText(2)).toBe('女');
@@ -51,7 +51,7 @@ describe('MemberDetailView Component', () => {
 
   it('should have formatFormData method', () => {
     const wrapper = mount(MemberDetailView);
-    const vm = wrapper.vm as MemberDetailViewInstance;
+    const vm = wrapper.vm as unknown as MemberDetailViewInstance;
     expect(vm.formatFormData(null)).toBe('-');
     expect(vm.formatFormData({})).toBe('-');
     expect(vm.formatFormData({ name: 'test', phone: '123' })).toBe('name:test、phone:123');
@@ -59,7 +59,7 @@ describe('MemberDetailView Component', () => {
 
   it('should have orderStatusText method', () => {
     const wrapper = mount(MemberDetailView);
-    const vm = wrapper.vm as MemberDetailViewInstance;
+    const vm = wrapper.vm as unknown as MemberDetailViewInstance;
     expect(vm.orderStatusText('pending')).toBe('待支付');
     expect(vm.orderStatusText('paid')).toBe('已支付');
     expect(vm.orderStatusText('cancelled')).toBe('已取消');
@@ -69,13 +69,13 @@ describe('MemberDetailView Component', () => {
 
   it('should have handleAddTags method', () => {
     const wrapper = mount(MemberDetailView);
-    const vm = wrapper.vm as MemberDetailViewInstance;
+    const vm = wrapper.vm as unknown as MemberDetailViewInstance;
     expect(typeof vm.handleAddTags).toBe('function');
   });
 
   it('should have goBack method', () => {
     const wrapper = mount(MemberDetailView);
-    const vm = wrapper.vm as MemberDetailViewInstance;
+    const vm = wrapper.vm as unknown as MemberDetailViewInstance;
     expect(typeof vm.goBack).toBe('function');
   });
 });

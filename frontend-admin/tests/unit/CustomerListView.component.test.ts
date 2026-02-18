@@ -28,7 +28,7 @@ describe('CustomerListView Component', () => {
 
   it('should have component instance with required properties', () => {
     const wrapper = mount(CustomerListView);
-    const vm = wrapper.vm as CustomerListViewInstance;
+    const vm = wrapper.vm as unknown as CustomerListViewInstance;
     expect(vm.customers).toBeDefined();
     expect(vm.loading).toBeDefined();
     expect(vm.total).toBeDefined();
@@ -40,7 +40,7 @@ describe('CustomerListView Component', () => {
 
   it('should have filter properties initialized', () => {
     const wrapper = mount(CustomerListView);
-    const vm = wrapper.vm as CustomerListViewInstance;
+    const vm = wrapper.vm as unknown as CustomerListViewInstance;
     expect(vm.filters.keyword).toBe('');
     expect(vm.filters.brandId).toBeNull();
     expect(vm.filters.campaignId).toBeNull();
@@ -49,7 +49,7 @@ describe('CustomerListView Component', () => {
 
   it('should have formatAmount method', () => {
     const wrapper = mount(CustomerListView);
-    const vm = wrapper.vm as CustomerListViewInstance;
+    const vm = wrapper.vm as unknown as CustomerListViewInstance;
     expect(vm.formatAmount(100)).toBe('¥100.00');
     expect(vm.formatAmount(0)).toBe('¥0.00');
     expect(vm.formatAmount(1234.5)).toBe('¥1234.50');
@@ -57,14 +57,14 @@ describe('CustomerListView Component', () => {
 
   it('should have formatDate method', () => {
     const wrapper = mount(CustomerListView);
-    const vm = wrapper.vm as CustomerListViewInstance;
+    const vm = wrapper.vm as unknown as CustomerListViewInstance;
     expect(vm.formatDate('')).toBe('-');
     expect(vm.formatDate(null)).toBe('-');
   });
 
   it('should have paymentStatusText method', () => {
     const wrapper = mount(CustomerListView);
-    const vm = wrapper.vm as CustomerListViewInstance;
+    const vm = wrapper.vm as unknown as CustomerListViewInstance;
     expect(vm.paymentStatusText('unpaid')).toBe('未支付');
     expect(vm.paymentStatusText('paid')).toBe('已支付');
     expect(vm.paymentStatusText('refunded')).toBe('已退款');
@@ -73,7 +73,7 @@ describe('CustomerListView Component', () => {
 
   it('should have paymentStatusColor method', () => {
     const wrapper = mount(CustomerListView);
-    const vm = wrapper.vm as CustomerListViewInstance;
+    const vm = wrapper.vm as unknown as CustomerListViewInstance;
     expect(vm.paymentStatusColor('unpaid')).toBe('orange');
     expect(vm.paymentStatusColor('paid')).toBe('green');
     expect(vm.paymentStatusColor('refunded')).toBe('gray');
@@ -82,7 +82,7 @@ describe('CustomerListView Component', () => {
 
   it('should have handleSearch method', () => {
     const wrapper = mount(CustomerListView);
-    const vm = wrapper.vm as CustomerListViewInstance;
+    const vm = wrapper.vm as unknown as CustomerListViewInstance;
     expect(typeof vm.handleSearch).toBe('function');
     vm.currentPage = 5;
     vm.handleSearch();
@@ -91,7 +91,7 @@ describe('CustomerListView Component', () => {
 
   it('should have handleReset method', () => {
     const wrapper = mount(CustomerListView);
-    const vm = wrapper.vm as CustomerListViewInstance;
+    const vm = wrapper.vm as unknown as CustomerListViewInstance;
     vm.filters.keyword = 'test';
     vm.filters.status = 'paid';
     vm.handleReset();
@@ -101,31 +101,31 @@ describe('CustomerListView Component', () => {
 
   it('should have handlePageChange method', () => {
     const wrapper = mount(CustomerListView);
-    const vm = wrapper.vm as CustomerListViewInstance;
+    const vm = wrapper.vm as unknown as CustomerListViewInstance;
     expect(typeof vm.handlePageChange).toBe('function');
   });
 
   it('should have viewDetail method', () => {
     const wrapper = mount(CustomerListView);
-    const vm = wrapper.vm as CustomerListViewInstance;
+    const vm = wrapper.vm as unknown as CustomerListViewInstance;
     expect(typeof vm.viewDetail).toBe('function');
   });
 
   it('should have loadCustomers method', () => {
     const wrapper = mount(CustomerListView);
-    const vm = wrapper.vm as CustomerListViewInstance;
+    const vm = wrapper.vm as unknown as CustomerListViewInstance;
     expect(typeof vm.loadCustomers).toBe('function');
   });
 
   it('should have loadBrands method', () => {
     const wrapper = mount(CustomerListView);
-    const vm = wrapper.vm as CustomerListViewInstance;
-    expect(vm.loadBrands || typeof vm.loadBrands === 'function' || true).toBeTruthy();
+    const vm = wrapper.vm as unknown as CustomerListViewInstance;
+    expect(typeof vm.loadBrands).toBe('function');
   });
 
   it('should have loadCampaigns method', () => {
     const wrapper = mount(CustomerListView);
-    const vm = wrapper.vm as CustomerListViewInstance;
-    expect(vm.loadCampaigns || typeof vm.loadCampaigns === 'function' || true).toBeTruthy();
+    const vm = wrapper.vm as unknown as CustomerListViewInstance;
+    expect(typeof vm.loadCampaigns).toBe('function');
   });
 });

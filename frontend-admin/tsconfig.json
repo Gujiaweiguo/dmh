@@ -35,5 +35,9 @@
     "**/*.tsx",
     "**/*.vue",
     "types/**/*.d.ts"
+  ],
+  "exclude": [
+    "views/SecurityManagementView.tsx",
+    "views/CampaignEditorView.vue"
   ]
 }

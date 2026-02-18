@@ -17,7 +17,7 @@ describe('brandApi service', () => {
       ok: true,
       status: 200,
       json: async () => ({ total: 1 }),
-    } as Response);
+    } as unknown as Response);
 
     const result = await brandApi.getBrands();
     expect(result).toEqual([]);
@@ -30,7 +30,7 @@ describe('brandApi service', () => {
       ok: true,
       status: 200,
       json: async () => ({ id: 1, ...payload, status: 'active', createdAt: '2026-01-01 00:00:00' }),
-    } as Response);
+    } as unknown as Response);
 
     await brandApi.createBrand(payload);
 
@@ -53,7 +53,7 @@ describe('brandApi service', () => {
       ok: false,
       status: 401,
       json: async () => ({ message: 'expired' }),
-    } as Response);
+    } as unknown as Response);
 
     await expect(brandApi.getBrandAssets(1)).rejects.toThrow('登录已过期，请重新登录');
     expect(removeSpy).toHaveBeenCalledWith('dmh_token');
@@ -65,7 +65,7 @@ describe('brandApi service', () => {
       ok: false,
       status: 500,
       json: async () => ({ message: 'brand server error' }),
-    } as Response);
+    } as unknown as Response);
 
     await expect(brandApi.updateBrand(3, { name: 'next' })).rejects.toThrow('brand server error');
   });
@@ -78,7 +78,7 @@ describe('brandApi service', () => {
       json: async () => {
         throw new Error('invalid json');
       },
-    } as Response);
+    } as unknown as Response);
 
     await expect(brandApi.deleteBrandAsset(1, 2)).rejects.toThrow('请求失败');
   });
