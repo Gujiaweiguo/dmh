@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-import { Save, ArrowLeft, Plus, Trash2, Setting } from 'lucide-vue-next';
+import { Save, ArrowLeft, Plus, Trash2, Settings } from 'lucide-vue-next';
 import { campaignApi, type CreateCampaignRequest, type UpdateCampaignRequest } from '../services/campaignApi';
-import { posterApi } from '../services/posterApi';
-import type { Campaign, PosterTemplate } from '../types';
+import { posterApi, type PosterTemplate } from '../services/posterApi';
+import type { Campaign } from '../types';
 
 const props = defineProps<{
   campaignId?: number;
@@ -19,7 +19,6 @@ const form = ref<CreateCampaignRequest & {
   distributionLevel?: number;
   distributionRewards?: string;
 }>({
-  brandId: 1,
   name: '',
   description: '',
   formFields: [],
@@ -83,7 +82,6 @@ const loadCampaign = async () => {
   try {
     const campaign = await campaignApi.getCampaign(props.campaignId);
     form.value = {
-      brandId: campaign.brandId,
       name: campaign.name,
       description: campaign.description,
       formFields: [...campaign.formFields],
@@ -305,7 +303,7 @@ onMounted(() => {
           <div class="form-group">
             <label>支付配置</label>
             <button class="btn-config" @click="showPaymentConfigDialog = true">
-              <Setting :size="20" />
+          <Settings :size="20" />
               <span>{{ form.paymentConfig ? '已配置' : '未配置' }}</span>
             </button>
           </div>
