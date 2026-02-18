@@ -93,7 +93,7 @@ func (l *CreateOrderLogic) CreateOrder(req *types.CreateOrderReq) (resp *types.O
 	}
 
 	verificationCode := l.generateVerificationCode(order.Id, req.Phone, timestamp)
-	if err := l.svcCtx.DB.Model(order).Update("verification_code", verificationCode).Error; err != nil {
+	if err := l.updateVerificationCodeWithRetry(order, verificationCode); err != nil {
 		l.Errorf("Failed to update verification code: %v", err)
 		return nil, fmt.Errorf("更新核销码失败: %v", err)
 	}
@@ -306,4 +306,32 @@ func isDuplicateOrderError(err error) bool {
 
 	errMsg := strings.ToLower(err.Error())
 	return strings.Contains(errMsg, "duplicate entry") || strings.Contains(errMsg, "unique constraint failed")
+}
+
+func (l *CreateOrderLogic) updateVerificationCodeWithRetry(order *model.Order, verificationCode string) error {
+	const maxAttempts = 3
+
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		err := l.svcCtx.DB.Model(order).Update("verification_code", verificationCode).Error
+		if err == nil {
+			return nil
+		}
+
+		if !isSQLiteLockError(err) || attempt == maxAttempts {
+			return err
+		}
+
+		time.Sleep(time.Duration(attempt) * 10 * time.Millisecond)
+	}
+
+	return nil
+}
+
+func isSQLiteLockError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	errMsg := strings.ToLower(err.Error())
+	return strings.Contains(errMsg, "database is locked") || strings.Contains(errMsg, "database table is locked")
 }
