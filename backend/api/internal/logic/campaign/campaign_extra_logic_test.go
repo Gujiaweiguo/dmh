@@ -2,44 +2,25 @@ package campaign
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
 	"dmh/api/internal/svc"
+	"dmh/api/internal/testutil"
 	"dmh/api/internal/types"
 	"dmh/model"
 
 	"github.com/stretchr/testify/assert"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
 func setupCampaignTestDB(t *testing.T) *gorm.DB {
-	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", t.Name())
-	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("Failed to open test database: %v", err)
-	}
-
-	err = db.AutoMigrate(&model.Campaign{}, &model.PageConfig{})
-	if err != nil {
-		t.Fatalf("Failed to migrate database: %v", err)
-	}
-
+	db, _ := testutil.SetupMySQLTestDB(t)
 	return db
-}
-
-func cleanupCampaignTestDB(t *testing.T, db *gorm.DB) {
-	sqlDB, err := db.DB()
-	if err == nil {
-		_ = sqlDB.Close()
-	}
 }
 
 func TestUpdateCampaignLogic_UpdateCampaign_Success(t *testing.T) {
 	db := setupCampaignTestDB(t)
-	defer cleanupCampaignTestDB(t, db)
 
 	campaign := &model.Campaign{
 		Name:        "原始活动",
@@ -79,7 +60,6 @@ func TestUpdateCampaignLogic_UpdateCampaign_Success(t *testing.T) {
 
 func TestUpdateCampaignLogic_UpdateCampaign_NotFound(t *testing.T) {
 	db := setupCampaignTestDB(t)
-	defer cleanupCampaignTestDB(t, db)
 
 	ctx := context.Background()
 	svcCtx := &svc.ServiceContext{DB: db}
@@ -104,7 +84,6 @@ func TestUpdateCampaignLogic_UpdateCampaign_NotFound(t *testing.T) {
 
 func TestUpdateCampaignLogic_UpdateCampaign_WithTimeFormat(t *testing.T) {
 	db := setupCampaignTestDB(t)
-	defer cleanupCampaignTestDB(t, db)
 
 	campaign := &model.Campaign{
 		Name:        "原始活动",
@@ -139,7 +118,6 @@ func TestUpdateCampaignLogic_UpdateCampaign_WithTimeFormat(t *testing.T) {
 
 func TestUpdateCampaignLogic_UpdateCampaign_InvalidStartTime(t *testing.T) {
 	db := setupCampaignTestDB(t)
-	defer cleanupCampaignTestDB(t, db)
 
 	campaign := &model.Campaign{
 		Name:        "原始活动",
@@ -172,7 +150,6 @@ func TestUpdateCampaignLogic_UpdateCampaign_InvalidStartTime(t *testing.T) {
 
 func TestUpdateCampaignLogic_UpdateCampaign_InvalidEndTime(t *testing.T) {
 	db := setupCampaignTestDB(t)
-	defer cleanupCampaignTestDB(t, db)
 
 	campaign := &model.Campaign{
 		Name:        "原始活动",
@@ -205,7 +182,6 @@ func TestUpdateCampaignLogic_UpdateCampaign_InvalidEndTime(t *testing.T) {
 
 func TestUpdateCampaignLogic_UpdateCampaign_WithDistributionLevel(t *testing.T) {
 	db := setupCampaignTestDB(t)
-	defer cleanupCampaignTestDB(t, db)
 
 	campaign := &model.Campaign{
 		Name:        "原始活动",
@@ -242,7 +218,6 @@ func TestUpdateCampaignLogic_UpdateCampaign_WithDistributionLevel(t *testing.T) 
 
 func TestUpdateCampaignLogic_UpdateCampaign_InvalidDistributionLevel(t *testing.T) {
 	db := setupCampaignTestDB(t)
-	defer cleanupCampaignTestDB(t, db)
 
 	campaign := &model.Campaign{
 		Name:        "原始活动",
@@ -275,7 +250,6 @@ func TestUpdateCampaignLogic_UpdateCampaign_InvalidDistributionLevel(t *testing.
 
 func TestUpdateCampaignLogic_UpdateCampaign_WithFormFields(t *testing.T) {
 	db := setupCampaignTestDB(t)
-	defer cleanupCampaignTestDB(t, db)
 
 	campaign := &model.Campaign{
 		Name:        "原始活动",
@@ -311,7 +285,6 @@ func TestUpdateCampaignLogic_UpdateCampaign_WithFormFields(t *testing.T) {
 
 func TestUpdateCampaignLogic_UpdateCampaign_WithPaymentConfig(t *testing.T) {
 	db := setupCampaignTestDB(t)
-	defer cleanupCampaignTestDB(t, db)
 
 	campaign := &model.Campaign{
 		Name:        "原始活动",
@@ -344,7 +317,6 @@ func TestUpdateCampaignLogic_UpdateCampaign_WithPaymentConfig(t *testing.T) {
 
 func TestDeleteCampaignLogic_DeleteCampaign_Success(t *testing.T) {
 	db := setupCampaignTestDB(t)
-	defer cleanupCampaignTestDB(t, db)
 
 	campaign := &model.Campaign{
 		Name:        "待删除活动",
@@ -374,7 +346,6 @@ func TestDeleteCampaignLogic_DeleteCampaign_Success(t *testing.T) {
 
 func TestDeleteCampaignLogic_DeleteCampaign_NotFound(t *testing.T) {
 	db := setupCampaignTestDB(t)
-	defer cleanupCampaignTestDB(t, db)
 
 	ctx := context.Background()
 	svcCtx := &svc.ServiceContext{DB: db}
@@ -388,7 +359,6 @@ func TestDeleteCampaignLogic_DeleteCampaign_NotFound(t *testing.T) {
 
 func TestSavePageConfigLogic_SavePageConfig_Success(t *testing.T) {
 	db := setupCampaignTestDB(t)
-	defer cleanupCampaignTestDB(t, db)
 
 	campaign := &model.Campaign{
 		Name:        "测试活动",
@@ -431,7 +401,6 @@ func TestSavePageConfigLogic_SavePageConfig_Success(t *testing.T) {
 
 func TestGetPageConfigLogic_GetPageConfig_Success(t *testing.T) {
 	db := setupCampaignTestDB(t)
-	defer cleanupCampaignTestDB(t, db)
 
 	campaign := &model.Campaign{
 		Name:        "测试活动",
@@ -470,7 +439,6 @@ func TestGetPageConfigLogic_GetPageConfig_Success(t *testing.T) {
 
 func TestGetPageConfigLogic_GetPageConfig_NotFound(t *testing.T) {
 	db := setupCampaignTestDB(t)
-	defer cleanupCampaignTestDB(t, db)
 
 	ctx := context.Background()
 	svcCtx := &svc.ServiceContext{DB: db}
@@ -490,7 +458,6 @@ func TestGetPageConfigLogic_GetPageConfig_NotFound(t *testing.T) {
 
 func TestGetPaymentQrcodeLogic_GetPaymentQrcode_Success(t *testing.T) {
 	db := setupCampaignTestDB(t)
-	defer cleanupCampaignTestDB(t, db)
 
 	campaign := &model.Campaign{
 		Name:        "测试活动",
@@ -522,7 +489,6 @@ func TestGetPaymentQrcodeLogic_GetPaymentQrcode_Success(t *testing.T) {
 
 func TestGetPaymentQrcodeLogic_GetPaymentQrcode_NotFound(t *testing.T) {
 	db := setupCampaignTestDB(t)
-	defer cleanupCampaignTestDB(t, db)
 
 	ctx := context.Background()
 	svcCtx := &svc.ServiceContext{DB: db}

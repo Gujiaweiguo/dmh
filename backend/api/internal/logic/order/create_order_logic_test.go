@@ -17,7 +17,6 @@ import (
 
 func TestCreateOrderLogic_CampaignNotFound(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	logic := NewCreateOrderLogic(context.Background(), &svc.ServiceContext{DB: db})
 	req := &types.CreateOrderReq{
@@ -36,7 +35,6 @@ func TestCreateOrderLogic_CampaignNotFound(t *testing.T) {
 
 func TestCreateOrderLogic_CampaignEnded(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	campaign := &model.Campaign{
 		Name:        "已结束活动",
@@ -67,7 +65,6 @@ func TestCreateOrderLogic_CampaignEnded(t *testing.T) {
 
 func TestCreateOrderLogic_MissingRequiredField(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	campaign := createTestCampaign(t, db)
 	logic := NewCreateOrderLogic(context.Background(), &svc.ServiceContext{DB: db})
@@ -85,7 +82,6 @@ func TestCreateOrderLogic_MissingRequiredField(t *testing.T) {
 
 func TestCreateOrderLogic_FormFieldValidationFailed(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	campaign := &model.Campaign{
 		Name:        "邮箱验证活动",
@@ -116,7 +112,6 @@ func TestCreateOrderLogic_FormFieldValidationFailed(t *testing.T) {
 
 func TestCreateOrderLogic_CampaignInactiveStatus(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	campaign := &model.Campaign{
 		Name:        "暂停活动",

@@ -55,6 +55,11 @@ jobs:
       DMH_INTEGRATION_BASE_URL: http://127.0.0.1:8889
       DMH_TEST_ADMIN_USERNAME: ${{ vars.DMH_TEST_ADMIN_USERNAME || 'admin' }}
       DMH_TEST_ADMIN_PASSWORD: ${{ secrets.DMH_TEST_ADMIN_PASSWORD || '123456' }}
+      MYSQL_TEST_HOST: 127.0.0.1
+      MYSQL_TEST_PORT: 3306
+      MYSQL_TEST_USER: root
+      MYSQL_TEST_PASSWORD: Admin168
+      MYSQL_TEST_DB: dmh
 
     steps:
       - name: Checkout

@@ -45,7 +45,6 @@ func insertOrderForVerification(t *testing.T, dbCtx *svc.ServiceContext, status 
 
 func TestVerifyOrderLogic_InvalidCode(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	logic := NewVerifyOrderLogic(context.Background(), &svc.ServiceContext{DB: db})
 	resp, err := logic.VerifyOrder(&types.VerifyOrderReq{Code: "invalid_code"})
@@ -57,7 +56,6 @@ func TestVerifyOrderLogic_InvalidCode(t *testing.T) {
 
 func TestVerifyOrderLogic_OrderNotFound(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	logic := NewVerifyOrderLogic(verificationAdminCtx(0), &svc.ServiceContext{DB: db})
 	missingCode := createVerificationCode(9999, "13800138000")
@@ -70,7 +68,6 @@ func TestVerifyOrderLogic_OrderNotFound(t *testing.T) {
 
 func TestVerifyOrderLogic_CreatesVerificationRecord(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	svcCtx := &svc.ServiceContext{DB: db}
 	order := insertOrderForVerification(t, svcCtx, "paid", "unverified")
@@ -97,7 +94,6 @@ func TestVerifyOrderLogic_CreatesVerificationRecord(t *testing.T) {
 
 func TestVerifyOrderLogic_PermissionDenied(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	svcCtx := &svc.ServiceContext{DB: db}
 	order := insertOrderForVerification(t, svcCtx, "paid", "unverified")
@@ -113,7 +109,6 @@ func TestVerifyOrderLogic_PermissionDenied(t *testing.T) {
 
 func TestUnverifyOrderLogic_Success(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	svcCtx := &svc.ServiceContext{DB: db}
 	order := insertOrderForVerification(t, svcCtx, "paid", "verified")
@@ -138,7 +133,6 @@ func TestUnverifyOrderLogic_Success(t *testing.T) {
 
 func TestUnverifyOrderLogic_OrderNotVerified(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	svcCtx := &svc.ServiceContext{DB: db}
 	order := insertOrderForVerification(t, svcCtx, "paid", "unverified")
@@ -152,7 +146,6 @@ func TestUnverifyOrderLogic_OrderNotVerified(t *testing.T) {
 
 func TestUnverifyOrderLogic_PermissionDenied(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	svcCtx := &svc.ServiceContext{DB: db}
 	order := insertOrderForVerification(t, svcCtx, "paid", "verified")
@@ -168,7 +161,6 @@ func TestUnverifyOrderLogic_PermissionDenied(t *testing.T) {
 
 func TestUnverifyOrderLogic_OrderNotFound(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	logic := NewUnverifyOrderLogic(verificationAdminCtx(0), &svc.ServiceContext{DB: db})
 	missingCode := createVerificationCode(9999, "13800138000")

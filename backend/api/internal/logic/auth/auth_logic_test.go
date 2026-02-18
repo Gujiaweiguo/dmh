@@ -2,32 +2,20 @@ package auth
 
 import (
 	"context"
-	"fmt"
-	"strings"
 	"testing"
 
 	"dmh/api/internal/svc"
+	"dmh/api/internal/testutil"
 	"dmh/api/internal/types"
 	"dmh/model"
 
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
 func setupAuthTestDB(t *testing.T) *gorm.DB {
-	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", strings.ReplaceAll(t.Name(), "/", "_"))
-	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("Failed to open test database: %v", err)
-	}
-
-	err = db.AutoMigrate(&model.User{}, &model.Role{}, &model.UserRole{}, &model.UserBrand{})
-	if err != nil {
-		t.Fatalf("Failed to migrate database: %v", err)
-	}
-
+	db, _ := testutil.SetupMySQLTestDB(t)
 	return db
 }
 

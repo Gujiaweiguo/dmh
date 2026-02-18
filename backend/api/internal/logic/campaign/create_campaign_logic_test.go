@@ -2,31 +2,19 @@ package campaign
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
 	"dmh/api/internal/svc"
+	"dmh/api/internal/testutil"
 	"dmh/api/internal/types"
-	"dmh/model"
 
 	"github.com/stretchr/testify/assert"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
 func setupCreateCampaignTestDB(t *testing.T) *gorm.DB {
-	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", t.Name())
-	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("Failed to open test database: %v", err)
-	}
-
-	err = db.AutoMigrate(&model.Campaign{})
-	if err != nil {
-		t.Fatalf("Failed to migrate database: %v", err)
-	}
-
+	db, _ := testutil.SetupMySQLTestDB(t)
 	return db
 }
 

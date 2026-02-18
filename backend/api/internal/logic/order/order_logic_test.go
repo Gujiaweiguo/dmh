@@ -3,53 +3,20 @@ package order
 
 import (
 	"context"
-	"fmt"
-	"strings"
 	"testing"
 	"time"
 
 	"dmh/api/internal/svc"
+	"dmh/api/internal/testutil"
 	"dmh/api/internal/types"
 	"dmh/model"
 
 	"github.com/stretchr/testify/assert"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
 func setupTestDB(t *testing.T) *gorm.DB {
-	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", strings.ReplaceAll(t.Name(), "/", "_"))
-	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("Failed to open test database: %v", err)
-	}
-
-	sqlDB, err := db.DB()
-	if err != nil {
-		t.Fatalf("Failed to get sql db: %v", err)
-	}
-	sqlDB.SetMaxOpenConns(4)
-	sqlDB.SetMaxIdleConns(4)
-
-	// Auto migrate all models
-	err = db.AutoMigrate(
-		&model.Campaign{},
-		&model.Order{},
-		&model.VerificationRecord{},
-		&model.Distributor{},
-		&model.DistributorLevelReward{},
-		&model.DistributorReward{},
-	)
-	if err != nil {
-		t.Fatalf("Failed to migrate database: %v", err)
-	}
-
-	// Mirror production duplicate guard for deterministic duplicate-create tests.
-	err = db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS uk_orders_campaign_phone ON orders(campaign_id, phone)").Error
-	if err != nil {
-		t.Fatalf("Failed to create unique index: %v", err)
-	}
-
+	db, _ := testutil.SetupMySQLTestDB(t)
 	return db
 }
 
@@ -72,18 +39,9 @@ func createTestCampaign(t *testing.T, db *gorm.DB) *model.Campaign {
 	return campaign
 }
 
-func cleanupTestDB(t *testing.T, db *gorm.DB) {
-	sqlDB, err := db.DB()
-	if err == nil {
-		_ = sqlDB.Close()
-	}
-}
-
 // CreateOrderLogic tests
 func TestCreateOrderLogic_CreateOrder_Success(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
-
 	campaign := createTestCampaign(t, db)
 
 	ctx := context.Background()
@@ -111,8 +69,6 @@ func TestCreateOrderLogic_CreateOrder_Success(t *testing.T) {
 
 func TestCreateOrderLogic_InvalidPhone(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
-
 	campaign := createTestCampaign(t, db)
 
 	ctx := context.Background()
@@ -136,8 +92,6 @@ func TestCreateOrderLogic_InvalidPhone(t *testing.T) {
 
 func TestCreateOrderLogic_DuplicateOrder(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
-
 	campaign := createTestCampaign(t, db)
 
 	ctx := context.Background()
@@ -168,7 +122,6 @@ func TestCreateOrderLogic_DuplicateOrder(t *testing.T) {
 // VerifyOrderLogic tests
 func TestVerifyOrderLogic_VerifyOrder_Success(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	// Create a test order
 	createLogic := NewCreateOrderLogic(context.Background(), &svc.ServiceContext{DB: db})
@@ -208,7 +161,6 @@ func TestVerifyOrderLogic_VerifyOrder_Success(t *testing.T) {
 
 func TestVerifyOrderLogic_VerifyOrder_AlreadyVerified(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	// Create a verified order
 	createLogic := NewCreateOrderLogic(context.Background(), &svc.ServiceContext{DB: db})
@@ -264,7 +216,6 @@ func TestCreateOrderLogic_GenerateVerificationCode(t *testing.T) {
 
 func TestPaymentCallbackLogic_Success(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	campaign := &model.Campaign{
 		Name:               "测试活动",
@@ -342,7 +293,6 @@ func TestPaymentCallbackLogic_Success(t *testing.T) {
 
 func TestPaymentCallbackLogic_OrderNotFound(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	ctx := context.Background()
 	svcCtx := &svc.ServiceContext{DB: db}
@@ -362,7 +312,6 @@ func TestPaymentCallbackLogic_OrderNotFound(t *testing.T) {
 
 func TestPaymentCallbackLogic_AlreadyPaid(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	order := &model.Order{
 		Id:         1,
@@ -392,7 +341,6 @@ func TestPaymentCallbackLogic_AlreadyPaid(t *testing.T) {
 
 func TestPaymentCallbackLogic_NoReferrer(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	campaign := &model.Campaign{
 		Name:               "测试活动",
@@ -444,7 +392,6 @@ func TestPaymentCallbackLogic_NoReferrer(t *testing.T) {
 
 func TestPaymentCallbackLogic_DistributionDisabled(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	campaign := &model.Campaign{
 		Name:               "测试活动",
@@ -496,7 +443,6 @@ func TestPaymentCallbackLogic_DistributionDisabled(t *testing.T) {
 
 func TestPaymentCallbackLogic_ReferrerNotFound(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	campaign := &model.Campaign{
 		Name:               "测试活动",
@@ -541,7 +487,6 @@ func TestPaymentCallbackLogic_ReferrerNotFound(t *testing.T) {
 
 func TestScanOrderLogic_Success(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	createLogic := NewCreateOrderLogic(context.Background(), &svc.ServiceContext{DB: db})
 	timestamp := time.Now().Unix()
@@ -580,7 +525,6 @@ func TestScanOrderLogic_Success(t *testing.T) {
 
 func TestScanOrderLogic_InvalidCode(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	ctx := context.Background()
 	svcCtx := &svc.ServiceContext{DB: db}
@@ -599,7 +543,6 @@ func TestScanOrderLogic_InvalidCode(t *testing.T) {
 
 func TestScanOrderLogic_OrderNotFound(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	createLogic := NewCreateOrderLogic(context.Background(), &svc.ServiceContext{DB: db})
 	timestamp := time.Now().Unix()
@@ -622,8 +565,6 @@ func TestScanOrderLogic_OrderNotFound(t *testing.T) {
 
 func TestGetOrderLogic_Success(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
-
 	campaign := createTestCampaign(t, db)
 	order := &model.Order{
 		Id:         1,
@@ -654,7 +595,6 @@ func TestGetOrderLogic_Success(t *testing.T) {
 
 func TestGetOrderLogic_NotFound(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	ctx := context.Background()
 	svcCtx := &svc.ServiceContext{DB: db}
@@ -668,8 +608,6 @@ func TestGetOrderLogic_NotFound(t *testing.T) {
 
 func TestGetOrdersLogic_Success(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
-
 	campaign := createTestCampaign(t, db)
 
 	order1 := &model.Order{
@@ -706,7 +644,6 @@ func TestGetOrdersLogic_Success(t *testing.T) {
 
 func TestGetOrdersLogic_Empty(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	ctx := context.Background()
 	svcCtx := &svc.ServiceContext{DB: db}
@@ -722,7 +659,6 @@ func TestGetOrdersLogic_Empty(t *testing.T) {
 
 func TestGetVerificationRecordsLogic_Success(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	now := time.Now()
 	record1 := &model.VerificationRecord{
@@ -761,7 +697,6 @@ func TestGetVerificationRecordsLogic_Success(t *testing.T) {
 
 func TestGetVerificationRecordsLogic_Empty(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
 
 	ctx := context.Background()
 	svcCtx := &svc.ServiceContext{DB: db}

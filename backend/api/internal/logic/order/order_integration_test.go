@@ -15,8 +15,6 @@ import (
 
 func TestOrderIntegration_CreateVerifyScanConsistency(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
-
 	campaign := createTestCampaign(t, db)
 	svcCtx := &svc.ServiceContext{DB: db}
 
@@ -55,8 +53,6 @@ func TestOrderIntegration_CreateVerifyScanConsistency(t *testing.T) {
 
 func TestOrderIntegration_ConcurrentDuplicateCreateGuard(t *testing.T) {
 	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
-
 	campaign := createTestCampaign(t, db)
 	svcCtx := &svc.ServiceContext{DB: db}
 
