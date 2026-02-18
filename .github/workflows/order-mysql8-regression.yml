@@ -1,6 +1,7 @@
 name: Order MySQL8 Regression
 
 on:
+  workflow_call:
   workflow_dispatch:
     inputs:
       base_url:
@@ -52,7 +53,7 @@ jobs:
       DB_PASSWORD: root
       DB_NAME: dmh
       JWT_SECRET: dmh-access-secret-key
-      DMH_INTEGRATION_BASE_URL: ${{ github.event.inputs.base_url || 'http://127.0.0.1:8889' }}
+      DMH_INTEGRATION_BASE_URL: http://127.0.0.1:8889
       DMH_TEST_ADMIN_USERNAME: ${{ vars.DMH_TEST_ADMIN_USERNAME || 'admin' }}
       DMH_TEST_ADMIN_PASSWORD: ${{ secrets.DMH_TEST_ADMIN_PASSWORD || '123456' }}
 
@@ -135,7 +136,7 @@ jobs:
           exit 1
 
       - name: Run order MySQL8 regression suite
-        run: backend/scripts/run_order_mysql8_regression.sh "$DMH_INTEGRATION_BASE_URL"
+        run: backend/scripts/run_order_mysql8_regression.sh "${{ github.event.inputs.base_url || env.DMH_INTEGRATION_BASE_URL }}"
 
       - name: Upload API log on failure
         if: failure()

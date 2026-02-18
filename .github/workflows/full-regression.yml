@@ -1,0 +1,72 @@
+name: Full Regression
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - v*.*.*-rc*
+
+permissions:
+  contents: read
+
+jobs:
+  stability-checks:
+    name: Stability Checks
+    uses: ./.github/workflows/stability-checks.yml
+    secrets: inherit
+
+  system-test-gate:
+    name: System Test Gate
+    uses: ./.github/workflows/system-test-gate.yml
+    secrets: inherit
+
+  coverage-gate:
+    name: Coverage Gate
+    uses: ./.github/workflows/coverage-gate.yml
+    secrets: inherit
+
+  order-mysql8-regression:
+    name: Order MySQL8 Regression
+    uses: ./.github/workflows/order-mysql8-regression.yml
+    secrets: inherit
+
+  full-regression-verdict:
+    name: Full Regression Verdict
+    if: always()
+    runs-on: ubuntu-latest
+    needs:
+      - stability-checks
+      - system-test-gate
+      - coverage-gate
+      - order-mysql8-regression
+    steps:
+      - name: Summarize results
+        run: |
+          STABILITY="${{ needs.stability-checks.result }}"
+          SYSTEM="${{ needs.system-test-gate.result }}"
+          COVERAGE="${{ needs.coverage-gate.result }}"
+          ORDER="${{ needs.order-mysql8-regression.result }}"
+
+          echo "## Full Regression Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Workflow | Result |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| stability-checks | $STABILITY |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| system-test-gate | $SYSTEM |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| coverage-gate | $COVERAGE |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| order-mysql8-regression | $ORDER |" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$STABILITY" = "success" ] && \
+             [ "$SYSTEM" = "success" ] && \
+             [ "$COVERAGE" = "success" ] && \
+             [ "$ORDER" = "success" ]; then
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "Final Verdict: PASS" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Final Verdict: FAIL" >> "$GITHUB_STEP_SUMMARY"
+          exit 1

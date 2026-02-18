@@ -1,7 +1,7 @@
 # DMH - Digital Marketing Hub
 # 常用命令 Makefile
 
-.PHONY: help up down restart logs test build clean
+.PHONY: help up down restart logs test build clean test-integration test-e2e test-e2e-headless test-order-regression backend-coverage admin-coverage h5-coverage spec-validate-all full-regression
 
 # 默认显示帮助
 help:
@@ -17,6 +17,12 @@ help:
 	@echo "  make test-backend - 运行后端测试"
 	@echo "  make test-admin  - 运行管理后台测试"
 	@echo "  make test-h5     - 运行 H5 测试"
+	@echo "  make test-order-regression - 运行订单专项回归"
+	@echo "  make test-e2e-headless - 运行双端 E2E（headless）"
+	@echo "  make backend-coverage - 后端覆盖率门禁 (>=76%)"
+	@echo "  make admin-coverage - Admin 覆盖率门禁 (>=70%)"
+	@echo "  make h5-coverage - H5 覆盖率门禁 (>=44%)"
+	@echo "  make full-regression - 本地一键全量回归"
 	@echo "  make build       - 构建前端生产包"
 	@echo "  make clean       - 清理临时文件"
 	@echo "  make db-migrate  - 运行数据库迁移"
@@ -62,9 +68,40 @@ test-admin:
 test-h5:
 	cd frontend-h5 && npm run test
 
+test-order-regression:
+	backend/scripts/run_order_mysql8_regression.sh
+
 test-e2e:
 	cd frontend-admin && npm run test:e2e
 	cd frontend-h5 && npm run test:e2e
+
+test-e2e-headless:
+	cd frontend-admin && npm run test:e2e:headless
+	cd frontend-h5 && npm run test:e2e:headless
+
+backend-coverage:
+	cd backend && go test ./... -coverprofile=coverage.out -covermode=atomic
+	cd backend && go tool cover -func=coverage.out | awk '/total:/ {split($$0,a," "); if (a[3] >= 0.76) { print "Backend coverage OK"; exit 0 } else { print "Backend coverage not enough: " a[3]; exit 1 } }'
+
+admin-coverage:
+	cd frontend-admin && npm run test:cov 2>&1 | tee /tmp/dmh-admin-coverage.log
+	@PCT=$$(grep -E "All files\s*\|" /tmp/dmh-admin-coverage.log | tail -1 | awk -F'|' '{gsub(/ /,"",$$2); print $$2}' | tr -d '%' || true); \
+	if echo "$$PCT" | grep -Eq '^[0-9]+(\.[0-9]+)?$$' && [ "$${PCT%.*}" -ge 70 ]; then \
+	  echo "Frontend Admin coverage OK ($$PCT%)"; \
+	else \
+	  echo "Frontend Admin coverage not enough: $$PCT%"; \
+	  exit 1; \
+	fi
+
+h5-coverage:
+	cd frontend-h5 && npm run test:cov 2>&1 | tee /tmp/dmh-h5-coverage.log
+	@PCT=$$(grep -E "All files\s*\|" /tmp/dmh-h5-coverage.log | tail -1 | awk -F'|' '{gsub(/ /,"",$$2); print $$2}' | tr -d '%' || true); \
+	if echo "$$PCT" | grep -Eq '^[0-9]+(\.[0-9]+)?$$' && [ "$${PCT%.*}" -ge 44 ]; then \
+	  echo "Frontend H5 coverage OK ($$PCT%)"; \
+	else \
+	  echo "Frontend H5 coverage not enough: $$PCT%"; \
+	  exit 1; \
+	fi
 
 # 构建命令
 build:
@@ -128,7 +165,13 @@ spec-list:
 	@cd openspec && openspec list 2>/dev/null || echo "openspec CLI 未安装"
 
 spec-validate:
-	@cd openspec && openspec validate --strict --no-interactive 2>/dev/null || echo "openspec CLI 未安装"
+	@openspec validate --strict --no-interactive 2>/dev/null || echo "openspec CLI 未安装"
+
+spec-validate-all:
+	@openspec validate --all --no-interactive
+
+full-regression: test-backend test-integration test-order-regression test-admin test-h5 test-e2e-headless backend-coverage admin-coverage h5-coverage spec-validate-all
+	@echo "✓ 全量回归完成"
 
 # 更新命令
 update:

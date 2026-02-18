@@ -1,6 +1,7 @@
 name: Stability Checks
 
 on:
+  workflow_call:
   workflow_dispatch:
   pull_request:
     branches:
@@ -8,6 +9,7 @@ on:
     paths:
       - backend/**
       - frontend-admin/**
+      - frontend-h5/**
       - .github/workflows/stability-checks.yml
   push:
     branches:
@@ -15,6 +17,7 @@ on:
     paths:
       - backend/**
       - frontend-admin/**
+      - frontend-h5/**
       - .github/workflows/stability-checks.yml
 
 jobs:
@@ -67,7 +70,9 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: frontend-admin/package-lock.json
+          cache-dependency-path: |
+            frontend-admin/package-lock.json
+            frontend-h5/package-lock.json
 
       - name: Install DB clients
         run: |
@@ -162,8 +167,9 @@ jobs:
           go test ./...
 
       - name: Install frontend dependencies
-        working-directory: frontend-admin
-        run: npm ci
+        run: |
+          cd frontend-admin && npm ci
+          cd ../frontend-h5 && npm ci
 
       - name: Install Playwright browser
         working-directory: frontend-admin
@@ -171,6 +177,10 @@ jobs:
 
       - name: Run frontend-admin unit tests
         working-directory: frontend-admin
+        run: npm run test
+
+      - name: Run frontend-h5 unit tests
+        working-directory: frontend-h5
         run: npm run test
 
       - name: Run security E2E regression
