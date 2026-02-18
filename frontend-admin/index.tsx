@@ -350,7 +350,7 @@ const CampaignManagementView = defineComponent({
             type: props.type || 'text',
             value: props.value,
             placeholder: props.placeholder,
-            onInput: (e) => emit('update:value', e.target.value),
+            onInput: (e: Event) => emit('update:value', (e.target as HTMLInputElement).value),
             class: 'w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
           })
         ]);

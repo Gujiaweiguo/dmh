@@ -4,7 +4,7 @@ import { PermissionGuard, usePermission } from './PermissionGuard';
 import { menuApi } from '../services/menuApi';
 
 // 组件元数据类型
-interface ComponentWithProps {
+export interface ComponentWithProps {
   props: Record<string, any>;
   emits?: string[];
 }
