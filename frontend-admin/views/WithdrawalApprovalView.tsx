@@ -203,13 +203,13 @@ export const renderWithdrawalApprovalView = (viewModel: ReturnType<typeof Withdr
       h('div', { class: 'flex gap-2' }, [
         h('select', {
           class: 'border rounded-lg px-3 py-2',
-          value: selectedBrandId.value || '',
+          value: viewModel.selectedBrandId.value || '',
           onInput: (e: any) => {
             viewModel.selectedBrandId.value = e.target.value === '' ? null : Number(e.target.value);
-            page.value = 1;
-            finished.value = false;
-            withdrawals.value = [];
-            loadWithdrawals();
+            viewModel.page.value = 1;
+            viewModel.finished.value = false;
+            viewModel.withdrawals.value = [];
+            viewModel.loadWithdrawals();
           }
         }, [
           h('option', { value: '' }, '全部品牌'),
@@ -219,13 +219,13 @@ export const renderWithdrawalApprovalView = (viewModel: ReturnType<typeof Withdr
         ]),
         h('select', {
           class: 'border rounded-lg px-3 py-2',
-          value: statusFilter.value,
+          value: viewModel.statusFilter.value,
           onInput: (e: any) => {
-            statusFilter.value = e.target.value;
-            page.value = 1;
-            finished.value = false;
-            withdrawals.value = [];
-            loadWithdrawals();
+            viewModel.statusFilter.value = e.target.value;
+            viewModel.page.value = 1;
+            viewModel.finished.value = false;
+            viewModel.withdrawals.value = [];
+            viewModel.loadWithdrawals();
           }
         }, [
           h('option', { value: 'pending' }, '待审核'),
@@ -253,22 +253,22 @@ export const renderWithdrawalApprovalView = (viewModel: ReturnType<typeof Withdr
           h('tbody', { class: viewModel.loading.value ? 'animate-pulse' : '' }, [
             viewModel.withdrawals.value.map((withdrawal: any) => h('tr', { class: 'border-t' }, [
               h('td', { class: 'px-4 py-3' }, `¥${withdrawal.amount.toFixed(2)}`),
-              h('td', { class: 'px-4 py-3' }, getPayTypeText(withdrawal.payType)),
+              h('td', { class: 'px-4 py-3' }, viewModel.getPayTypeText(withdrawal.payType)),
               h('td', { class: 'px-4 py-3' }, withdrawal.payAccount),
               h('td', { class: 'px-4 py-3' }, withdrawal.payRealName),
-              h('td', { class: 'px-4 py-3 text-slate-500' }, formatDate(withdrawal.createdAt)),
+              h('td', { class: 'px-4 py-3 text-slate-500' }, viewModel.formatDate(withdrawal.createdAt)),
               h('td', { class: 'px-4 py-3' }, [
-                h('span', { class: `px-2 py-1 rounded-full text-xs font-medium ${getStatusType(withdrawal.status)}` }, getStatusText(withdrawal.status)),
+                h('span', { class: `px-2 py-1 rounded-full text-xs font-medium ${viewModel.getStatusType(withdrawal.status)}` }, viewModel.getStatusText(withdrawal.status)),
               ]),
               h('td', { class: 'px-4 py-3' }, [
                 h('button', {
                   class: 'text-blue-600 hover:text-blue-800 mr-2',
-                  onClick: () => openDetailModal(withdrawal)
+                  onClick: () => viewModel.openDetailModal(withdrawal)
                 }, '详情'),
                 withdrawal.status === 'pending' && h('button', {
                   class: `px-3 py-1 rounded ${viewModel.processing.value ? 'opacity-50 cursor-not-allowed' : ''}`,
                   disabled: viewModel.processing.value,
-                  onClick: () => openDetailModal(withdrawal)
+                  onClick: () => viewModel.openDetailModal(withdrawal)
                 }, '审批'),
               ]),
             ])),
@@ -283,110 +283,110 @@ export const renderWithdrawalApprovalView = (viewModel: ReturnType<typeof Withdr
     // 加载更多
     h('div', { class: 'mt-4 flex justify-center' }, [
       h('button', {
-        class: `px-4 py-2 bg-white border text-slate-700 rounded-lg hover:bg-slate-50 ${finished.value ? 'opacity-50 cursor-not-allowed' : ''}`,
-        disabled: finished.value || viewModel.loading.value,
-        onClick: () => onLoad()
-      }, finished.value ? '没有更多了' : '加载更多'),
+        class: `px-4 py-2 bg-white border text-slate-700 rounded-lg hover:bg-slate-50 ${viewModel.finished.value ? 'opacity-50 cursor-not-allowed' : ''}`,
+        disabled: viewModel.finished.value || viewModel.loading.value,
+        onClick: () => viewModel.onLoad()
+      }, viewModel.finished.value ? '没有更多了' : '加载更多'),
     ]),
 
     // 详情弹窗
-    showDetailModal.value && h('div', { class: 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50' }, [
+    viewModel.showDetailModal.value && h('div', { class: 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50' }, [
       h('div', { class: 'bg-white rounded-lg shadow-xl p-6 w-full max-w-md' }, [
         h('h3', { class: 'text-lg font-semibold mb-4' }, '提现详情'),
         h('div', { class: 'space-y-3' }, [
           h('div', { class: 'flex justify-between' }, [
             h('span', { class: 'text-slate-600' }, '提现金额'),
-            h('span', { class: 'font-semibold' }, `¥${currentWithdrawal.value?.amount?.toFixed(2) || '0.00'}`),
+            h('span', { class: 'font-semibold' }, `¥${viewModel.currentWithdrawal.value?.amount?.toFixed(2) || '0.00'}`),
           ]),
           h('div', { class: 'flex justify-between' }, [
             h('span', { class: 'text-slate-600' }, '提现方式'),
-            h('span', {}, getPayTypeText(currentWithdrawal.value?.payType || '')),
+            h('span', {}, viewModel.getPayTypeText(viewModel.currentWithdrawal.value?.payType || '')),
           ]),
           h('div', { class: 'flex justify-between' }, [
             h('span', { class: 'text-slate-600' }, '提现账号'),
-            h('span', {}, currentWithdrawal.value?.payAccount || ''),
+            h('span', {}, viewModel.currentWithdrawal.value?.payAccount || ''),
           ]),
           h('div', { class: 'flex justify-between' }, [
             h('span', { class: 'text-slate-600' }, '真实姓名'),
-            h('span', {}, currentWithdrawal.value?.payRealName || ''),
+            h('span', {}, viewModel.currentWithdrawal.value?.payRealName || ''),
           ]),
           h('div', { class: 'flex justify-between' }, [
             h('span', { class: 'text-slate-600' }, '申请时间'),
-            h('span', { class: 'text-slate-500' }, formatDate(currentWithdrawal.value?.createdAt || '')),
+            h('span', { class: 'text-slate-500' }, viewModel.formatDate(viewModel.currentWithdrawal.value?.createdAt || '')),
           ]),
           h('div', { class: 'flex justify-between' }, [
             h('span', { class: 'text-slate-600' }, '当前状态'),
-            h('span', { class: `px-2 py-1 rounded-full text-xs font-medium ${getStatusType(currentWithdrawal.value?.status || '')}` }, getStatusText(currentWithdrawal.value?.status || '')),
+            h('span', { class: `px-2 py-1 rounded-full text-xs font-medium ${viewModel.getStatusType(viewModel.currentWithdrawal.value?.status || '')}` }, viewModel.getStatusText(viewModel.currentWithdrawal.value?.status || '')),
           ]),
         ]),
-        currentWithdrawal.value?.rejectedReason && h('div', { class: 'text-sm text-red-600 mt-2' }, [
+        viewModel.currentWithdrawal.value?.rejectedReason && h('div', { class: 'text-sm text-red-600 mt-2' }, [
           h('span', { class: 'font-medium' }, '拒绝原因：'),
-          h('p', {}, currentWithdrawal.value.rejectedReason),
+          h('p', {}, viewModel.currentWithdrawal.value.rejectedReason),
         ]),
         
         // 审批操作（仅pending状态）
-        currentWithdrawal.value?.status === 'pending' && h('div', { class: 'flex justify-end gap-2 mt-6 pt-6 border-t' }, [
+        viewModel.currentWithdrawal.value?.status === 'pending' && h('div', { class: 'flex justify-end gap-2 mt-6 pt-6 border-t' }, [
           h('button', {
             class: 'px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 mr-2',
-            onClick: () => approvalForm.value = { action: 'reject', notes: '' }
+            onClick: () => { viewModel.approvalForm.value = { action: 'reject', notes: '' }; }
           }, '拒绝'),
           h('button', {
             class: 'px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700',
-            onClick: () => approvalForm.value = { action: 'approve', notes: '' }
+            onClick: () => { viewModel.approvalForm.value = { action: 'approve', notes: '' }; }
           }, '批准'),
         ]),
 
         // 审批表单
-        (approvalForm.value.action === 'reject' || approvalForm.value.action === 'approve') && h('div', { class: 'mt-4 space-y-3' }, [
-          approvalForm.value.action === 'reject' && h('div', [
+        (viewModel.approvalForm.value.action === 'reject' || viewModel.approvalForm.value.action === 'approve') && h('div', { class: 'mt-4 space-y-3' }, [
+          viewModel.approvalForm.value.action === 'reject' && h('div', [
             h('label', { class: 'block text-sm font-medium text-slate-700 mb-2' }, '拒绝原因（必填）'),
             h('textarea', {
               class: 'w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500',
               rows: 3,
               placeholder: '请输入拒绝原因',
-              value: approvalForm.value.notes,
-              onInput: (e: any) => approvalForm.value.notes = e.target.value
+              value: viewModel.approvalForm.value.notes,
+              onInput: (e: any) => { viewModel.approvalForm.value.notes = e.target.value; }
             }),
           ]),
           h('div', { class: 'flex justify-end gap-2 mt-4' }, [
             h('button', {
               class: 'px-4 py-2 border text-slate-700 rounded-lg hover:bg-slate-50 mr-2',
-              onClick: () => showDetailModal.value = false
+              onClick: () => { viewModel.showDetailModal.value = false; }
             }, '取消'),
             h('button', {
               class: `px-4 py-2 text-white rounded-lg ${viewModel.processing.value ? 'opacity-50 cursor-not-allowed' : ''}`,
-              disabled: viewModel.processing.value || (approvalForm.value.action === 'reject' && !approvalForm.value.notes),
-              onClick: () => submitApproval()
-            }, approvalForm.value.action === 'reject' ? '确认拒绝' : '确认批准'),
+              disabled: viewModel.processing.value || (viewModel.approvalForm.value.action === 'reject' && !viewModel.approvalForm.value.notes),
+              onClick: () => viewModel.submitApproval()
+            }, viewModel.approvalForm.value.action === 'reject' ? '确认拒绝' : '确认批准'),
           ]),
         ]),
         
         // 已审批的信息
-        currentWithdrawal.value?.status !== 'pending' && currentWithdrawal.value?.status !== 'processing' && h('div', { class: 'mt-4 pt-4 border-t text-center' }, [
-          currentWithdrawal.value?.status === 'approved' && h('div', { class: 'text-green-600' }, '已批准，等待系统处理打款'),
-          currentWithdrawal.value?.status === 'completed' && h('div', { class: 'text-green-600' }, '打款完成'),
-          currentWithdrawal.value?.status === 'rejected' && h('div', { class: 'text-red-600' }, '已拒绝'),
+        viewModel.currentWithdrawal.value?.status !== 'pending' && viewModel.currentWithdrawal.value?.status !== 'processing' && h('div', { class: 'mt-4 pt-4 border-t text-center' }, [
+          viewModel.currentWithdrawal.value?.status === 'approved' && h('div', { class: 'text-green-600' }, '已批准，等待系统处理打款'),
+          viewModel.currentWithdrawal.value?.status === 'completed' && h('div', { class: 'text-green-600' }, '打款完成'),
+          viewModel.currentWithdrawal.value?.status === 'rejected' && h('div', { class: 'text-red-600' }, '已拒绝'),
         ]),
         
         // 关闭按钮
         h('div', { class: 'flex justify-center mt-4' }, [
           h('button', {
             class: 'px-6 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200',
-            onClick: () => showDetailModal.value = false
+            onClick: () => { viewModel.showDetailModal.value = false; }
           }, '关闭'),
         ]),
       ]),
 
       h('button', {
         class: 'absolute top-4 right-4 text-gray-400 hover:text-gray-600',
-        onClick: () => showDetailModal.value = false
+        onClick: () => { viewModel.showDetailModal.value = false; }
       }, '✕'),
     ]),
 
     // 遮罩层点击关闭
     h('div', {
       class: 'fixed inset-0',
-      onClick: () => showDetailModal.value = false
+      onClick: () => { viewModel.showDetailModal.value = false; }
     }),
   ]);
 };

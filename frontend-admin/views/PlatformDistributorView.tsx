@@ -127,7 +127,7 @@ export default {
 
     // 调整级别
     const adjustLevel = async (distributorId: number, currentLevel: number) => {
-      const newLevel = prompt('请输入新的级别 (1-3):', currentLevel);
+      const newLevel = prompt('请输入新的级别 (1-3):', String(currentLevel));
       if (newLevel && !isNaN(Number(newLevel))) {
         const level = Number(newLevel);
         if (level < 1 || level > 3) {
