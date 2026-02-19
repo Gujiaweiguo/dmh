@@ -686,19 +686,19 @@ cd backend/scripts && mysql -u root -p < init.sql
 
 ### A. 参考资料
 
-- [OpenSpec 项目规范](/opt/code/DMH/openspec/project.md)
-- [OpenSpec AGENTS.md](/opt/code/DMH/openspec/AGENTS.md)
-- [归档状态索引](/opt/code/DMH/openspec/changes/archive/ARCHIVE_STATUS_INDEX.md)
+- [OpenSpec 项目规范](/opt/code/dmh/openspec/project.md)
+- [OpenSpec AGENTS.md](/opt/code/dmh/openspec/AGENTS.md)
+- [归档状态索引](/opt/code/dmh/openspec/changes/archive/ARCHIVE_STATUS_INDEX.md)
 
 ### B. 规格文件路径
 
 | 规格 | 路径 |
 |------|------|
-| campaign-management | `/opt/code/DMH/openspec/specs/campaign-management/spec.md` |
-| order-payment-system | `/opt/code/DMH/openspec/specs/order-payment-system/spec.md` |
-| rbac-permission-system | `/opt/code/DMH/openspec/specs/rbac-permission-system/spec.md` |
-| feedback-system | `/opt/code/DMH/openspec/specs/feedback-system/spec.md` |
-| spec-governance | `/opt/code/DMH/openspec/specs/spec-governance/spec.md` |
+| campaign-management | `/opt/code/dmh/openspec/specs/campaign-management/spec.md` |
+| order-payment-system | `/opt/code/dmh/openspec/specs/order-payment-system/spec.md` |
+| rbac-permission-system | `/opt/code/dmh/openspec/specs/rbac-permission-system/spec.md` |
+| feedback-system | `/opt/code/dmh/openspec/specs/feedback-system/spec.md` |
+| spec-governance | `/opt/code/dmh/openspec/specs/spec-governance/spec.md` |
 
 ### C. 修订历史
 

@@ -42,7 +42,7 @@ VERSION=${2:-"latest"}
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 DEPLOY_DIR="/opt/dmh"
-REPO_URL="${REPO_URL:-$(git -C "$PROJECT_ROOT" config --get remote.origin.url 2>/dev/null || echo "https://github.com/Gujiaweiguo/DMH.git")}"
+REPO_URL="${REPO_URL:-$(git -C "$PROJECT_ROOT" config --get remote.origin.url 2>/dev/null || echo "https://github.com/Gujiaweiguo/dmh.git")}"
 
 compose() {
     docker compose "$@"

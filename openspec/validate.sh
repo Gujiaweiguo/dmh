@@ -8,10 +8,10 @@ echo "Validating order and RBAC test changes..."
 
 # Check if required files exist
 REQUIRED_FILES=(
-    "/opt/code/DMH/backend/api/internal/logic/order/order_logic_test.go"
-    "/opt/code/DMH/backend/api/internal/middleware/permission_middleware_test.go"
-    "/opt/code/DMH/backend/api/internal/logic/order/e2e_regression_script.sh"
-    "/opt/code/DMH/backend/api/internal/logic/order/e2e_results_template.md"
+    "/opt/code/dmh/backend/api/internal/logic/order/order_logic_test.go"
+    "/opt/code/dmh/backend/api/internal/middleware/permission_middleware_test.go"
+    "/opt/code/dmh/backend/api/internal/logic/order/e2e_regression_script.sh"
+    "/opt/code/dmh/backend/api/internal/logic/order/e2e_results_template.md"
 )
 
 MISSING_FILES=0
@@ -27,7 +27,7 @@ done
 
 # Check test results
 echo -e "\n=== Test Results Validation ==="
-TEST_RESULTS_DIR="/opt/code/DMH/backend/api/internal/logic/order/test_results"
+TEST_RESULTS_DIR="/opt/code/dmh/backend/api/internal/logic/order/test_results"
 if [ -d "$TEST_RESULTS_DIR" ]; then
     echo "✓ Test results directory exists"
     RESULT_FILES=$(find "$TEST_RESULTS_DIR" -name "*.md" -o -name "*.txt" | wc -l)

@@ -146,7 +146,7 @@
 
 **修复方案**：
 ```go
-// 文件：/opt/code/DMH/backend/model/feedback.go
+// 文件：/opt/code/dmh/backend/model/feedback.go
 // 修改前：
 func (UserFeedback) TableName() string {
 	return "user_feedbacks"  // ❌ 错误
@@ -176,7 +176,7 @@ func (UserFeedback) TableName() string {
 
 **修复方案**：
 ```go
-// 文件：/opt/code/DMH/backend/api/internal/handler/feedback/feedback.go
+// 文件：/opt/code/dmh/backend/api/internal/handler/feedback/feedback.go
 // 修改前：
 userId := r.Context().Value("userId").(int64)
 
@@ -411,11 +411,11 @@ CREATE TABLE IF NOT EXISTS dmh.feature_satisfaction_surveys (
 
 ### 代码修改
 
-1. `/opt/code/DMH/backend/model/feedback.go`
+1. `/opt/code/dmh/backend/model/feedback.go`
    - 修复 UserFeedback 表名
    - 添加 AssigneeID 和 Response 字段
 
-2. `/opt/code/DMH/backend/api/internal/handler/feedback/feedback.go`
+2. `/opt/code/dmh/backend/api/internal/handler/feedback/feedback.go`
    - CreateFeedbackHandler：修复匿名用户 userId 处理
    - ListFeedbackHandler：修复匿名用户 userId 处理
 
@@ -427,13 +427,13 @@ CREATE TABLE IF NOT EXISTS dmh.feature_satisfaction_surveys (
 
 ### 配置文件修改
 
-1. `/opt/code/DMH/backend/api/internal/handler/routes.go`
+1. `/opt/code/dmh/backend/api/internal/handler/routes.go`
    - 修复反馈路由（分离公共和管理员路由）
 
-2. `/opt/code/DMH/frontend-h5/src/router/index.js`
+2. `/opt/code/dmh/frontend-h5/src/router/index.js`
    - 移除反馈中心的登录限制
 
-3. `/opt/code/DMH/deployment/docker-compose-simple.yml`
+3. `/opt/code/dmh/deployment/docker-compose-simple.yml`
    - 统一网络配置
 
 ---

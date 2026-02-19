@@ -143,8 +143,8 @@ clean:
 # 代码质量
 check:
 	cd backend && gofmt -d .
-	cd frontend-admin && npm run lint 2>/dev/null || echo "管理后台无 lint 脚本"
-	cd frontend-h5 && npm run lint 2>/dev/null || echo "H5 无 lint 脚本"
+	cd frontend-admin && npm run lint
+	cd frontend-h5 && npm run lint
 
 fmt:
 	cd backend && gofmt -w .

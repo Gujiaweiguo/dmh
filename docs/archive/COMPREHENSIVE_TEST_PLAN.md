@@ -41,7 +41,7 @@
 
 ```bash
 # 1. 启动所有服务
-cd /opt/code/DMH/deployment/scripts
+cd /opt/code/dmh/deployment/scripts
 ./quick-restart.sh
 
 # 2. 验证服务状态
@@ -819,11 +819,11 @@ curl -s http://localhost:3100
 
 ## 📚 参考文档
 
-- [后端 API 文档](/opt/code/DMH/backend/api/dmh.api)
-- [前端 H5 文档](/opt/code/DMH/frontend-h5/README.md)
-- [前端 Admin 文档](/opt/code/DMH/frontend-admin/README.md)
-- [反馈系统测试场景](/opt/code/DMH/docs/feedback-testing-scenarios.md)
-- [部署文档](/opt/code/DMH/deployment/README.md)
+- [后端 API 文档](/opt/code/dmh/backend/api/dmh.api)
+- [前端 H5 文档](/opt/code/dmh/frontend-h5/README.md)
+- [前端 Admin 文档](/opt/code/dmh/frontend-admin/README.md)
+- [反馈系统测试场景](/opt/code/dmh/docs/feedback-testing-scenarios.md)
+- [部署文档](/opt/code/dmh/deployment/README.md)
 
 ---
 

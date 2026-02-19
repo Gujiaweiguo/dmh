@@ -14,7 +14,7 @@ info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 warn() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 
 # 配置
-DEPLOYMENT_DIR="/opt/code/DMH/deployment"
+DEPLOYMENT_DIR="/opt/code/dmh/deployment"
 COMPOSE_FILE="$DEPLOYMENT_DIR/docker-compose-simple.yml"
 
 log "DMH 容器化部署快速启动..."

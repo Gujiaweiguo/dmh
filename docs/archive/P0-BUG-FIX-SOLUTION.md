@@ -425,7 +425,7 @@ npm run dev
 
 ```bash
 # 方式1：使用 quick-restart 脚本
-cd /opt/code/DMH/deployment/scripts
+cd /opt/code/dmh/deployment/scripts
 ./quick-restart.sh
 
 # 方式2：手动重启
@@ -605,7 +605,7 @@ if [ "$HTTP_CODE" = "200" ]; then
 else
     echo "⚠️  核销记录 API 响应异常: $HTTP_CODE"
     echo "正在重启后端服务..."
-    cd /opt/code/DMH/backend
+    cd /opt/code/dmh/backend
     pkill -f "dmh-api"
     sleep 2
     nohup go run api/dmh.go -f api/etc/dmh-api.yaml > logs/api.log 2>&1 &
@@ -646,15 +646,15 @@ echo "3. 测试核销记录: http://localhost:3000/#/verification-records"
 
 ```bash
 # 1. 创建修复脚本
-cat > /opt/code/DMH/deployment/scripts/fix-p0-issues.sh << 'SCRIPT_CONTENT'
+cat > /opt/code/dmh/deployment/scripts/fix-p0-issues.sh << 'SCRIPT_CONTENT'
 # 粘贴上面的脚本内容
 SCRIPT_CONTENT
 
 # 2. 赋予执行权限
-chmod +x /opt/code/DMH/deployment/scripts/fix-p0-issues.sh
+chmod +x /opt/code/dmh/deployment/scripts/fix-p0-issues.sh
 
 # 3. 执行修复
-/opt/code/DMH/deployment/scripts/fix-p0-issues.sh
+/opt/code/dmh/deployment/scripts/fix-p0-issues.sh
 ```
 
 ---

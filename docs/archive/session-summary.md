@@ -349,7 +349,7 @@ docker compose -f docker-compose-dmh.yml up -d
 
 4. **监控服务**
    * Prometheus、Grafana、Alertmanager 可根据需要启动
-   * 建议通过 docker-compose 启动：`cd /opt/code/DMH/deployment && docker compose -f docker-compose-dmh.yml up -d prometheus grafana alertmanager`
+   * 建议通过 docker-compose 启动：`cd /opt/code/dmh/deployment && docker compose -f docker-compose-dmh.yml up -d prometheus grafana alertmanager`
 
 ***
 

@@ -18,10 +18,10 @@
 **修复方案**：修改前端校验逻辑，检查 `brandIds` 而非 `brand_admin`
 
 **修复文件**：
-1. `/opt/code/DMH/frontend-h5/src/views/brand/Login.vue`
+1. `/opt/code/dmh/frontend-h5/src/views/brand/Login.vue`
    - 第104-107行：修改角色检查逻辑
    - 从 `!data.roles.includes('brand_admin')` 改为检查 `data.brandIds`
-2. `/opt/code/DMH/frontend-h5/src/router/index.js`
+2. `/opt/code/dmh/frontend-h5/src/router/index.js`
    - 第70, 90等行：将所有品牌管理路由的 `role: "brand_admin"` 改为 `hasBrand: true`
    - 第250-264行：添加品牌访问权限检查逻辑
 
@@ -86,7 +86,7 @@ if (!data.brandIds || !Array.isArray(data.brandIds) || data.brandIds.length === 
 
 **修复方案**：删除 `index.tsx` 中的简化版，导入完整版组件
 
-**修复文件**：`/opt/code/DMH/frontend-admin/index.tsx`
+**修复文件**：`/opt/code/dmh/frontend-admin/index.tsx`
 
 **修改详情**：
 
@@ -135,12 +135,12 @@ if (activeTab.value === 'users') {
 
 1. **执行 migration SQL**：
    ```bash
-   docker exec -i mysql8 mysql -uroot -p'Admin168' dmh < /opt/code/DMH/backend/migrations/2026_01_29_add_record_tables.sql
+   docker exec -i mysql8 mysql -uroot -p'Admin168' dmh < /opt/code/dmh/backend/migrations/2026_01_29_add_record_tables.sql
    ```
 
 2. **重启后端服务**：
    ```bash
-   cd /opt/code/DMH/backend
+   cd /opt/code/dmh/backend
    # 停止旧进程（如果有）
    pkill -f "dmh-api"
    # 启动新进程

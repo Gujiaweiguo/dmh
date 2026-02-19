@@ -88,9 +88,9 @@
 
 ### 技术栈
 
-* **后端**: Go 1.23 + go-zero 1.6 + GORM + MySQL 8.0
-* **前端**: Vue 3 + Vite 5/6 + TypeScript
-* **测试**: Playwright 1.58.2 + Vitest
+* **后端**: Go 1.24 + go-zero 1.6 + GORM + MySQL 8.0
+* **前端**: Vue 3 + Vite 6 + TypeScript
+* **容器化**: Docker + Docker Compose
 
 ### 文档
 
@@ -153,8 +153,8 @@
 
 ### 技术栈
 
-* **后端**: Go 1.23 + go-zero 1.6 + GORM + MySQL 8.0
-* **前端**: Vue 3 + Vite 5/6 + TypeScript
+* **后端**: Go 1.24 + go-zero 1.6 + GORM + MySQL 8.0
+* **前端**: Vue 3 + Vite 6 + TypeScript
 * **容器化**: Docker + Docker Compose
 * **反向代理**: Nginx 1.25
 * **认证**: JWT
@@ -181,6 +181,33 @@
 * \[ ] 消息推送系统
 * \[ ] 优惠券系统
 * \[ ] 积分系统
+
+### 已完成（待发布）
+
+#### 2026-02-19
+
+* ✅ H5 品牌设置页真实接口化
+  * 品牌信息读写接入 `/brands/:id`
+  * 奖励/通知/同步设置改为本地持久化
+  * 新增 `getCurrentBrandId`、`unwrapApiResponse`、`resolveSyncStatus` 逻辑函数
+  * 单测覆盖新增逻辑
+
+* ✅ Admin 个人中心真实接口化
+  * 新增 `profileApi` 服务层
+  * 用户信息、资料更新、手机/邮箱绑定、改密接入真实 API
+  * 组件单测补充 API mock
+
+* ✅ 微信支付服务可配置 Mock/实调
+  * `MockEnabled=true` 走 mock（默认，保护本地开发）
+  * `MockEnabled=false` 走真实 unifiedorder
+  * 配置新增 `UnifiedOrderURL`、`HTTPTimeoutMs`
+  * 单测覆盖真实/模拟/边界场景
+
+* ✅ 前端 lint 门禁打通
+  * Admin/H5 新增 `lint` 脚本与 ESLint 9 flat config
+  * Makefile `check` 改为强制 lint
+  * 依赖安装并更新 lock 文件
+  * 验证通过：lint + test + build 全绿
 
 ***
 
@@ -240,8 +267,8 @@
 
 ### 技术栈
 
-* **后端**: Go 1.23 + go-zero 1.6 + GORM + MySQL 8.0
-* **前端**: Vue 3 + Vite 5/6 + TypeScript
+* **后端**: Go 1.24 + go-zero 1.6 + GORM + MySQL 8.0
+* **前端**: Vue 3 + Vite 6 + TypeScript
 * **认证**: JWT
 * **部署**: Docker + Nginx
 
@@ -418,11 +445,11 @@
 
 ## 相关链接
 
-* [项目主页](https://github.com/Gujiaweiguo/DMH)
-* [问题反馈](https://github.com/Gujiaweiguo/DMH/issues)
+* [项目主页](https://github.com/Gujiaweiguo/dmh)
+* [问题反馈](https://github.com/Gujiaweiguo/dmh/issues)
 * [贡献指南](./CONTRIBUTING.md)
 
 ***
 
 **维护者**: DMH Team\
-**最后更新**: 2025-01-21
+**最后更新**: 2026-02-19

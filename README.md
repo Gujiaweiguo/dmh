@@ -3,7 +3,7 @@
 数字营销中台系统，提供完整的营销活动管理、用户权限管理和数据分析功能。
 
 ![DMH Logo](https://img.shields.io/badge/DMH-Digital%20Marketing%20Hub-blue)
-![Go Version](https://img.shields.io/badge/Go-1.23+-00ADD8)
+![Go Version](https://img.shields.io/badge/Go-1.24+-00ADD8)
 ![Vue Version](https://img.shields.io/badge/Vue.js-3.0+-4FC08D)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
@@ -48,7 +48,7 @@
 
 ### 后端技术栈
 
-* **Go 1.23+** - 高性能后端服务
+* **Go 1.24+** - 高性能后端服务
 * **go-zero 1.6+** - 微服务框架，提供API网关、RPC、中间件等完整解决方案
 * **GORM** - 强大的ORM框架
 * **JWT** - 安全的身份认证
@@ -70,7 +70,7 @@
 #### 一键启动
 
 ```bash
-cd /opt/code/DMH/deploy/scripts
+cd /opt/code/dmh/deploy/scripts
 ./quick-start.sh
 ```
 
@@ -92,7 +92,7 @@ cd /opt/code/DMH/deploy/scripts
 
 #### 环境要求
 
-* Go 1.23+
+* Go 1.24+
 * Node.js 20+
 * MySQL 8.0+
 
@@ -101,7 +101,7 @@ cd /opt/code/DMH/deploy/scripts
 #### 1. 克隆项目
 
 ```bash
-git clone https://github.com/Gujiaweiguo/DMH.git
+git clone https://github.com/Gujiaweiguo/dmh.git
 cd DMH
 ```
 
@@ -322,11 +322,11 @@ backend/scripts/run_order_mysql8_regression.sh
 
 ## 📞 联系方式
 
-* **GitHub Issues**: [提交问题](https://github.com/Gujiaweiguo/DMH/issues)
+* **GitHub Issues**: [提交问题](https://github.com/Gujiaweiguo/dmh/issues)
 * **Email**: weiguogu@163.com
 
 ***
 
 ⭐ **如果这个项目对你有帮助，请给个星标支持！**
 
-🔗 **项目链接**: https://github.com/Gujiaweiguo/DMH
+🔗 **项目链接**: https://github.com/Gujiaweiguo/dmh

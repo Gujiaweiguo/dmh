@@ -421,7 +421,7 @@ Mysql:
 sudo apt install -y docker.io docker-compose-plugin
 
 # 2) 一键部署（推荐）
-cd /opt/code/DMH/deploy/scripts
+cd /opt/code/dmh/deploy/scripts
 ./quick-start.sh
 ````
 
@@ -451,7 +451,7 @@ cd /opt/code/DMH/deploy/scripts
 如需回滚到独立进程部署方式：
 
 ```bash
-cd /opt/code/DMH/deploy/scripts
+cd /opt/code/dmh/deploy/scripts
 ./rollback-containers.sh
 ```
 
