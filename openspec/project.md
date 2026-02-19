@@ -1,5 +1,17 @@
 # Project Context
 
+## Current Status
+
+**版本**: 1.3.0-dev
+**最后更新**: 2026-02-19
+
+### 最近完成（2026-02-19）
+
+* H5 品牌设置页真实接口化（`/brands/:id` + 本地持久化策略）
+* Admin 个人中心真实接口化（新增 `profileApi` 服务）
+* 微信支付服务可配置 Mock/实调（`MockEnabled` 开关）
+* 前端 lint 门禁打通（ESLint 9 + Makefile check 强制）
+
 ## Purpose
 
 DMH (Digital Marketing Hub) 数字营销中台系统，提供营销活动管理、会员管理、分销商管理、奖励结算等功能。
@@ -178,6 +190,10 @@ DMH/
 | spec-governance | ✅ Active |
 | system-test-execution | ✅ Active |
 | test-coverage-improvement | ✅ Active |
+| brand-settings-real-api | ✅ Active |
+| admin-profile-real-api | ✅ Active |
+| wechat-pay-mock-switch | ✅ Active |
+| frontend-lint-gate | ✅ Active |
 
 ## External Dependencies
 

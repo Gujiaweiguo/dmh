@@ -5,7 +5,7 @@
 ### 一键启动（推荐）
 
 ```bash
-cd /opt/code/DMH/deploy/scripts
+cd /opt/code/dmh/deploy/scripts
 ./quick-start.sh
 ```
 
@@ -16,7 +16,7 @@ cd /opt/code/DMH/deploy/scripts
 ## 📋 目录结构
 
 ```
-/opt/code/DMH/deploy/
+/opt/code/dmh/deploy/
 ├── docker-compose.yml           # 完整版Docker编排（包含构建）
 ├── docker-compose-simple.yml   # 简化版Docker编排（自动安装依赖）⭐
 ├── nginx/
@@ -72,13 +72,13 @@ my-net 网络 (172.19.0.0/16)
 
 **启动命令**：
 ```bash
-cd /opt/code/DMH/deployment
+cd /opt/code/dmh/deployment
 docker compose -f docker-compose-simple.yml up -d
 ```
 
 **或使用快速启动脚本**：
 ```bash
-cd /opt/code/DMH/deploy/scripts
+cd /opt/code/dmh/deploy/scripts
 ./quick-start.sh
 ```
 
@@ -93,7 +93,7 @@ cd /opt/code/DMH/deploy/scripts
 
 **启动命令**：
 ```bash
-cd /opt/code/DMH/deploy/scripts
+cd /opt/code/dmh/deploy/scripts
 ./deploy-containers.sh
 ```
 
@@ -104,7 +104,7 @@ cd /opt/code/DMH/deploy/scripts
 ### 查看容器状态
 
 ```bash
-cd /opt/code/DMH/deployment
+cd /opt/code/dmh/deployment
 docker compose -f docker-compose-simple.yml ps
 ```
 
@@ -198,8 +198,8 @@ docker logs dmh-api | grep -E "Error|Starting|api"
 
 **检查前端构建产物**：
 ```bash
-ls -la /opt/code/DMH/frontend-admin/dist
-ls -la /opt/code/DMH/frontend-h5/dist
+ls -la /opt/code/dmh/frontend-admin/dist
+ls -la /opt/code/dmh/frontend-h5/dist
 ```
 
 **检查容器内的文件**：
@@ -220,7 +220,7 @@ docker logs dmh-nginx | tail -50
 如果需要回滚到原来的独立进程部署方式：
 
 ```bash
-cd /opt/code/DMH/deploy/scripts
+cd /opt/code/dmh/deploy/scripts
 ./rollback-containers.sh
 ```
 
@@ -261,7 +261,7 @@ wget -q -O - http://redis7:6379
 
 ### Nginx配置
 
-**文件位置**: `/opt/code/DMH/deploy/nginx/conf.d/default.conf`
+**文件位置**: `/opt/code/dmh/deploy/nginx/conf.d/default.conf`
 
 **主要配置**：
 - 管理后台监听 3000 端口
@@ -274,7 +274,7 @@ wget -q -O - http://redis7:6379
 
 ### 后端配置
 
-**文件位置**: `/opt/code/DMH/backend/api/etc/dmh-api.docker.yaml`
+**文件位置**: `/opt/code/dmh/backend/api/etc/dmh-api.docker.yaml`
 
 **主要配置**：
 - 数据库: `mysql8:3306`
@@ -316,8 +316,8 @@ wget -q -O - http://redis7:6379
 
 - `/tmp/dmh-container-deployment-report.md` - 部署完成报告
 - `/tmp/docker_migration_guide.md` - 容器化迁移指南
-- `/opt/code/DMH/docs/API_Documentation.md` - API文档
-- `/opt/code/DMH/docs/Deployment_Checklist.md` - 部署检查清单
+- `/opt/code/dmh/docs/API_Documentation.md` - API文档
+- `/opt/code/dmh/docs/Deployment_Checklist.md` - 部署检查清单
 
 ---
 
@@ -339,10 +339,10 @@ docker logs dmh-api | grep apk
 
 A: 重新构建前端，然后重启 nginx 容器：
 ```bash
-cd /opt/code/DMH/frontend-admin
+cd /opt/code/dmh/frontend-admin
 npm run build
 
-cd /opt/code/DMH/deployment
+cd /opt/code/dmh/deployment
 docker compose -f docker-compose-simple.yml restart dmh-nginx
 ```
 
@@ -353,7 +353,7 @@ A: 更新二进制文件和配置，然后重启 api 容器：
 # 更新 /tmp/dmh 二进制文件
 # 更新 /tmp/dmh-api.yaml 配置文件
 
-cd /opt/code/DMH/deployment
+cd /opt/code/dmh/deployment
 docker compose -f docker-compose-simple.yml restart dmh-api
 ```
 
@@ -380,3 +380,68 @@ docker compose -f docker-compose-simple.yml up -d --scale dmh-nginx=2
 ---
 
 **部署完成！** 🎉
+
+---
+
+## ⚙️ 配置管理
+
+### 统一配置目录
+
+生产环境配置已迁移到 `/opt/module/dmh/configs/` 目录：
+
+```
+/opt/module/dmh/configs/
+├── dmh-api.yaml           # 后端 API 配置
+├── nginx/conf.d/
+│   └── default.conf       # Nginx 反向代理配置
+├── frontend/
+│   ├── admin.env          # 管理后台环境变量
+│   └── h5.env             # H5 前端环境变量
+└── backup/                # 配置备份目录
+```
+
+### 配置修改流程
+
+```bash
+# 1. 修改配置文件
+vim /opt/module/dmh/configs/dmh-api.yaml
+
+# 2. 重启服务（自动备份+验证）
+cd /opt/code/dmh/deploy/scripts
+./restart-services.sh
+```
+
+### 可用脚本
+
+| 脚本 | 用途 |
+|------|------|
+| `sync-configs.sh` | 从项目目录同步配置到统一管理目录 |
+| `backup-config.sh` | 备份当前配置 |
+| `verify-config.sh` | 验证配置正确性 |
+| `restart-services.sh` | 一键重启服务（备份+验证+重启+健康检查） |
+
+### 示例
+
+```bash
+cd /opt/code/dmh/deploy/scripts
+
+# 查看备份列表
+./backup-config.sh --list
+
+# 恢复最近的备份
+./backup-config.sh --restore
+
+# 验证配置
+./verify-config.sh
+
+# 完整重启流程
+./restart-services.sh
+```
+
+### 配置文件详情
+
+详细说明请参阅：`/opt/module/dmh/README.md`
+
+---
+
+**最后更新**: 2026-02-19
