@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  # Nginx 容器 - 托管前端静态文件 + API代理
+  dmh-nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    image: dmh-nginx:latest
+    container_name: dmh-nginx
+    networks:
+      my-net:
+        ipv4_address: 172.19.0.5
+    ports:
+      - "3000:3000"    # 管理后台
+      - "3100:3100"    # H5前端
+    volumes:
+      - ../frontend-admin/dist:/usr/share/nginx/html/admin:ro
+      - ../frontend-h5/dist:/usr/share/nginx/html/h5:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - dmh-api
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # 后端 API 容器
+  dmh-api:
+    build:
+      context: /tmp
+      dockerfile: /opt/code/dmh/backend/Dockerfile.simple
+    image: dmh-api:latest
+    container_name: dmh-api
+    networks:
+      my-net:
+        ipv4_address: 172.19.0.6
+    ports:
+      - "8889:8889"
+    environment:
+      - DB_HOST=mysql8
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=Admin168
+      - DB_NAME=dmh
+      - REDIS_HOST=redis7
+      - REDIS_PORT=6379
+      - REDIS_PASS=
+      - JWT_SECRET=dmh-access-secret-key
+      - APP_ENV=production
+    volumes:
+      - ../backend/api/etc:/app/etc:ro
+      - api_logs:/var/log/dmh-api
+    depends_on:
+      mysql8:
+        condition: service_healthy
+      redis7:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8889/ || exit 0"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  nginx_logs:
+    driver: local
+  api_logs:
+    driver: local
+
+networks:
+  my-net:
+    external: true
+    name: my-net

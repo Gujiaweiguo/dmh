@@ -1,0 +1,79 @@
+version: "3.8"
+
+networks:
+  my-net:
+    external: true
+    name: my-net
+
+services:
+  # DMH 专用 Redis
+  redis-dmh:
+    image: redis:7
+    container_name: redis-dmh
+    command: >
+      redis-server
+      --save 60 1
+      --loglevel warning
+    networks:
+      - my-net
+    ports:
+      - "6379:6379"
+    volumes:
+      - dmh_redis_data:/data
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # Backend API container
+  dmh-api:
+    image: debian:bookworm-slim
+    container_name: dmh-api
+    command: >
+      sh -c "mkdir -p /var/log/dmh-api && /app/dmh-api"
+    networks:
+      - my-net:
+        ipv4_address: 172.19.0.6
+    ports:
+      - "8889:8889"
+    environment:
+      - DB_HOST=mysql8
+      - DB_PORT=3306
+      - DB_USER=root
+      - "DB_PASSWORD=Admin168"
+      - DB_NAME=dmh
+      - REDIS_HOST=redis-dmh
+      - REDIS_PORT=6379
+      - REDIS_PASS=
+      - JWT_SECRET=dmh-access-secret-key
+      - APP_ENV=production
+
+  # Nginx container
+  dmh-nginx:
+    image: nginx:1.25-alpine
+    container_name: dmh-nginx
+    command: >
+      sh -c "nginx -g 'daemon off;'"
+    networks:
+      my-net:
+        ipv4_address: 172.19.0.5
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../frontend-admin/dist:/usr/share/nginx/html/admin:ro
+      - ../frontend-h5/dist:/usr/share/nginx/html/h5:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - dmh-api
+    restart: on-failure
+
+volumes:
+  dmh_redis_data:
+    driver: local
+  dmh_api_logs:
+    driver: local
+  nginx_logs:
+    driver: local
