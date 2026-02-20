@@ -32,6 +32,7 @@ func (suite *DistributorIntegrationTestSuite) SetupSuite() {
 		&model.Reward{},
 		&model.Distributor{},
 		&model.DistributorReward{},
+		&model.DistributorApplication{},
 		&model.UserBalance{},
 		&model.DistributorLink{},
 	)
@@ -44,6 +45,7 @@ func (suite *DistributorIntegrationTestSuite) SetupTest() {
 	suite.Require().NoError(suite.db.Exec("SET FOREIGN_KEY_CHECKS = 0").Error)
 	suite.Require().NoError(suite.db.Exec("TRUNCATE TABLE distributor_links").Error)
 	suite.Require().NoError(suite.db.Exec("TRUNCATE TABLE distributor_rewards").Error)
+	suite.Require().NoError(suite.db.Exec("TRUNCATE TABLE distributor_applications").Error)
 	suite.Require().NoError(suite.db.Exec("TRUNCATE TABLE distributors").Error)
 	suite.Require().NoError(suite.db.Exec("TRUNCATE TABLE user_balances").Error)
 	suite.Require().NoError(suite.db.Exec("TRUNCATE TABLE rewards").Error)
