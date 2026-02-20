@@ -9,11 +9,36 @@ on:
 jobs:
   backend-coverage:
     runs-on: ubuntu-latest
+
+    services:
+      mysql8:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: "Admin168"
+          MYSQL_DATABASE: dmh
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -p'Admin168' --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version: '1.24'
+      - name: Wait for MySQL and create dmh_test
+        run: |
+          for i in {1..60}; do
+            if mysqladmin ping -h 127.0.0.1 -uroot -p'Admin168' --silent; then
+              echo "MySQL is ready"
+              break
+            fi
+            sleep 2
+          done
+          mysql -h 127.0.0.1 -uroot -p'Admin168' -e "CREATE DATABASE IF NOT EXISTS dmh_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
       - name: Run tests with coverage
         working-directory: backend
         run: |

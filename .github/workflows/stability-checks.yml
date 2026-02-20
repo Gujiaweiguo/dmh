@@ -114,6 +114,10 @@ jobs:
             exit 1
           fi
 
+      - name: Create dmh_test database
+        run: |
+          mysql -h 127.0.0.1 -uroot -p'Admin168' -e "CREATE DATABASE IF NOT EXISTS dmh_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
       - name: Initialize schema and baseline migrations
         run: |
           mysql -h 127.0.0.1 -uroot -p'Admin168' dmh < backend/scripts/init.sql
