@@ -82,3 +82,36 @@ func GenUniquePhone() string {
 func GenUniqueUsername(prefix string) string {
 	return fmt.Sprintf("%s_%d", prefix, time.Now().UnixNano())
 }
+
+// GenUniqueUnionID generates a unique WeChat unionid for testing.
+func GenUniqueUnionID() string {
+	return fmt.Sprintf("union_%d", time.Now().UnixNano())
+}
+
+// GenUniqueCode generates a unique code for testing (e.g., menu code, role code).
+func GenUniqueCode(prefix string) string {
+	return fmt.Sprintf("%s_%d", prefix, time.Now().UnixNano())
+}
+
+// WithTransaction runs a test function within a database transaction that is rolled back afterward.
+// This ensures test data isolation without needing separate databases.
+func WithTransaction(t *testing.T, db *gorm.DB, fn func(tx *gorm.DB)) {
+	t.Helper()
+	tx := db.Begin()
+	if tx.Error != nil {
+		t.Fatalf("failed to begin transaction: %v", tx.Error)
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			panic(r)
+		}
+	}()
+
+	fn(tx)
+
+	if err := tx.Rollback().Error; err != nil && err != gorm.ErrInvalidTransaction {
+		t.Logf("warning: rollback error: %v", err)
+	}
+}
