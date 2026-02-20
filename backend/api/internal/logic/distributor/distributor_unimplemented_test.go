@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"dmh/api/internal/svc"
 	"dmh/api/internal/types"
@@ -334,9 +335,17 @@ func TestGetDistributorRewardsLogic_GetRewards_Success(t *testing.T) {
 	brand := createTestBrand(t, db, "TestBrand")
 	dist := createTestDistributor(t, db, user.Id, brand.Id, 1, "active")
 
+	campaign := &model.Campaign{BrandId: brand.Id, Name: "TestCampaign", Status: "active", StartTime: time.Now(), EndTime: time.Now().Add(24 * time.Hour)}
+	db.Create(campaign)
+
+	order := &model.Order{CampaignId: campaign.Id, Phone: "13800000001", Amount: 100.0, Status: "paid", PayStatus: "paid", FormData: "{}"}
+	db.Create(order)
+
 	reward := &model.DistributorReward{
 		DistributorId: dist.Id,
 		UserId:        user.Id,
+		OrderId:       order.Id,
+		CampaignId:    campaign.Id,
 		Amount:        100.50,
 		Level:         1,
 	}

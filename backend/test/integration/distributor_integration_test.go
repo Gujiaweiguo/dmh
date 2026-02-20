@@ -56,11 +56,6 @@ func (suite *DistributorIntegrationTestSuite) SetupTest() {
 	suite.db.Exec("DELETE FROM roles")
 	suite.db.Exec("DELETE FROM brands")
 	suite.db.Exec("DELETE FROM users")
-	// Reset auto_increment to avoid primary key conflicts
-	suite.db.Exec("ALTER TABLE users AUTO_INCREMENT = 1")
-	suite.db.Exec("ALTER TABLE brands AUTO_INCREMENT = 1")
-	suite.db.Exec("ALTER TABLE roles AUTO_INCREMENT = 1")
-	suite.db.Exec("ALTER TABLE campaigns AUTO_INCREMENT = 1")
 	suite.Require().NoError(suite.db.Exec("SET FOREIGN_KEY_CHECKS = 1").Error)
 	suite.createTestData()
 }
