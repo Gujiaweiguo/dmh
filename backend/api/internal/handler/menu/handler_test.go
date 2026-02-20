@@ -43,7 +43,7 @@ func TestMenuHandlersConstruct(t *testing.T) {
 func TestGetMenusHandler_Success(t *testing.T) {
 	db := setupMenuHandlerTestDB(t)
 
-	menu := &model.Menu{Name: "Dashboard", Code: "dashboard", Path: "/dashboard", Type: "menu", Platform: "admin", Status: "active"}
+	menu := &model.Menu{Name: "Dashboard", Code: testutil.GenUniqueCode("dashboard"), Path: "/dashboard", Type: "menu", Platform: "admin", Status: "active"}
 	db.Create(menu)
 
 	svcCtx := &svc.ServiceContext{DB: db}
@@ -145,7 +145,7 @@ func TestGetUserMenusHandler_ParseError(t *testing.T) {
 func TestGetMenuHandler_Success(t *testing.T) {
 	db := setupMenuHandlerTestDB(t)
 
-	menu := &model.Menu{Name: "Dashboard", Code: "dashboard", Path: "/dashboard", Type: "menu", Platform: "admin", Status: "active"}
+	menu := &model.Menu{Name: "Dashboard", Code: testutil.GenUniqueCode("dashboard"), Path: "/dashboard", Type: "menu", Platform: "admin", Status: "active"}
 	db.Create(menu)
 
 	svcCtx := &svc.ServiceContext{DB: db}
@@ -175,7 +175,7 @@ func TestGetMenuHandler_NotFound(t *testing.T) {
 func TestDeleteMenuHandler_Success(t *testing.T) {
 	db := setupMenuHandlerTestDB(t)
 
-	menu := &model.Menu{Name: "Dashboard", Code: "dashboard", Path: "/dashboard", Type: "menu", Platform: "admin", Status: "active"}
+	menu := &model.Menu{Name: "Dashboard", Code: testutil.GenUniqueCode("dashboard"), Path: "/dashboard", Type: "menu", Platform: "admin", Status: "active"}
 	db.Create(menu)
 
 	svcCtx := &svc.ServiceContext{DB: db}
@@ -205,13 +205,13 @@ func TestGetMenusHandler_EmptyList(t *testing.T) {
 func TestGetUserMenusHandler_Success(t *testing.T) {
 	db := setupMenuHandlerTestDB(t)
 
-	user := &model.User{Username: "testuser", Password: "pass", Phone: testutil.GenUniquePhone(), Status: "active"}
+	user := &model.User{Username: testutil.GenUniqueUsername("testuser"), Password: "pass", Phone: testutil.GenUniquePhone(), Status: "active"}
 	db.Create(user)
 
-	role := &model.Role{Name: "admin", Code: "admin"}
+	role := &model.Role{Name: "admin", Code: testutil.GenUniqueCode("admin")}
 	db.Create(role)
 
-	menu := &model.Menu{Name: "Dashboard", Code: "dashboard", Path: "/dashboard", Type: "menu", Platform: "admin", Status: "active"}
+	menu := &model.Menu{Name: "Dashboard", Code: testutil.GenUniqueCode("dashboard"), Path: "/dashboard", Type: "menu", Platform: "admin", Status: "active"}
 	db.Create(menu)
 
 	userRole := &model.UserRole{UserID: user.Id, RoleID: role.ID}
@@ -247,7 +247,7 @@ func TestGetMenuHandler_ParseError(t *testing.T) {
 func TestUpdateMenuHandler_Success(t *testing.T) {
 	db := setupMenuHandlerTestDB(t)
 	// Create a sample menu to update
-	menu := &model.Menu{Name: "Dashboard", Code: "dashboard", Path: "/dashboard", Type: "menu", Platform: "admin", Status: "active"}
+	menu := &model.Menu{Name: "Dashboard", Code: testutil.GenUniqueCode("dashboard"), Path: "/dashboard", Type: "menu", Platform: "admin", Status: "active"}
 	db.Create(menu)
 
 	svcCtx := &svc.ServiceContext{DB: db}
@@ -273,9 +273,9 @@ func TestUpdateMenuHandler_Success(t *testing.T) {
 func TestConfigRoleMenusHandler_Success(t *testing.T) {
 	db := setupMenuHandlerTestDB(t)
 	// Seed a role and a menu to associate
-	role := &model.Role{Name: "admin", Code: "admin"}
+	role := &model.Role{Name: "admin", Code: testutil.GenUniqueCode("admin")}
 	db.Create(role)
-	menu := &model.Menu{Name: "Dashboard", Code: "dashboard", Path: "/dashboard", Type: "menu", Platform: "admin", Status: "active"}
+	menu := &model.Menu{Name: "Dashboard", Code: testutil.GenUniqueCode("dashboard"), Path: "/dashboard", Type: "menu", Platform: "admin", Status: "active"}
 	db.Create(menu)
 
 	svcCtx := &svc.ServiceContext{DB: db}

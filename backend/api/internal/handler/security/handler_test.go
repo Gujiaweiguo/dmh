@@ -68,10 +68,10 @@ func TestGetPasswordPolicyHandler_Success(t *testing.T) {
 func TestGetAuditLogsHandler_Success(t *testing.T) {
 	db := setupSecurityHandlerTestDB(t)
 
-	user := &model.User{Username: "admin", Password: "pass", Phone: testutil.GenUniquePhone(), Status: "active"}
+	user := &model.User{Username: testutil.GenUniqueUsername("admin"), Password: "pass", Phone: testutil.GenUniquePhone(), Status: "active"}
 	db.Create(user)
 
-	auditLog := &model.AuditLog{UserID: &user.Id, Username: "admin", Action: "login", Resource: "auth", Status: "success"}
+	auditLog := &model.AuditLog{UserID: &user.Id, Username: testutil.GenUniqueUsername("admin"), Action: "login", Resource: "auth", Status: "success"}
 	db.Create(auditLog)
 
 	svcCtx := &svc.ServiceContext{DB: db}
@@ -96,7 +96,7 @@ func TestGetAuditLogsHandler_Success(t *testing.T) {
 func TestGetLoginAttemptsHandler_Success(t *testing.T) {
 	db := setupSecurityHandlerTestDB(t)
 
-	attempt := &model.LoginAttempt{Username: "testuser", ClientIP: "192.168.1.1", Success: false}
+	attempt := &model.LoginAttempt{Username: testutil.GenUniqueUsername("testuser"), ClientIP: "192.168.1.1", Success: false}
 	db.Create(attempt)
 
 	svcCtx := &svc.ServiceContext{DB: db}
@@ -121,7 +121,7 @@ func TestGetLoginAttemptsHandler_Success(t *testing.T) {
 func TestGetSecurityEventsHandler_Success(t *testing.T) {
 	db := setupSecurityHandlerTestDB(t)
 
-	event := &model.SecurityEvent{EventType: "login_failed", Severity: "medium", Username: "testuser", ClientIP: "192.168.1.1", Description: "Failed login attempt"}
+	event := &model.SecurityEvent{EventType: "login_failed", Severity: "medium", Username: testutil.GenUniqueUsername("testuser"), ClientIP: "192.168.1.1", Description: "Failed login attempt"}
 	db.Create(event)
 
 	svcCtx := &svc.ServiceContext{DB: db}
@@ -146,7 +146,7 @@ func TestGetSecurityEventsHandler_Success(t *testing.T) {
 func TestGetUserSessionsHandler_Success(t *testing.T) {
 	db := setupSecurityHandlerTestDB(t)
 
-	user := &model.User{Username: "testuser", Password: "pass", Phone: testutil.GenUniquePhone(), Status: "active"}
+	user := &model.User{Username: testutil.GenUniqueUsername("testuser"), Password: "pass", Phone: testutil.GenUniquePhone(), Status: "active"}
 	db.Create(user)
 
 	session := &model.UserSession{ID: "session-123", UserID: user.Id, UserAgent: "test-agent", ClientIP: "192.168.1.1", Status: "active"}
@@ -174,7 +174,7 @@ func TestGetUserSessionsHandler_Success(t *testing.T) {
 func TestRevokeSessionHandler_Success(t *testing.T) {
 	db := setupSecurityHandlerTestDB(t)
 
-	user := &model.User{Username: "testuser", Password: "pass", Phone: testutil.GenUniquePhone(), Status: "active"}
+	user := &model.User{Username: testutil.GenUniqueUsername("testuser"), Password: "pass", Phone: testutil.GenUniquePhone(), Status: "active"}
 	db.Create(user)
 
 	session := &model.UserSession{ID: "session-456", UserID: user.Id, UserAgent: "test-agent", ClientIP: "192.168.1.1", Status: "active"}
@@ -200,7 +200,7 @@ func TestRevokeSessionHandler_Success(t *testing.T) {
 func TestForceLogoutUserHandler_Success(t *testing.T) {
 	db := setupSecurityHandlerTestDB(t)
 
-	user := &model.User{Username: "testuser", Password: "pass", Phone: testutil.GenUniquePhone(), Status: "active"}
+	user := &model.User{Username: testutil.GenUniqueUsername("testuser"), Password: "pass", Phone: testutil.GenUniquePhone(), Status: "active"}
 	db.Create(user)
 	session := &model.UserSession{ID: "force-logout-session", UserID: user.Id, UserAgent: "test-agent", ClientIP: "192.168.1.1", Status: "active"}
 	db.Create(session)
@@ -227,7 +227,7 @@ func TestForceLogoutUserHandler_Success(t *testing.T) {
 func TestHandleSecurityEventHandler_Success(t *testing.T) {
 	db := setupSecurityHandlerTestDB(t)
 
-	event := &model.SecurityEvent{EventType: "test_event", Severity: "low", Username: "testuser", ClientIP: "192.168.1.1", Description: "Test event"}
+	event := &model.SecurityEvent{EventType: "test_event", Severity: "low", Username: testutil.GenUniqueUsername("testuser"), ClientIP: "192.168.1.1", Description: "Test event"}
 	db.Create(event)
 
 	svcCtx := &svc.ServiceContext{DB: db}

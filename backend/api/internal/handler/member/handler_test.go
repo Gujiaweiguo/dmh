@@ -40,7 +40,7 @@ func TestMemberHandlersConstruct(t *testing.T) {
 func TestGetMembersHandler_Success(t *testing.T) {
 	db := setupMemberHandlerTestDB(t)
 
-	member := &model.Member{UnionID: "union123", Nickname: "Test Member", Phone: testutil.GenUniquePhone(), Status: "active"}
+	member := &model.Member{UnionID: testutil.GenUniqueUnionID(), Nickname: "Test Member", Phone: testutil.GenUniquePhone(), Status: "active"}
 	db.Create(member)
 
 	svcCtx := &svc.ServiceContext{DB: db}
@@ -111,7 +111,7 @@ func TestUpdateMemberStatusHandler_ParseError(t *testing.T) {
 func TestGetMemberHandler_Success(t *testing.T) {
 	db := setupMemberHandlerTestDB(t)
 
-	member := &model.Member{UnionID: "union123", Nickname: "Test Member", Phone: testutil.GenUniquePhone(), Status: "active"}
+	member := &model.Member{UnionID: testutil.GenUniqueUnionID(), Nickname: "Test Member", Phone: testutil.GenUniquePhone(), Status: "active"}
 	db.Create(member)
 
 	svcCtx := &svc.ServiceContext{DB: db}
@@ -141,7 +141,7 @@ func TestGetMemberHandler_NotFound(t *testing.T) {
 func TestGetMemberProfileHandler_Success(t *testing.T) {
 	db := setupMemberHandlerTestDB(t)
 
-	member := &model.Member{UnionID: "union123", Nickname: "Test Member", Phone: testutil.GenUniquePhone(), Status: "active"}
+	member := &model.Member{UnionID: testutil.GenUniqueUnionID(), Nickname: "Test Member", Phone: testutil.GenUniquePhone(), Status: "active"}
 	db.Create(member)
 
 	profile := &model.MemberProfile{MemberID: member.ID, TotalOrders: 5, TotalPayment: 100.00}
@@ -174,7 +174,7 @@ func TestGetMembersHandler_EmptyList(t *testing.T) {
 func TestGetMembersHandler_WithFilters(t *testing.T) {
 	db := setupMemberHandlerTestDB(t)
 
-	member := &model.Member{UnionID: "union123", Nickname: "Test Member", Phone: testutil.GenUniquePhone(), Status: "active"}
+	member := &model.Member{UnionID: testutil.GenUniqueUnionID(), Nickname: "Test Member", Phone: testutil.GenUniquePhone(), Status: "active"}
 	db.Create(member)
 
 	svcCtx := &svc.ServiceContext{DB: db}
@@ -191,7 +191,7 @@ func TestGetMembersHandler_WithFilters(t *testing.T) {
 func TestUpdateMemberHandler_Success(t *testing.T) {
 	db := setupMemberHandlerTestDB(t)
 
-	member := &model.Member{UnionID: "union123", Nickname: "Test Member", Phone: testutil.GenUniquePhone(), Status: "active"}
+	member := &model.Member{UnionID: testutil.GenUniqueUnionID(), Nickname: "Test Member", Phone: testutil.GenUniquePhone(), Status: "active"}
 	db.Create(member)
 
 	svcCtx := &svc.ServiceContext{DB: db}
@@ -233,7 +233,7 @@ func TestUpdateMemberHandler_InvalidPath(t *testing.T) {
 func TestUpdateMemberStatusHandler_Success(t *testing.T) {
 	db := setupMemberHandlerTestDB(t)
 
-	member := &model.Member{UnionID: "union123", Nickname: "Test Member", Phone: testutil.GenUniquePhone(), Status: "active"}
+	member := &model.Member{UnionID: testutil.GenUniqueUnionID(), Nickname: "Test Member", Phone: testutil.GenUniquePhone(), Status: "active"}
 	db.Create(member)
 
 	svcCtx := &svc.ServiceContext{DB: db}

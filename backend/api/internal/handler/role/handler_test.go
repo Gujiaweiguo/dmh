@@ -37,7 +37,7 @@ func TestRoleHandlersConstruct(t *testing.T) {
 func TestGetRolesHandler_Success(t *testing.T) {
 	db := setupRoleHandlerTestDB(t)
 
-	role := &model.Role{Name: "Admin", Code: "admin"}
+	role := &model.Role{Name: "Admin", Code: testutil.GenUniqueCode("admin")}
 	db.Create(role)
 
 	svcCtx := &svc.ServiceContext{DB: db}
@@ -103,7 +103,7 @@ func TestConfigRolePermissionsHandler_Success(t *testing.T) {
 
 func TestGetRolesHandler_Success_Content(t *testing.T) {
 	db := setupRoleHandlerTestDB(t)
-	role := &model.Role{Name: "Admin", Code: "admin"}
+	role := &model.Role{Name: "Admin", Code: testutil.GenUniqueCode("admin")}
 	db.Create(role)
 	svcCtx := &svc.ServiceContext{DB: db}
 	handler := GetRolesHandler(svcCtx)
@@ -169,7 +169,7 @@ func TestGetUserPermissionsHandler_Success(t *testing.T) {
 		t.Fatalf("Failed to migrate test tables: %v", err)
 	}
 
-	user := &model.User{Id: 1, Username: "testuser", Phone: testutil.GenUniquePhone()}
+	user := &model.User{Id: 1, Username: testutil.GenUniqueUsername("testuser"), Phone: testutil.GenUniquePhone()}
 	role := &model.Role{ID: 1, Name: "平台管理员", Code: "platform_admin"}
 	permission := &model.Permission{ID: 1, Name: "查看活动", Code: "campaign:read", Resource: "campaign", Action: "read"}
 	brand := &model.Brand{Id: 1, Name: "Test Brand"}
@@ -213,7 +213,7 @@ func TestGetUserPermissionsHandler_NoPermissions_Success(t *testing.T) {
 		t.Fatalf("Failed to migrate test tables: %v", err)
 	}
 
-	user := &model.User{Id: 2, Username: "emptyuser", Phone: testutil.GenUniquePhone()}
+	user := &model.User{Id: 2, Username: testutil.GenUniqueUsername("emptyuser"), Phone: testutil.GenUniquePhone()}
 	db.Create(user)
 
 	svcCtx := &svc.ServiceContext{DB: db}
@@ -249,7 +249,7 @@ func TestGetUserPermissionsHandler_Success_MultiRolesAndPerms(t *testing.T) {
 	db.Create(perm1)
 	db.Create(perm2)
 
-	user := &model.User{Id: 3, Username: "multirole", Phone: testutil.GenUniquePhone()}
+	user := &model.User{Id: 3, Username: testutil.GenUniqueUsername("multirole"), Phone: testutil.GenUniquePhone()}
 	db.Create(user)
 	ur1 := &model.UserRole{UserID: 3, RoleID: 1}
 	ur2 := &model.UserRole{UserID: 3, RoleID: 2}

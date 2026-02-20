@@ -44,7 +44,7 @@ func TestAdminHandlersConstruct(t *testing.T) {
 func TestGetUsersHandler_Success(t *testing.T) {
 	db := setupAdminHandlerTestDB(t)
 
-	user := &model.User{Username: "admin", Password: "pass", Phone: testutil.GenUniquePhone(), Status: "active", Role: "platform_admin"}
+	user := &model.User{Username: testutil.GenUniqueUsername("admin"), Password: "pass", Phone: testutil.GenUniquePhone(), Status: "active", Role: "platform_admin"}
 	db.Create(user)
 
 	svcCtx := &svc.ServiceContext{DB: db}
@@ -167,7 +167,7 @@ func TestManageBrandAdminRelationHandler_Success(t *testing.T) {
 	brand := &model.Brand{Name: "Test Brand", Status: "active"}
 	db.Create(brand)
 
-	user := &model.User{Username: "admin", Password: "pass", Phone: testutil.GenUniquePhone(), Status: "active", Role: "platform_admin"}
+	user := &model.User{Username: testutil.GenUniqueUsername("admin"), Password: "pass", Phone: testutil.GenUniquePhone(), Status: "active", Role: "platform_admin"}
 	db.Create(user)
 
 	svcCtx := &svc.ServiceContext{DB: db}
@@ -189,7 +189,7 @@ func TestManageBrandAdminRelationHandler_Success(t *testing.T) {
 
 func TestResetUserPasswordHandler_Success(t *testing.T) {
 	db := setupAdminHandlerTestDB(t)
-	user := &model.User{Username: "admin", Password: "pass", Phone: testutil.GenUniquePhone(), Status: "active", Role: "platform_admin"}
+	user := &model.User{Username: testutil.GenUniqueUsername("admin"), Password: "pass", Phone: testutil.GenUniquePhone(), Status: "active", Role: "platform_admin"}
 	db.Create(user)
 
 	svcCtx := &svc.ServiceContext{DB: db}
@@ -210,7 +210,7 @@ func TestResetUserPasswordHandler_Success(t *testing.T) {
 
 func TestUpdateUserHandler_Success(t *testing.T) {
 	db := setupAdminHandlerTestDB(t)
-	user := &model.User{Username: "admin", Password: "pass", Phone: testutil.GenUniquePhone(), Status: "active", Role: "platform_admin"}
+	user := &model.User{Username: testutil.GenUniqueUsername("admin"), Password: "pass", Phone: testutil.GenUniquePhone(), Status: "active", Role: "platform_admin"}
 	db.Create(user)
 
 	svcCtx := &svc.ServiceContext{DB: db}
@@ -258,7 +258,7 @@ func TestUpdateUserHandler_UsesPathID(t *testing.T) {
 
 func TestDeleteUserHandler_UsesPathID(t *testing.T) {
 	db := setupAdminHandlerTestDB(t)
-	user1 := &model.User{Username: "d1", Password: "pass", Phone: "13800138111", Status: "active"}
+	user1 := &model.User{Username: testutil.GenUniqueUsername("d1"), Password: "pass", Phone: testutil.GenUniquePhone(), Status: "active"}
 	user2 := &model.User{Username: "d2", Password: "pass", Phone: "13800138112", Status: "active"}
 	db.Create(user1)
 	db.Create(user2)
