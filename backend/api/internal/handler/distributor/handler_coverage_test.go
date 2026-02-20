@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"testing"
+	"time"
 
 	"dmh/api/internal/svc"
 	"dmh/api/internal/types"
@@ -17,6 +18,22 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
+
+func createTestCampaign(t *testing.T, db *gorm.DB, brandId int64, name string) *model.Campaign {
+	t.Helper()
+	campaign := &model.Campaign{
+		BrandId:    brandId,
+		Name:       name,
+		StartTime:  time.Now(),
+		EndTime:    time.Now().Add(24 * time.Hour),
+		Status:     "active",
+		RewardRule: 10,
+	}
+	if err := db.Create(campaign).Error; err != nil {
+		t.Fatalf("failed to create test campaign: %v", err)
+	}
+	return campaign
+}
 
 // Helper to initialise a fresh in-memory DB and seed common entities
 func seedBrandAndDistributor(t *testing.T, db *gorm.DB) *model.Brand {
@@ -31,11 +48,12 @@ func TestGetDistributorLinksHandler_WithDB(t *testing.T) {
 	db := setupDistributorHandlerTestDB(t)
 	user := createTestUser(t, db, "link_user")
 	brand := seedBrandAndDistributor(t, db)
+	campaign := createTestCampaign(t, db, brand.Id, "Test Campaign")
 	dist := &model.Distributor{UserId: user.Id, BrandId: brand.Id, Status: "active"}
 	if err := db.Create(dist).Error; err != nil {
 		t.Fatalf("failed to create distributor: %v", err)
 	}
-	link := &model.DistributorLink{DistributorId: dist.Id, CampaignId: brand.Id, LinkCode: "abcd1234"}
+	link := &model.DistributorLink{DistributorId: dist.Id, CampaignId: campaign.Id, LinkCode: "abcd1234"}
 	if err := db.Create(link).Error; err != nil {
 		t.Fatalf("failed to create distributor link: %v", err)
 	}
@@ -97,15 +115,15 @@ func TestGenerateDistributorLinkHandler_WithDB(t *testing.T) {
 	db := setupDistributorHandlerTestDB(t)
 	user := createTestUser(t, db, "gen_user")
 	brand := seedBrandAndDistributor(t, db)
-	dist := &model.Distributor{UserId: user.Id, BrandId: brand.Id, Status: "active"}
+	campaign := createTestCampaign(t, db, brand.Id, "Link Campaign")
+	dist := &model.Distributor{UserId: user.Id, BrandId: campaign.Id, Status: "active"}
 	if err := db.Create(dist).Error; err != nil {
 		t.Fatalf("failed to create distributor: %v", err)
 	}
-	// Prepare request to generate link with campaignId matching brand id (per logic)
 	svcCtx := &svc.ServiceContext{DB: db}
 	handler := GenerateDistributorLinkHandler(svcCtx)
 
-	reqBody := types.GenerateLinkReq{CampaignId: brand.Id}
+	reqBody := types.GenerateLinkReq{CampaignId: campaign.Id}
 	body, _ := json.Marshal(reqBody)
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/distributors/generate-link", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")

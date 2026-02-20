@@ -1,7 +1,6 @@
 package distributor
 
 import (
-	"dmh/api/internal/handler/testutil"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -10,7 +9,9 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
+	"dmh/api/internal/handler/testutil"
 	"dmh/api/internal/svc"
 	"dmh/api/internal/types"
 	"dmh/model"
@@ -40,8 +41,9 @@ func setupDistributorHandlerTestDB(t *testing.T) *gorm.DB {
 }
 
 func createTestBrand(t *testing.T, db *gorm.DB, name string) *model.Brand {
+	t.Helper()
 	brand := &model.Brand{
-		Name:   name,
+		Name:   name + fmt.Sprintf("_%d", time.Now().UnixNano()),
 		Status: "active",
 	}
 	if err := db.Create(brand).Error; err != nil {
@@ -50,11 +52,14 @@ func createTestBrand(t *testing.T, db *gorm.DB, name string) *model.Brand {
 	return brand
 }
 
-func createTestUser(t *testing.T, db *gorm.DB, username string) *model.User {
+func createTestUser(t *testing.T, db *gorm.DB, usernamePrefix string) *model.User {
+	t.Helper()
 	user := &model.User{
-		Username: username,
+		Username: testutil.GenUniqueUsername(usernamePrefix),
 		Password: "hashed_password",
+		Phone:    testutil.GenUniquePhone(),
 		Role:     "participant",
+		Status:   "active",
 	}
 	if err := db.Create(user).Error; err != nil {
 		t.Fatalf("Failed to create test user: %v", err)
