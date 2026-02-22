@@ -186,3 +186,132 @@ func TestGetPosterRecordsLogic(t *testing.T) {
 	assert.Equal(t, int64(2), resp.Total)
 	assert.Len(t, resp.Records, 2)
 }
+
+// Error path tests
+
+func TestGenerateCampaignPosterLogic_CampaignNotFound(t *testing.T) {
+	db := setupPosterTestDB(t)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewGenerateCampaignPosterLogic(context.Background(), svcCtx)
+
+	req := &types.GeneratePosterReq{
+		Id:         999, // Non-existent campaign
+		TemplateId: 1,
+	}
+
+	resp, err := logic.GenerateCampaignPoster(req)
+
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+	assert.Contains(t, err.Error(), "Campaign not found")
+}
+
+func TestGenerateCampaignPosterLogic_TemplateNotFound(t *testing.T) {
+	db := setupPosterTestDB(t)
+
+	campaign := &model.Campaign{
+		Id:               1,
+		Name:             "测试活动",
+		Description:      "这是一个测试活动",
+		PosterTemplateId: 999, // Non-existent template
+		StartTime:        time.Now().Add(-1 * time.Hour),
+		EndTime:          time.Now().Add(24 * time.Hour),
+		Status:           "active",
+		BrandId:          1,
+		RewardRule:       10,
+	}
+	db.Create(campaign)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewGenerateCampaignPosterLogic(context.Background(), svcCtx)
+
+	req := &types.GeneratePosterReq{
+		Id:         1,
+		TemplateId: 0, // Will use campaign's PosterTemplateId (999)
+	}
+
+	resp, err := logic.GenerateCampaignPoster(req)
+
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+	assert.Contains(t, err.Error(), "Poster template not found")
+}
+
+func TestGenerateDistributorPosterLogic_DistributorNotFound(t *testing.T) {
+	db := setupPosterTestDB(t)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewGenerateDistributorPosterLogic(context.Background(), svcCtx)
+
+	req := &types.GeneratePosterReq{
+		TemplateId: 1,
+	}
+
+	resp, err := logic.GenerateDistributorPoster(req, 999) // Non-existent distributor
+
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+	assert.Contains(t, err.Error(), "Distributor not found")
+}
+
+func TestGetPosterTemplatesLogic_NoFilters(t *testing.T) {
+	db := setupPosterTestDB(t)
+
+	template := &model.PosterTemplateConfig{
+		Id:           1,
+		Name:         "活动模板1",
+		PreviewImage: "/preview/image1.jpg",
+		Config:       model.PosterTemplateConfigData{},
+		Status:       "active",
+	}
+	db.Create(template)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewGetPosterTemplatesLogic(context.Background(), svcCtx)
+
+	req := &types.GetPosterTemplatesReq{
+		Page:     0, // No pagination
+		PageSize: 0,
+		Status:   "", // No status filter
+		Keyword:  "", // No keyword filter
+	}
+
+	resp, err := logic.GetPosterTemplates(req)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.GreaterOrEqual(t, resp.Total, int64(1))
+	assert.Len(t, resp.Templates, 1)
+}
+
+func TestGetPosterRecordsLogic_WithGeneratedBy(t *testing.T) {
+	db := setupPosterTestDB(t)
+
+	generatedBy := int64(123)
+	record := &model.PosterRecord{
+		ID:             1,
+		RecordType:     "campaign",
+		CampaignID:     1,
+		DistributorID:  0,
+		TemplateName:   "模板1",
+		PosterUrl:      "/poster1.jpg",
+		GenerationTime: 1000,
+		DownloadCount:  5,
+		ShareCount:     3,
+		Status:         "active",
+		GeneratedBy:    &generatedBy,
+	}
+	db.Create(record)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewGetPosterRecordsLogic(context.Background(), svcCtx)
+
+	resp, err := logic.GetPosterRecords()
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, int64(1), resp.Total)
+	assert.Len(t, resp.Records, 1)
+	assert.Equal(t, int64(123), resp.Records[0].GeneratedBy)
+}
