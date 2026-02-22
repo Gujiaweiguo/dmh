@@ -173,7 +173,7 @@ jobs:
           DMH_INTEGRATION_BASE_URL=$DMH_INTEGRATION_BASE_URL \
           DMH_TEST_ADMIN_USERNAME=$DMH_TEST_ADMIN_USERNAME \
           DMH_TEST_ADMIN_PASSWORD=$DMH_TEST_ADMIN_PASSWORD \
-          go test ./...
+          go test -p 1 ./...
 
       - name: Install frontend dependencies
         run: |

@@ -40,4 +40,4 @@ jobs:
 
       - name: Run feedback unit and handler tests
         working-directory: backend
-        run: go test ./api/internal/handler/feedback ./api/internal/logic/feedback
+        run: go test -p 1 ./api/internal/handler/feedback ./api/internal/logic/feedback

@@ -43,7 +43,7 @@ jobs:
       - name: Run tests with coverage
         working-directory: backend
         run: |
-          go test ./... -coverprofile=coverage.out -covermode=atomic
+          go test -p 1 ./... -coverprofile=coverage.out -covermode=atomic
           COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
           echo "Backend coverage: ${COVERAGE}%"
           echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
