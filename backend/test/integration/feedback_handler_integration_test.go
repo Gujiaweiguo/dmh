@@ -18,6 +18,7 @@ type FeedbackHandlerIntegrationTestSuite struct {
 	httpClient *http.Client
 	adminToken string
 	feedbackID int64
+	faqID      int64
 }
 
 func (suite *FeedbackHandlerIntegrationTestSuite) SetupSuite() {
@@ -128,12 +129,39 @@ func (suite *FeedbackHandlerIntegrationTestSuite) Test_2_ListFeedbackPublic() {
 func (suite *FeedbackHandlerIntegrationTestSuite) Test_3_ListFAQPublic() {
 	status, body := suite.doRequest(http.MethodGet, "/api/v1/feedback/faq", nil, "")
 	suite.Equal(http.StatusOK, status)
+
+	var resp struct {
+		Faqs []struct {
+			Id int64 `json:"id"`
+		} `json:"faqs"`
+	}
+	err := json.Unmarshal(body, &resp)
+	suite.NoError(err)
+	if len(resp.Faqs) > 0 {
+		suite.faqID = resp.Faqs[0].Id
+	}
 	suite.T().Logf("✓ FAQ 列表查询成功，状态码: %d，响应: %s", status, string(body))
 }
 
 func (suite *FeedbackHandlerIntegrationTestSuite) Test_4_MarkFAQHelpful() {
+	if suite.faqID == 0 {
+		status, body := suite.doRequest(http.MethodGet, "/api/v1/feedback/faq", nil, "")
+		suite.Equal(http.StatusOK, status)
+		var resp struct {
+			Faqs []struct {
+				Id int64 `json:"id"`
+			} `json:"faqs"`
+		}
+		err := json.Unmarshal(body, &resp)
+		suite.NoError(err)
+		if len(resp.Faqs) == 0 {
+			suite.T().Skip("无可用 FAQ，跳过 helpful 测试")
+		}
+		suite.faqID = resp.Faqs[0].Id
+	}
+
 	status, body := suite.doRequest(http.MethodPost, "/api/v1/feedback/faq/helpful", map[string]interface{}{
-		"id":   1,
+		"id":   suite.faqID,
 		"type": "helpful",
 	}, "")
 

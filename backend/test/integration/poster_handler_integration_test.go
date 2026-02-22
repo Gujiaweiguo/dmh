@@ -19,6 +19,7 @@ type PosterHandlerIntegrationTestSuite struct {
 	adminToken         string
 	existingCampaignID int64
 	existingDistID     int64
+	templateID         int64
 }
 
 func (suite *PosterHandlerIntegrationTestSuite) SetupSuite() {
@@ -136,10 +137,16 @@ func (suite *PosterHandlerIntegrationTestSuite) Test_1_GetPosterTemplatesPublic(
 	suite.Equal(http.StatusOK, status)
 
 	var resp struct {
-		Total int64 `json:"total"`
+		Total     int64 `json:"total"`
+		Templates []struct {
+			Id int64 `json:"id"`
+		} `json:"templates"`
 	}
 	err := json.Unmarshal(body, &resp)
 	suite.NoError(err)
+	if len(resp.Templates) > 0 {
+		suite.templateID = resp.Templates[0].Id
+	}
 	suite.T().Logf("✓ 海报模板列表查询成功，total=%d", resp.Total)
 }
 
@@ -159,9 +166,12 @@ func (suite *PosterHandlerIntegrationTestSuite) Test_3_GenerateCampaignPoster() 
 	if suite.existingCampaignID == 0 {
 		suite.T().Skip("无可用活动ID，跳过测试")
 	}
+	if suite.templateID == 0 {
+		suite.T().Skip("无可用海报模板ID，跳过测试")
+	}
 
 	path := fmt.Sprintf("/api/v1/campaigns/%d/poster", suite.existingCampaignID)
-	status, body := suite.doRequest(http.MethodPost, path, map[string]interface{}{"templateId": 1}, "")
+	status, body := suite.doRequest(http.MethodPost, path, map[string]interface{}{"templateId": suite.templateID}, "")
 	suite.Equal(http.StatusOK, status)
 
 	var resp struct {
