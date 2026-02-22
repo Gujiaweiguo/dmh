@@ -275,15 +275,18 @@ const uploadMaterial = async () => {
 
   uploading.value = true
   try {
-    // 调用API上传素材
-    const formData = new FormData()
-    formData.append('file', uploadForm.file)
-    formData.append('name', uploadForm.name)
-    formData.append('description', uploadForm.description)
-    formData.append('category', uploadForm.category)
-    
-    const response = await materialApi.uploadMaterial(formData)
+    // 调用API上传素材 - API expects (file, type)
+    const fileType = uploadForm.category || 'image'
+    const response = await materialApi.uploadMaterial(uploadForm.file, fileType)
     const newMaterial = response.data || response
+    
+    // 更新素材元数据（名称和描述）
+    if (newMaterial.id) {
+      // 如果API返回了新素材，添加额外信息
+      newMaterial.name = uploadForm.name
+      newMaterial.description = uploadForm.description
+      newMaterial.category = uploadForm.category
+    }
     
     // 添加到列表
     materials.value.unshift(newMaterial)
