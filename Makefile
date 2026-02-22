@@ -57,7 +57,7 @@ ps:
 test: test-backend test-admin test-h5
 
 test-backend:
-	cd backend && go test ./... -v
+	cd backend && go test -p 1 $$(go list ./... | grep -v -E 'dmh/test/integration|dmh/test/performance') -v
 
 test-integration:
 	cd backend && DMH_INTEGRATION_BASE_URL=http://localhost:8889 go test ./test/integration/... -v -count=1
@@ -80,8 +80,8 @@ test-e2e-headless:
 	cd frontend-h5 && npm run test:e2e:headless
 
 backend-coverage:
-	cd backend && go test ./... -coverprofile=coverage.out -covermode=atomic
-	cd backend && go tool cover -func=coverage.out | awk '/total:/ {split($$0,a," "); if (a[3] >= 0.76) { print "Backend coverage OK"; exit 0 } else { print "Backend coverage not enough: " a[3]; exit 1 } }'
+	cd backend && go test -p 1 ./... -coverprofile=coverage.out -covermode=atomic
+	cd backend && go tool cover -func=coverage.out | awk '/total:/ { gsub("%","",$$3); if ($$3 + 0 >= 76) { print "Backend coverage OK (" $$3 "%)"; exit 0 } else { print "Backend coverage not enough: " $$3 "%"; exit 1 } }'
 
 admin-coverage:
 	cd frontend-admin && npm run test:cov 2>&1 | tee /tmp/dmh-admin-coverage.log
