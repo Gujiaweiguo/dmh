@@ -91,11 +91,11 @@ go run api/dmh.go -f api/etc/dmh-api.yaml
 # Build
 go build -o dmh-api api/dmh.go
 
-# Test all
-go test ./...
+# Test all (MUST use -p 1 for database isolation)
+go test -p 1 ./...
 
 # Test with coverage
-go test ./... -coverprofile=coverage.out
+go test -p 1 ./... -coverprofile=coverage.out
 
 # Integration tests (requires running API)
 DMH_INTEGRATION_BASE_URL=http://localhost:8889 \
@@ -116,6 +116,31 @@ gofmt -w .
 - Location: `test/integration/`
 - Requires: Running API at `localhost:8889`
 - Env vars: `DMH_INTEGRATION_BASE_URL`, `DMH_TEST_ADMIN_USERNAME`, `DMH_TEST_ADMIN_PASSWORD`
+
+### Database Isolation
+**IMPORTANT**: Always use `-p 1` flag when running tests:
+```bash
+go test -p 1 ./...
+```
+
+Why? Integration tests share a common test database (`dmh_test`). Running tests in parallel causes:
+- Primary key conflicts (`Duplicate entry 'X' for key 'users.PRIMARY'`)
+- Race conditions in test data setup
+
+### Test Data Setup Pattern
+Use "delete-then-create" pattern for idempotent data initialization:
+```go
+// CORRECT: Delete first, then create (idempotent)
+suite.db.Exec("DELETE FROM users WHERE id IN (1,2,3)")
+for _, user := range users {
+    suite.db.Create(&user)
+}
+
+// WRONG: Check-then-create (race condition)
+if err := suite.db.Where("id = ?", user.Id).First(&existing).Error; err != nil {
+    suite.db.Create(&user)  // Can fail with duplicate key
+}
+```
 
 ### Coverage Target
 - Current: ~68%
