@@ -192,6 +192,7 @@ import {
   formatOrderDateTime,
   getOrderStatusText,
 } from './orders.logic.js'
+import { orderApi } from '@/services/brandApi.js'
 
 const orders = ref([])
 const loading = ref(false)
@@ -233,66 +234,27 @@ const formatDateTime = (dateString) => {
 const loadOrders = async () => {
   loading.value = true
   try {
-    const token = localStorage.getItem('dmh_token')
-    // TODO: 调用真实API
-    // const response = await fetch('/api/v1/orders', {
-    //   headers: { 'Authorization': `Bearer ${token}` }
-    // })
-    
-    // 模拟数据
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    orders.value = [
-      {
-        id: 1001,
-        campaignName: '春节特惠活动',
-        phone: '138****1234',
-        amount: 99.00,
-        status: 'paid',
-        referrerId: 2001,
-        referrerName: '张推广',
-        rewardAmount: 20.00,
-        createdAt: '2026-01-01 14:30:00',
-        formData: {
-          '姓名': '李小明',
-          '年龄': '25',
-          '城市': '北京'
-        }
-      },
-      {
-        id: 1002,
-        campaignName: '会员招募计划',
-        phone: '139****5678',
-        amount: 199.00,
-        status: 'pending',
-        referrerId: null,
-        rewardAmount: 0,
-        createdAt: '2026-01-01 15:45:00',
-        formData: {
-          '姓名': '王小红',
-          '手机号': '139****5678'
-        }
-      },
-      {
-        id: 1003,
-        campaignName: '春节特惠活动',
-        phone: '137****9999',
-        amount: 99.00,
-        status: 'paid',
-        referrerId: 2002,
-        referrerName: '李推广',
-        rewardAmount: 20.00,
-        createdAt: '2026-01-01 16:20:00',
-        formData: {
-          '姓名': '赵小强',
-          '邮箱': 'zhao@example.com'
-        }
-      }
-    ]
-
+    const response = await orderApi.getOrders()
+    // Map API response to component format
+    const orderList = response.data?.list || response.list || response.data || []
+    orders.value = orderList.map(order => ({
+      id: order.id,
+      campaignId: order.campaignId,
+      campaignName: order.campaignName || order.campaign?.name || '未知活动',
+      phone: order.phone,
+      amount: order.amount || 0,
+      status: order.status || 'pending',
+      referrerId: order.referrerId,
+      referrerName: order.referrerName || '',
+      rewardAmount: order.rewardAmount || 0,
+      createdAt: order.createdAt,
+      formData: order.formData || {}
+    }))
     calculateStats()
   } catch (error) {
     console.error('加载订单失败:', error)
+    // 如果API调用失败，保留空列表
+    orders.value = []
   } finally {
     loading.value = false
   }
@@ -308,7 +270,7 @@ const calculateStats = () => {
 
 const processOrder = async (order, newStatus) => {
   try {
-    // TODO: 调用API更新订单状态
+    await orderApi.updateOrderStatus(order.id, newStatus)
     const next = applyOrderStatus(order, newStatus)
     Object.assign(order, next)
     calculateStats()
@@ -317,6 +279,16 @@ const processOrder = async (order, newStatus) => {
     alert('处理订单失败')
   }
 }
+
+
+
+
+
+
+
+
+
+
 
 const exportOrder = (order) => {
   // TODO: 实现订单导出功能
