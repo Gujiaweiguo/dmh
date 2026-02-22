@@ -268,62 +268,16 @@ const formatTime = (timeString) => {
 const loadPromoters = async () => {
   loading.value = true
   try {
-    // TODO: 调用真实API
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    const [promotersRes, campaignsRes] = await Promise.all([
+      promoterApi.getPromoters(),
+      campaignApi.getCampaigns()
+    ])
     
-    promoters.value = [
-      {
-        id: 1,
-        name: '张推广',
-        phone: '138****1234',
-        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Zhang',
-        status: 'active',
-        level: 'VIP',
-        totalOrders: 156,
-        totalRewards: 3120,
-        conversionRate: 15.6,
-        joinDate: '2025-12-01',
-        recentActivities: [
-          { id: 1, description: '推广春节活动获得奖励 ¥88', time: '2026-01-01 14:30:00' },
-          { id: 2, description: '新增推广订单 3 个', time: '2026-01-01 10:15:00' }
-        ]
-      },
-      {
-        id: 2,
-        name: '李推广',
-        phone: '139****5678',
-        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Li',
-        status: 'active',
-        level: '金牌',
-        totalOrders: 89,
-        totalRewards: 1780,
-        conversionRate: 12.3,
-        joinDate: '2025-11-15',
-        recentActivities: [
-          { id: 1, description: '推广会员活动获得奖励 ¥66', time: '2026-01-01 16:20:00' }
-        ]
-      },
-      {
-        id: 3,
-        name: '王推广',
-        phone: '137****9999',
-        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Wang',
-        status: 'inactive',
-        level: '银牌',
-        totalOrders: 23,
-        totalRewards: 460,
-        conversionRate: 8.7,
-        joinDate: '2025-10-20',
-        recentActivities: [
-          { id: 1, description: '7天未活跃', time: '2025-12-25 00:00:00' }
-        ]
-      }
-    ]
-
-    campaigns.value = [
-      { id: 1, name: '春节特惠活动' },
-      { id: 2, name: '会员招募计划' }
-    ]
+    const promotersData = promotersRes.data || promotersRes
+    promoters.value = Array.isArray(promotersData) ? promotersData : (promotersData.list || [])
+    
+    const campaignsData = campaignsRes.data || campaignsRes
+    campaigns.value = Array.isArray(campaignsData) ? campaignsData : (campaignsData.list || [])
 
     calculateStats()
   } catch (error) {

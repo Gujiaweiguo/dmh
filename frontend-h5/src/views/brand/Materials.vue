@@ -248,7 +248,9 @@ const formatDate = (dateString) => {
 
 const loadMaterials = async () => {
   try {
-    materials.value = getMockMaterials()
+    const response = await materialApi.getMaterials()
+    const data = response.data || response
+    materials.value = Array.isArray(data) ? data : (data.list || [])
   } catch (error) {
     console.error('加载素材失败:', error)
   }
@@ -273,15 +275,21 @@ const uploadMaterial = async () => {
 
   uploading.value = true
   try {
-    // TODO: 实现文件上传
-    const newMaterial = createUploadedMaterial({
-      id: Date.now(),
-      name: uploadForm.name,
-      description: uploadForm.description,
-      category: uploadForm.category,
-      url: URL.createObjectURL(uploadForm.file),
-      createdAt: new Date().toISOString().split('T')[0],
-    })
+    // 调用API上传素材
+    const formData = new FormData()
+    formData.append('file', uploadForm.file)
+    formData.append('name', uploadForm.name)
+    formData.append('description', uploadForm.description)
+    formData.append('category', uploadForm.category)
+    
+    const response = await materialApi.uploadMaterial(formData)
+    const newMaterial = response.data || response
+    
+    // 添加到列表
+    materials.value.unshift(newMaterial)
+    showUploadModal.value = false
+    // Reset form
+    Object.assign(uploadForm, getDefaultUploadForm())
     
     materials.value.unshift(newMaterial)
     
