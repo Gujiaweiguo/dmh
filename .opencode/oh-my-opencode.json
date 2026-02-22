@@ -33,6 +33,16 @@
     }
   },
   "lsp": {
+    "gopls": {
+      "command": [
+        "bash",
+        "-lc",
+        "cd /opt/code/dmh && /opt/module/gopath/bin/gopls serve"
+      ],
+      "extensions": [
+        ".go"
+      ]
+    },
     "remark-md": {
       "command": [
         "bash",

@@ -14,7 +14,7 @@
 
 **执行**:
 ```bash
-cd /opt/code/DMH/deploy
+cd /opt/code/dmh/deploy
 docker compose -f docker-compose-simple.yml ps
 ```
 

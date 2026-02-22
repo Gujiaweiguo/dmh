@@ -107,7 +107,7 @@ Scenario: Backend coverage meets 80% threshold
   Tool: Bash
   Preconditions: Backend tests implemented
   Steps:
-    1. cd /opt/code/DMH/backend
+    1. cd /opt/code/dmh/backend
     2. go test ./... -coverprofile=coverage.out -covermode=atomic
     3. go tool cover -func=coverage.out | grep total
     4. Assert: percentage >= 80.0
@@ -118,7 +118,7 @@ Scenario: Frontend-admin coverage meets 70% threshold
   Tool: Bash
   Preconditions: Frontend tests implemented
   Steps:
-    1. cd /opt/code/DMH/frontend-admin
+    1. cd /opt/code/dmh/frontend-admin
     2. npm run test:cov 2>&1 | tail -20
     3. Extract "All files" line percentage
     4. Assert: Stmts >= 70%
@@ -457,18 +457,18 @@ Parallel Speedup: ~40% faster than sequential
 
 ```bash
 # 后端覆盖率检查 (MUST show ≥80%)
-cd /opt/code/DMH/backend
+cd /opt/code/dmh/backend
 go test ./... -coverprofile=coverage.out -covermode=atomic
 go tool cover -func=coverage.out | grep total
 # Expected: total: (statements) 8X.X%
 
 # 前端 Admin 覆盖率检查 (MUST show ≥70%)
-cd /opt/code/DMH/frontend-admin
+cd /opt/code/dmh/frontend-admin
 npm run test:cov 2>&1 | tail -5
 # Expected: All files | 7X.X | ...
 
 # 前端 H5 覆盖率检查 (MUST show ≥80%)
-cd /opt/code/DMH/frontend-h5
+cd /opt/code/dmh/frontend-h5
 npm run test:cov 2>&1 | tail -5
 # Expected: All files | 8X.X | ...
 
