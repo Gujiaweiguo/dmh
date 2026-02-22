@@ -842,3 +842,124 @@ func TestSetDistributorLevelRewardsLogic_UpdateExisting(t *testing.T) {
 	db.Where("brand_id = ? AND level = ?", brand.Id, 1).First(&updatedReward)
 	assert.Equal(t, 8.0, updatedReward.RewardPercentage)
 }
+
+func TestGetBrandDistributorLogic_Success(t *testing.T) {
+	db := setupDistributorTestDB(t)
+
+	user := createTestUser(t, db, "dist_user")
+	brand := createTestBrand(t, db, "TestBrand")
+
+	distributor := &model.Distributor{
+		UserId:            user.Id,
+		BrandId:           brand.Id,
+		Level:             1,
+		Status:            "active",
+		TotalEarnings:     1000.00,
+		SubordinatesCount: 5,
+	}
+	db.Create(distributor)
+
+	ctx := context.WithValue(context.Background(), "distributorId", distributor.Id)
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewGetBrandDistributorLogic(ctx, svcCtx)
+
+	resp, err := logic.GetBrandDistributor()
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, distributor.Id, resp.Id)
+	assert.Equal(t, user.Username, resp.Username)
+	assert.Equal(t, brand.Name, resp.BrandName)
+}
+
+func TestGetBrandDistributorLogic_NotFound(t *testing.T) {
+	db := setupDistributorTestDB(t)
+
+	ctx := context.WithValue(context.Background(), "distributorId", int64(99999))
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewGetBrandDistributorLogic(ctx, svcCtx)
+
+	resp, err := logic.GetBrandDistributor()
+
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+}
+
+func TestGetBrandDistributorLogic_WithParent(t *testing.T) {
+	db := setupDistributorTestDB(t)
+
+	parentUser := createTestUser(t, db, "parent_user")
+	brand := createTestBrand(t, db, "TestBrand")
+
+	parentDist := &model.Distributor{
+		UserId:            parentUser.Id,
+		BrandId:           brand.Id,
+		Level:             1,
+		Status:            "active",
+		TotalEarnings:     5000.00,
+		SubordinatesCount: 10,
+	}
+	db.Create(parentDist)
+
+	childUser := createTestUser(t, db, "child_user")
+	childDist := &model.Distributor{
+		UserId:            childUser.Id,
+		BrandId:           brand.Id,
+		Level:             2,
+		ParentId:          &parentDist.Id,
+		Status:            "active",
+		TotalEarnings:     500.00,
+		SubordinatesCount: 2,
+	}
+	db.Create(childDist)
+
+	ctx := context.WithValue(context.Background(), "distributorId", childDist.Id)
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewGetBrandDistributorLogic(ctx, svcCtx)
+
+	resp, err := logic.GetBrandDistributor()
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, childDist.Id, resp.Id)
+	assert.Equal(t, parentDist.Id, resp.ParentId)
+	assert.Equal(t, parentUser.Username, resp.ParentName)
+}
+
+func TestGetDistributorRewardsLogic_UserNotLoggedIn(t *testing.T) {
+	db := setupDistributorTestDB(t)
+
+	ctx := context.Background()
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewGetDistributorRewardsLogic(ctx, svcCtx)
+
+	req := &types.GetDistributorRewardsReq{
+		Page:     1,
+		PageSize: 10,
+	}
+
+	resp, err := logic.GetDistributorRewards(req)
+
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+	assert.Contains(t, err.Error(), "用户未登录")
+}
+
+func TestGetDistributorRewardsLogic_InvalidUserId(t *testing.T) {
+	db := setupDistributorTestDB(t)
+
+	ctx := context.WithValue(context.Background(), "userId", int64(0))
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewGetDistributorRewardsLogic(ctx, svcCtx)
+
+	req := &types.GetDistributorRewardsReq{
+		Page:     1,
+		PageSize: 10,
+	}
+
+	resp, err := logic.GetDistributorRewards(req)
+
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+	assert.Contains(t, err.Error(), "用户未登录")
+}
