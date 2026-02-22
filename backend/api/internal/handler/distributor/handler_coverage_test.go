@@ -86,7 +86,7 @@ func TestGetDistributorApplicationsHandler_WithDB_New(t *testing.T) {
 	svcCtx := &svc.ServiceContext{DB: db}
 	handler := GetDistributorApplicationsHandler(svcCtx)
 
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/distributors/applications?page=1&pageSize=10&brandId=1&status=pending", nil)
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/distributors/applications?page=1&pageSize=10&brandId=%d&status=pending", brand.Id), nil)
 	resp := httptest.NewRecorder()
 	handler(resp, req)
 	assert.Equal(t, http.StatusOK, resp.Code)
@@ -116,7 +116,7 @@ func TestGenerateDistributorLinkHandler_WithDB(t *testing.T) {
 	user := createTestUser(t, db, "gen_user")
 	brand := seedBrandAndDistributor(t, db)
 	campaign := createTestCampaign(t, db, brand.Id, "Link Campaign")
-	dist := &model.Distributor{UserId: user.Id, BrandId: campaign.Id, Status: "active"}
+	dist := &model.Distributor{UserId: user.Id, BrandId: brand.Id, Status: "active"}
 	if err := db.Create(dist).Error; err != nil {
 		t.Fatalf("failed to create distributor: %v", err)
 	}

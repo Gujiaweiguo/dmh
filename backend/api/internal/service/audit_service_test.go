@@ -1,6 +1,7 @@
 package service
 
 import (
+	"net/http/httptest"
 	"testing"
 
 	"dmh/model"
@@ -366,4 +367,31 @@ func (suite *AuditServiceTestSuite) TestDetectFrequentLoginFailures() {
 
 func TestAuditServiceTestSuite(t *testing.T) {
 	suite.Run(t, new(AuditServiceTestSuite))
+}
+
+func TestGetAuditContextFromHTTP(t *testing.T) {
+	uid := int64(99)
+	req := httptest.NewRequest("GET", "/api/v1/brands", nil)
+	req.Header.Set("X-Forwarded-For", "10.1.1.1, 10.1.1.2")
+	req.Header.Set("User-Agent", "unit-test-agent")
+
+	ctx := GetAuditContextFromHTTP(req, &uid, "tester")
+
+	assert.NotNil(t, ctx)
+	assert.Equal(t, &uid, ctx.UserID)
+	assert.Equal(t, "tester", ctx.Username)
+	assert.Equal(t, "10.1.1.1", ctx.ClientIP)
+	assert.Equal(t, "unit-test-agent", ctx.UserAgent)
+}
+
+func TestGetAuditContextFromHTTP_IPFallback(t *testing.T) {
+	req := httptest.NewRequest("GET", "/api/v1/brands", nil)
+	req.RemoteAddr = "127.0.0.1:34567"
+	req.Header.Set("X-Real-IP", "192.168.0.9")
+
+	ctx := GetAuditContextFromHTTP(req, nil, "anonymous")
+
+	assert.NotNil(t, ctx)
+	assert.Nil(t, ctx.UserID)
+	assert.Equal(t, "192.168.0.9", ctx.ClientIP)
 }

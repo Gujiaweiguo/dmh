@@ -364,13 +364,17 @@ func TestGetDistributorLinksHandler_Construct(t *testing.T) {
 func TestGetDistributorQrcodeHandler_WithDB(t *testing.T) {
 	db := setupDistributorHandlerTestDB(t)
 	user := createTestUser(t, db, "testuser")
+	brand := createTestBrand(t, db, "Test Brand")
 
 	distributor := &model.Distributor{
-		UserId: user.Id,
-		Level:  1,
-		Status: "active",
+		UserId:  user.Id,
+		BrandId: brand.Id,
+		Level:   1,
+		Status:  "active",
 	}
-	db.Create(distributor)
+	if err := db.Create(distributor).Error; err != nil {
+		t.Fatalf("Failed to create distributor: %v", err)
+	}
 
 	svcCtx := &svc.ServiceContext{DB: db}
 	handler := GetDistributorQrcodeHandler(svcCtx)
@@ -387,13 +391,17 @@ func TestGetDistributorQrcodeHandler_WithDB(t *testing.T) {
 func TestGetMyDistributorDashboardHandler_WithDB(t *testing.T) {
 	db := setupDistributorHandlerTestDB(t)
 	user := createTestUser(t, db, "testuser")
+	brand := createTestBrand(t, db, "Test Brand")
 
 	distributor := &model.Distributor{
-		UserId: user.Id,
-		Level:  1,
-		Status: "active",
+		UserId:  user.Id,
+		BrandId: brand.Id,
+		Level:   1,
+		Status:  "active",
 	}
-	db.Create(distributor)
+	if err := db.Create(distributor).Error; err != nil {
+		t.Fatalf("Failed to create distributor: %v", err)
+	}
 
 	svcCtx := &svc.ServiceContext{DB: db}
 	handler := GetMyDistributorDashboardHandler(svcCtx)
@@ -463,7 +471,9 @@ func TestGetBrandDistributorHandler_WithDB(t *testing.T) {
 		Level:   1,
 		Status:  "active",
 	}
-	db.Create(distributor)
+	if err := db.Create(distributor).Error; err != nil {
+		t.Fatalf("Failed to create distributor: %v", err)
+	}
 
 	svcCtx := &svc.ServiceContext{DB: db}
 	handler := GetBrandDistributorHandler(svcCtx)
@@ -487,7 +497,9 @@ func TestGetDistributorLevelRewardsHandler_WithDB(t *testing.T) {
 		Level:            1,
 		RewardPercentage: 10.0,
 	}
-	db.Create(reward)
+	if err := db.Create(reward).Error; err != nil {
+		t.Fatalf("Failed to create reward config: %v", err)
+	}
 
 	svcCtx := &svc.ServiceContext{DB: db}
 	handler := GetDistributorLevelRewardsHandler(svcCtx)
@@ -513,7 +525,9 @@ func TestUpdateDistributorStatusHandler_WithDB(t *testing.T) {
 		Level:   1,
 		Status:  "active",
 	}
-	db.Create(distributor)
+	if err := db.Create(distributor).Error; err != nil {
+		t.Fatalf("Failed to create distributor: %v", err)
+	}
 
 	svcCtx := &svc.ServiceContext{DB: db}
 	handler := UpdateDistributorStatusHandler(svcCtx)
@@ -545,7 +559,9 @@ func TestUpdateDistributorLevelHandler_WithDB(t *testing.T) {
 		Level:   1,
 		Status:  "active",
 	}
-	db.Create(distributor)
+	if err := db.Create(distributor).Error; err != nil {
+		t.Fatalf("Failed to create distributor: %v", err)
+	}
 
 	svcCtx := &svc.ServiceContext{DB: db}
 	handler := UpdateDistributorLevelHandler(svcCtx)
@@ -600,7 +616,9 @@ func TestApproveDistributorApplicationHandler_WithDB(t *testing.T) {
 		Reason:  "Test reason",
 		Status:  "pending",
 	}
-	db.Create(application)
+	if err := db.Create(application).Error; err != nil {
+		t.Fatalf("Failed to create application: %v", err)
+	}
 
 	svcCtx := &svc.ServiceContext{DB: db}
 	handler := ApproveDistributorApplicationHandler(svcCtx)
@@ -632,7 +650,9 @@ func TestGetDistributorApplicationHandler_WithDB(t *testing.T) {
 		Reason:  "Test reason",
 		Status:  "pending",
 	}
-	db.Create(application)
+	if err := db.Create(application).Error; err != nil {
+		t.Fatalf("Failed to create application: %v", err)
+	}
 
 	svcCtx := &svc.ServiceContext{DB: db}
 	handler := GetDistributorApplicationHandler(svcCtx)
@@ -657,7 +677,9 @@ func TestGetBrandDistributorApplicationHandler_WithDB(t *testing.T) {
 		Reason:  "Test reason",
 		Status:  "pending",
 	}
-	db.Create(application)
+	if err := db.Create(application).Error; err != nil {
+		t.Fatalf("Failed to create application: %v", err)
+	}
 
 	svcCtx := &svc.ServiceContext{DB: db}
 	handler := GetBrandDistributorApplicationHandler(svcCtx)
@@ -683,14 +705,28 @@ func TestTrackDistributorLinkHandler_WithDB(t *testing.T) {
 		Level:   1,
 		Status:  "active",
 	}
-	db.Create(distributor)
+	if err := db.Create(distributor).Error; err != nil {
+		t.Fatalf("Failed to create distributor: %v", err)
+	}
+	campaign := &model.Campaign{
+		BrandId:   brand.Id,
+		Name:      "Track Campaign",
+		StartTime: time.Now(),
+		EndTime:   time.Now().Add(24 * time.Hour),
+		Status:    "active",
+	}
+	if err := db.Create(campaign).Error; err != nil {
+		t.Fatalf("Failed to create campaign: %v", err)
+	}
 
 	link := &model.DistributorLink{
 		DistributorId: distributor.Id,
-		CampaignId:    brand.Id,
+		CampaignId:    campaign.Id,
 		LinkCode:      "testcode123",
 	}
-	db.Create(link)
+	if err := db.Create(link).Error; err != nil {
+		t.Fatalf("Failed to create distributor link: %v", err)
+	}
 
 	svcCtx := &svc.ServiceContext{DB: db}
 	handler := TrackDistributorLinkHandler(svcCtx)

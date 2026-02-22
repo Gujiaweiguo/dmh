@@ -365,6 +365,48 @@ func (suite *SessionServiceTestSuite) TestGetOnlineUsers() {
 	}
 }
 
+func (suite *SessionServiceTestSuite) TestGetSessionStatistics() {
+	userID := int64(1)
+	clientIP := "192.168.1.100"
+	userAgent := "Mozilla/5.0"
+
+	s1, err := suite.sessionService.CreateSession(userID, clientIP, userAgent)
+	assert.NoError(suite.T(), err)
+
+	s2, err := suite.sessionService.CreateSession(userID, clientIP, userAgent)
+	assert.NoError(suite.T(), err)
+
+	err = suite.sessionService.RevokeSession(s2.ID, "unit-test")
+	assert.NoError(suite.T(), err)
+
+	err = suite.db.Model(&model.UserSession{}).
+		Where("id = ?", s1.ID).
+		Update("expires_at", time.Now().Add(-1*time.Hour)).Error
+	assert.NoError(suite.T(), err)
+
+	stats, err := suite.sessionService.GetSessionStatistics()
+	assert.NoError(suite.T(), err)
+
+	activeSessions, ok := stats["active_sessions"].(int64)
+	assert.True(suite.T(), ok)
+	assert.Equal(suite.T(), int64(0), activeSessions)
+
+	todaySessions, ok := stats["today_sessions"].(int64)
+	assert.True(suite.T(), ok)
+	assert.GreaterOrEqual(suite.T(), todaySessions, int64(2))
+
+	expiredSessions, ok := stats["expired_sessions"].(int64)
+	assert.True(suite.T(), ok)
+	assert.GreaterOrEqual(suite.T(), expiredSessions, int64(1))
+
+	revokedSessions, ok := stats["revoked_sessions"].(int64)
+	assert.True(suite.T(), ok)
+	assert.GreaterOrEqual(suite.T(), revokedSessions, int64(1))
+
+	_, ok = stats["avg_session_duration"].(float64)
+	assert.True(suite.T(), ok)
+}
+
 func (suite *SessionServiceTestSuite) TestCleanupOldSessions() {
 	userID := int64(1)
 	clientIP := "192.168.1.100"
