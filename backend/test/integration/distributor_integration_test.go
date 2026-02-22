@@ -66,6 +66,10 @@ func (suite *DistributorIntegrationTestSuite) TearDownSuite() {
 }
 
 func (suite *DistributorIntegrationTestSuite) createTestData() {
+	// 使用 GORM 的 Unscoped().Delete 强制删除，确保幂等性
+	// 先删除所有依赖数据，再创建
+
+	// 1. 创建用户（先删除再创建）
 	users := []model.User{
 		{Id: 1, Username: "user1", Phone: "13800000001", Email: "user1@test.com", RealName: "用户1", Role: "participant", Status: "active"},
 		{Id: 2, Username: "user2", Phone: "13800000002", Email: "user2@test.com", RealName: "用户2", Role: "participant", Status: "active"},
@@ -75,26 +79,24 @@ func (suite *DistributorIntegrationTestSuite) createTestData() {
 		{Id: 6, Username: "user6", Phone: "13800000006", Email: "user6@test.com", RealName: "用户6", Role: "participant", Status: "active"},
 		{Id: 7, Username: "user7", Phone: "13800000007", Email: "user7@test.com", RealName: "用户7", Role: "participant", Status: "active"},
 	}
+	suite.db.Exec("DELETE FROM users WHERE id IN (1,2,3,4,5,6,7)")
 	for _, user := range users {
-		var existing model.User
-		if err := suite.db.Where("id = ?", user.Id).First(&existing).Error; err != nil {
-			suite.Require().NoError(suite.db.Create(&user).Error)
-		}
+		suite.Require().NoError(suite.db.Create(&user).Error)
 	}
 
+	// 2. 创建角色
 	roles := []model.Role{
 		{ID: 1, Name: "平台管理员", Code: "platform_admin"},
 		{ID: 2, Name: "品牌管理员", Code: "brand_admin"},
 		{ID: 3, Name: "参与者", Code: "participant"},
 		{ID: 4, Name: "分销商", Code: "distributor"},
 	}
+	suite.db.Exec("DELETE FROM roles WHERE id IN (1,2,3,4)")
 	for _, role := range roles {
-		var existing model.Role
-		if err := suite.db.Where("id = ?", role.ID).First(&existing).Error; err != nil {
-			suite.Require().NoError(suite.db.Create(&role).Error)
-		}
+		suite.Require().NoError(suite.db.Create(&role).Error)
 	}
 
+	// 3. 创建用户角色关系
 	userRoles := []model.UserRole{
 		{UserID: 1, RoleID: 3},
 		{UserID: 2, RoleID: 3},
@@ -104,23 +106,21 @@ func (suite *DistributorIntegrationTestSuite) createTestData() {
 		{UserID: 6, RoleID: 3},
 		{UserID: 7, RoleID: 3},
 	}
+	suite.db.Exec("DELETE FROM user_roles WHERE user_id IN (1,2,3,4,5,6,7)")
 	for _, ur := range userRoles {
-		var existing model.UserRole
-		if err := suite.db.Where("user_id = ? AND role_id = ?", ur.UserID, ur.RoleID).First(&existing).Error; err != nil {
-			suite.Require().NoError(suite.db.Create(&ur).Error)
-		}
+		suite.Require().NoError(suite.db.Create(&ur).Error)
 	}
 
+	// 4. 创建品牌
 	brands := []model.Brand{
 		{Id: 1, Name: "品牌A", Status: "active"},
 	}
+	suite.db.Exec("DELETE FROM brands WHERE id = 1")
 	for _, brand := range brands {
-		var existing model.Brand
-		if err := suite.db.Where("id = ?", brand.Id).First(&existing).Error; err != nil {
-			suite.Require().NoError(suite.db.Create(&brand).Error)
-		}
+		suite.Require().NoError(suite.db.Create(&brand).Error)
 	}
 
+	// 5. 创建用户品牌关系
 	userBrands := []model.UserBrand{
 		{UserId: 1, BrandId: 1},
 		{UserId: 2, BrandId: 1},
@@ -130,15 +130,13 @@ func (suite *DistributorIntegrationTestSuite) createTestData() {
 		{UserId: 6, BrandId: 1},
 		{UserId: 7, BrandId: 1},
 	}
+	suite.db.Exec("DELETE FROM user_brands WHERE user_id IN (1,2,3,4,5,6,7)")
 	for _, ub := range userBrands {
-		var existing model.UserBrand
-		if err := suite.db.Where("user_id = ? AND brand_id = ?", ub.UserId, ub.BrandId).First(&existing).Error; err != nil {
-			suite.Require().NoError(suite.db.Create(&ub).Error)
-		}
+		suite.Require().NoError(suite.db.Create(&ub).Error)
 	}
 
+	// 6. 创建活动
 	distributionRewards := `{"1": 10.0, "2": 5.0, "3": 3.0}`
-
 	campaigns := []model.Campaign{
 		{
 			Id:                  1,
@@ -154,24 +152,21 @@ func (suite *DistributorIntegrationTestSuite) createTestData() {
 			DistributionRewards: &distributionRewards,
 		},
 	}
+	suite.db.Exec("DELETE FROM campaigns WHERE id = 1")
 	for _, campaign := range campaigns {
-		var existing model.Campaign
-		if err := suite.db.Where("id = ?", campaign.Id).First(&existing).Error; err != nil {
-			suite.Require().NoError(suite.db.Create(&campaign).Error)
-		}
+		suite.Require().NoError(suite.db.Create(&campaign).Error)
 	}
 
+	// 7. 创建用户余额
+	suite.db.Exec("DELETE FROM user_balances WHERE user_id IN (1,2,3,4,5,6,7)")
 	for i := 1; i <= 7; i++ {
-		var existing model.UserBalance
-		if err := suite.db.Where("user_id = ?", i).First(&existing).Error; err != nil {
-			balance := &model.UserBalance{
-				UserId:      int64(i),
-				Balance:     0.0,
-				TotalReward: 0.0,
-				Version:     0,
-			}
-			suite.Require().NoError(suite.db.Create(balance).Error)
+		balance := &model.UserBalance{
+			UserId:      int64(i),
+			Balance:     0.0,
+			TotalReward: 0.0,
+			Version:     0,
 		}
+		suite.Require().NoError(suite.db.Create(balance).Error)
 	}
 }
 
