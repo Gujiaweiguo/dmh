@@ -389,3 +389,87 @@ func TestGetWithdrawalLogic(t *testing.T) {
 		})
 	}
 }
+
+func TestApplyWithdrawal_AmountZeroOrNegative(t *testing.T) {
+	db := setupWithdrawalTestDB(t)
+
+	user := &model.User{Id: 100, Username: "testuser_zero", Phone: "13900139000", Role: "participant", Status: "active"}
+	db.Create(user)
+
+	balance := &model.UserBalance{UserId: 100, Balance: 500}
+	db.Create(balance)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewApplyWithdrawalLogic(context.Background(), svcCtx)
+
+	req := &types.WithdrawalApplyReq{
+		Amount:      0,
+		BankName:    "ICBC",
+		BankAccount: "6222021234567890",
+		AccountName: "张三",
+	}
+
+	resp, err := logic.ApplyWithdrawal(req, 100)
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+	assert.Contains(t, err.Error(), "amount must be greater than 0")
+}
+
+func TestApplyWithdrawal_UserBalanceNotFound(t *testing.T) {
+	db := setupWithdrawalTestDB(t)
+
+	user := &model.User{Id: 101, Username: "testuser_nobalance", Phone: "13900139001", Role: "participant", Status: "active"}
+	db.Create(user)
+	// No UserBalance created
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewApplyWithdrawalLogic(context.Background(), svcCtx)
+
+	req := &types.WithdrawalApplyReq{
+		Amount:      100,
+		BankName:    "ICBC",
+		BankAccount: "6222021234567890",
+		AccountName: "张三",
+	}
+
+	resp, err := logic.ApplyWithdrawal(req, 101)
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+	assert.Contains(t, err.Error(), "failed to get user balance")
+}
+
+func TestApplyWithdrawal_PendingWithdrawalExists(t *testing.T) {
+	db := setupWithdrawalTestDB(t)
+
+	user := &model.User{Id: 102, Username: "testuser_pending", Phone: "13900139002", Role: "participant", Status: "active"}
+	db.Create(user)
+
+	balance := &model.UserBalance{UserId: 102, Balance: 500}
+	db.Create(balance)
+
+	// Create existing pending withdrawal
+	existingWithdrawal := &model.Withdrawal{
+		UserID:      102,
+		Amount:      50,
+		Status:      "pending",
+		BankName:    "ICBC",
+		BankAccount: "6222021234567890",
+		AccountName: "张三",
+	}
+	db.Create(existingWithdrawal)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewApplyWithdrawalLogic(context.Background(), svcCtx)
+
+	req := &types.WithdrawalApplyReq{
+		Amount:      100,
+		BankName:    "CCB",
+		BankAccount: "6222021234567891",
+		AccountName: "李四",
+	}
+
+	resp, err := logic.ApplyWithdrawal(req, 102)
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+	assert.Contains(t, err.Error(), "pending withdrawal exists")
+}

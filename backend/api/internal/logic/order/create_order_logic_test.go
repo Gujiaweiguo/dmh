@@ -237,3 +237,43 @@ func TestIsDuplicateOrderError_NonDuplicate(t *testing.T) {
 	err := fmt.Errorf("connection reset by peer")
 	assert.False(t, isDuplicateOrderError(err))
 }
+
+func TestValidateTextarea_Empty(t *testing.T) {
+	err := validateTextarea("")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "内容不能为空")
+}
+
+func TestValidateTextarea_WhitespaceOnly(t *testing.T) {
+	err := validateTextarea("   ")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "内容不能为空")
+}
+
+func TestValidateTextarea_Valid(t *testing.T) {
+	err := validateTextarea("Some content here")
+	assert.NoError(t, err)
+}
+
+func TestValidateAddress_TooShort(t *testing.T) {
+	err := validateAddress("北京")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "地址长度不能少于10个字符")
+}
+
+func TestValidateAddress_TooLong(t *testing.T) {
+	longAddress := "北京市朝阳区" + string(make([]byte, 250))
+	err := validateAddress(longAddress)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "地址长度不能超过200个字符")
+}
+
+func TestValidateAddress_Valid(t *testing.T) {
+	err := validateAddress("北京市朝阳区建国路88号")
+	assert.NoError(t, err)
+}
+
+func TestValidateAddress_Whitespace(t *testing.T) {
+	err := validateAddress("  北京市朝阳区建国路88号  ")
+	assert.NoError(t, err)
+}
