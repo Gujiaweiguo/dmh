@@ -231,6 +231,7 @@ import {
   EXPORT_TYPES,
   getExportTypeLabel
 } from './analytics.logic.js'
+import { analyticsApi, campaignApi, promoterApi } from '@/services/brandApi.js'
 
 const selectedPeriod = ref('month')
 
@@ -245,80 +246,36 @@ const topPromoters = ref([])
 
 const loadAnalyticsData = async () => {
   try {
-    // TODO: 调用真实API
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    // 并行调用所有API
+    const [metricsRes, trendsRes, campaignRes, promoterRes] = await Promise.all([
+      analyticsApi.getMetrics(selectedPeriod.value),
+      analyticsApi.getTrends(selectedPeriod.value),
+      analyticsApi.getCampaignRanking(selectedPeriod.value),
+      analyticsApi.getPromoterRanking(selectedPeriod.value)
+    ])
     
-    // 模拟核心指标数据
+    // 更新核心指标
+    const metricsData = metricsRes.data || metricsRes
     Object.assign(coreMetrics, {
-      totalRevenue: 156780,
-      totalOrders: 1234,
-      activePromoters: 89,
-      avgOrderValue: 127
+      totalRevenue: metricsData.totalRevenue || 0,
+      totalOrders: metricsData.totalOrders || 0,
+      activePromoters: metricsData.activePromoters || 0,
+      avgOrderValue: metricsData.avgOrderValue || 0
     })
 
-    // 模拟图表数据
-    chartData.orders = [
-      { date: '1/1', orders: 45, revenue: 5670 },
-      { date: '1/2', orders: 52, revenue: 6540 },
-      { date: '1/3', orders: 38, revenue: 4820 },
-      { date: '1/4', orders: 61, revenue: 7750 },
-      { date: '1/5', orders: 48, revenue: 6080 },
-      { date: '1/6', orders: 55, revenue: 6985 },
-      { date: '1/7', orders: 42, revenue: 5334 }
-    ]
+    // 更新图表数据
+    const trendsData = trendsRes.data || trendsRes
+    if (trendsData.orders && Array.isArray(trendsData.orders)) {
+      chartData.orders = trendsData.orders
+    }
 
-    // 模拟活动排行
-    topCampaigns.value = [
-      {
-        id: 1,
-        name: '春节特惠活动',
-        description: '新春佳节，推荐好友享双重奖励',
-        orders: 456,
-        revenue: 45600
-      },
-      {
-        id: 2,
-        name: '会员招募计划',
-        description: '招募品牌会员，享受专属优惠',
-        orders: 289,
-        revenue: 28900
-      },
-      {
-        id: 3,
-        name: '新品发布活动',
-        description: '新品首发，限时优惠',
-        orders: 178,
-        revenue: 17800
-      }
-    ]
+    // 更新活动排行
+    const campaignData = campaignRes.data || campaignRes
+    topCampaigns.value = Array.isArray(campaignData) ? campaignData : (campaignData.list || [])
 
-    // 模拟推广员排行
-    topPromoters.value = [
-      {
-        id: 1,
-        name: '张推广',
-        phone: '138****1234',
-        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Zhang',
-        orders: 156,
-        rewards: 3120
-      },
-      {
-        id: 2,
-        name: '李推广',
-        phone: '139****5678',
-        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Li',
-        orders: 89,
-        rewards: 1780
-      },
-      {
-        id: 3,
-        name: '王推广',
-        phone: '137****9999',
-        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Wang',
-        orders: 67,
-        rewards: 1340
-      }
-    ]
+    // 更新推广员排行
+    const promoterData = promoterRes.data || promoterRes
+    topPromoters.value = Array.isArray(promoterData) ? promoterData : (promoterData.list || [])
   } catch (error) {
     console.error('加载分析数据失败:', error)
   }
@@ -338,7 +295,6 @@ onMounted(() => {
   loadAnalyticsData()
 })
 </script>
-
 <style scoped>
 .brand-analytics {
   min-height: 100vh;
