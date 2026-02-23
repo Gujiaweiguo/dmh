@@ -69,10 +69,10 @@
 ## 建议实现顺序
 
 1. **第一阶段 (P1)**
-   - [ ] brandId 动态获取 (CampaignEditor.vue)
-   - [ ] Logo 上传功能 (Settings.vue)
-   - [ ] 订单导出功能 (Orders.vue)
-   - [ ] 订单详情页面 (Orders.vue)
+   - [x] brandId 动态获取 (CampaignEditor.vue) - implemented by `update-h5-brand-p1-features`
+   - [x] Logo 上传功能 (Settings.vue) - implemented by `update-h5-brand-p1-features`
+   - [x] 订单导出功能 (Orders.vue) - implemented by `update-h5-brand-p1-features`
+   - [x] 订单详情页面 (Orders.vue) - implemented by `update-h5-brand-p1-features`
 
 2. **第二阶段 (P2)**
    - [ ] 分页加载 (DistributorApproval.vue)
