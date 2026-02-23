@@ -222,3 +222,97 @@ describe('validateMaterialEdit', () => {
     expect(validateMaterialEdit({ name: '素材名称' })).toBe('')
   })
 })
+
+import {
+  buildAIGeneratePayload,
+  parseAIGenerateResponse,
+  createMaterialFromAI,
+} from '../../src/views/brand/materials.logic.js'
+
+describe('buildAIGeneratePayload', () => {
+  it('builds payload from form', () => {
+    const form = {
+      topic: '春节促销',
+      style: 'casual',
+      length: 'short',
+    }
+    const payload = buildAIGeneratePayload(form)
+    
+    expect(payload).toEqual({
+      topic: '春节促销',
+      style: 'casual',
+      length: 'short',
+    })
+  })
+
+  it('provides defaults for missing fields', () => {
+    const payload = buildAIGeneratePayload({})
+    
+    expect(payload).toEqual({
+      topic: '',
+      style: 'professional',
+      length: 'medium',
+    })
+  })
+
+  it('handles null form', () => {
+    const payload = buildAIGeneratePayload(null)
+    
+    expect(payload.topic).toBe('')
+    expect(payload.style).toBe('professional')
+  })
+})
+
+describe('parseAIGenerateResponse', () => {
+  it('parses response with content field', () => {
+    const response = { data: { content: '生成的文案内容' } }
+    const result = parseAIGenerateResponse(response)
+    
+    expect(result.content).toBe('生成的文案内容')
+  })
+
+  it('parses response with text field', () => {
+    const response = { data: { text: '备选文案' } }
+    const result = parseAIGenerateResponse(response)
+    
+    expect(result.content).toBe('备选文案')
+  })
+
+  it('handles response without data wrapper', () => {
+    const response = { content: '直接内容' }
+    const result = parseAIGenerateResponse(response)
+    
+    expect(result.content).toBe('直接内容')
+  })
+
+  it('returns empty content for null response', () => {
+    const result = parseAIGenerateResponse(null)
+    
+    expect(result.content).toBe('')
+    expect(result.name).toBeDefined()
+  })
+})
+
+describe('createMaterialFromAI', () => {
+  it('creates material with provided content', () => {
+    const material = createMaterialFromAI('春节活动', '这是AI生成的文案', '2026-02-23')
+    
+    expect(material.name).toBe('AI生成-春节活动')
+    expect(material.content).toBe('这是AI生成的文案')
+    expect(material.type).toBe('text')
+    expect(material.createdAt).toBe('2026-02-23')
+    expect(material.id).toBeDefined()
+  })
+
+  it('generates content when not provided', () => {
+    const material = createMaterialFromAI('春节活动', '', '2026-02-23')
+    
+    expect(material.content).toContain('春节活动')
+  })
+
+  it('uses current date when not provided', () => {
+    const material = createMaterialFromAI('测试', '内容')
+    
+    expect(material.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+  })
+})

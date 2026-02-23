@@ -287,7 +287,10 @@ import {
   copyMaterialToClipboard,
   getDefaultEditForm,
   validateMaterialEdit,
+  buildAIGeneratePayload,
+  createMaterialFromAI,
 } from './materials.logic.js'
+import { aiApi } from '../../services/brandApi.js'
 
 const materials = ref([])
 const currentCategory = ref('all')
@@ -391,20 +394,26 @@ const generateAIText = async () => {
 
   aiGenerating.value = true
   try {
-    // TODO: 调用AI文案生成API
-    await new Promise(resolve => setTimeout(resolve, 2000)) // 模拟API调用
+    const payload = buildAIGeneratePayload(aiTextForm)
+    let content = ''
     
-    const newMaterial = createAIGeneratedMaterial({
-      id: Date.now(),
-      topic: aiTextForm.topic,
-      createdAt: new Date().toISOString().split('T')[0],
-    })
+    try {
+      const response = await aiApi.generateCopywriting(payload)
+      const result = response?.data || response
+      content = result?.content || result?.text || ''
+    } catch (apiError) {
+      console.warn('AI API 调用失败，使用本地生成:', apiError)
+    }
+    
+    const newMaterial = createMaterialFromAI(
+      aiTextForm.topic,
+      content,
+      new Date().toISOString().split('T')[0]
+    )
     
     materials.value.unshift(newMaterial)
     
-    // 重置表单
     Object.assign(aiTextForm, getDefaultAITextForm())
-    
     showAITextModal.value = false
     alert('文案生成成功')
   } catch (error) {

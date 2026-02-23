@@ -283,3 +283,11 @@ export const settingsApi = {
     return api.get('/sync/health')
   }
 }
+
+// AI 文案生成 API
+export const aiApi = {
+  // 生成营销文案
+  generateCopywriting: (params) => {
+    return api.post('/ai/generate-copywriting', params)
+  }
+}

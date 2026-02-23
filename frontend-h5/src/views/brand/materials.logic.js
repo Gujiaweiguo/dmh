@@ -160,3 +160,30 @@ export const getDefaultEditForm = (material = null) => ({
   description: material?.description || '',
   category: material?.type || 'image',
 })
+
+export const buildAIGeneratePayload = (form) => {
+  return {
+    topic: form?.topic || '',
+    style: form?.style || 'professional',
+    length: form?.length || 'medium',
+  }
+}
+
+export const parseAIGenerateResponse = (response) => {
+  const data = response?.data || response
+  return {
+    content: data?.content || data?.text || '',
+    name: data?.name || `AI生成-${Date.now()}`,
+  }
+}
+
+export const createMaterialFromAI = (topic, content, createdAt) => {
+  return {
+    id: Date.now(),
+    name: `AI生成-${topic}`,
+    description: 'AI智能生成的营销文案',
+    type: 'text',
+    content: content || buildAIGeneratedText(topic),
+    createdAt: createdAt || new Date().toISOString().split('T')[0],
+  }
+}
