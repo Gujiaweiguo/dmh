@@ -82,3 +82,8 @@ func (l *GetPromoterDetailLogic) GetPromoterDetail(req *types.GetPromoterDetailR
 
 	return resp, nil
 }
+
+
+func (l *GetPromoterDetailLogic) GetPromoterDetailById(id int64) (resp *types.PromoterDetailResp, err error) {
+	return l.GetPromoterDetail(&types.GetPromoterDetailReq{Id: id})
+}
