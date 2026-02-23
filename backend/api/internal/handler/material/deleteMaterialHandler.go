@@ -1,11 +1,9 @@
 package material
 
 import (
-	"errors"
 	"net/http"
-	"strconv"
-	"strings"
 
+	"dmh/api/internal/handler/handlerutil"
 	"dmh/api/internal/logic/material"
 	"dmh/api/internal/svc"
 	"dmh/api/internal/types"
@@ -14,11 +12,8 @@ import (
 
 func DeleteMaterialHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		path := strings.TrimPrefix(r.URL.Path, "/material/delete/")
-		idStr := strings.Split(path, "/")[0]
-		id, err := strconv.ParseInt(idStr, 10, 64)
-		if err != nil {
-			httpx.ErrorCtx(r.Context(), w, errors.New("无效的素材ID"))
+		id, ok := handlerutil.ParsePathID(r, w, "/material/delete/", "无效的素材ID")
+		if !ok {
 			return
 		}
 
