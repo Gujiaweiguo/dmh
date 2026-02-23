@@ -20,6 +20,17 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: 'dist'
+    outDir: 'dist',
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vue-vendor': ['vue', 'vue-router'],
+          'ui-vendor': ['vant'],
+          'utils-vendor': ['axios'],
+          'extra-vendor': ['qrcode', 'html5-qrcode', 'html2canvas', 'vuedraggable']
+        }
+      }
+    }
   }
 })
