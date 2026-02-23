@@ -2,9 +2,11 @@ import { test, expect } from '@playwright/test';
 
 test.describe('反馈管理 - Admin 端测试', () => {
 
+  test.describe.configure({ timeout: 60000 });
+
   test.beforeEach(async ({ page }) => {
-    // 访问登录页面
-    await page.goto('/');
+    // 访问登录页面 - 增加超时避免服务启动慢
+    await page.goto('/', { timeout: 30000 });
 
     // 登录 - 使用 placeholder 选择器
     await page.fill('input[placeholder="请输入用户名"]', 'admin');
