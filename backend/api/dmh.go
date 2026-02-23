@@ -39,11 +39,11 @@ func main() {
 		Method: http.MethodGet,
 		Path:   "/api/v1/posters/:filename",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			fmt.Printf("[DEBUG] URL Path: %s\n", r.URL.Path)
+
 			pathParts := strings.Split(r.URL.Path, "/")
-			fmt.Printf("[DEBUG] Path parts: %v\n", pathParts)
+
 			filename := pathParts[len(pathParts)-1]
-			fmt.Printf("[DEBUG] Filename: %s\n", filename)
+
 
 			if filename == "" {
 				http.Error(w, "Invalid filename", http.StatusBadRequest)

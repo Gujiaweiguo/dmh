@@ -412,8 +412,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: distributor.UpdateDistributorStatusHandler(serverCtx),
 			},
 		},
-		// 临时禁用JWT以便测试
-		// rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
 		rest.WithPrefix("/api/v1"),
 	)
 
