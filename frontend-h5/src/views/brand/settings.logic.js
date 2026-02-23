@@ -85,3 +85,23 @@ export const resolveSyncStatus = (syncHealthPayload) => {
   }
   return 'error'
 }
+
+export const validateLogoFile = (file) => {
+  if (!file) return '请选择图片文件'
+
+  if (!String(file.type || '').startsWith('image/')) {
+    return '仅支持图片文件上传'
+  }
+
+  const maxSize = 5 * 1024 * 1024
+  if (file.size > maxSize) {
+    return '图片大小不能超过 5MB'
+  }
+
+  return ''
+}
+
+export const resolveUploadedLogoUrl = (payload) => {
+  const body = unwrapApiResponse(payload)
+  return body.url || body.fileUrl || body.logo || ''
+}

@@ -9,12 +9,18 @@ const getAuthHeaders = () => {
 
 // 通用请求方法
 const request = async (url, options = {}) => {
+  const isFormDataBody = typeof FormData !== 'undefined' && options?.body instanceof FormData
+  const baseHeaders = {
+    ...getAuthHeaders(),
+    ...options.headers,
+  }
+
+  if (!isFormDataBody && !baseHeaders['Content-Type']) {
+    baseHeaders['Content-Type'] = 'application/json'
+  }
+
   const config = {
-    headers: {
-      'Content-Type': 'application/json',
-      ...getAuthHeaders(),
-      ...options.headers
-    },
+    headers: baseHeaders,
     ...options
   }
 
@@ -59,17 +65,19 @@ export const api = {
 
   // POST 请求
   post: (url, data = {}) => {
+    const isFormDataBody = typeof FormData !== 'undefined' && data instanceof FormData
     return request(url, {
       method: 'POST',
-      body: JSON.stringify(data)
+      body: isFormDataBody ? data : JSON.stringify(data),
     })
   },
 
   // PUT 请求
   put: (url, data = {}) => {
+    const isFormDataBody = typeof FormData !== 'undefined' && data instanceof FormData
     return request(url, {
       method: 'PUT',
-      body: JSON.stringify(data)
+      body: isFormDataBody ? data : JSON.stringify(data),
     })
   },
 

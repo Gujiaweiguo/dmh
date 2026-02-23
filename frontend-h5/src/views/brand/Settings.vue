@@ -14,8 +14,17 @@
             <img :src="brandInfo.logo" alt="品牌logo" class="logo-img">
           </div>
           <div class="logo-actions">
-            <button @click="uploadLogo" class="upload-btn">更换Logo</button>
+            <button @click="uploadLogo" :disabled="logoUploading" class="upload-btn">
+              {{ logoUploading ? '上传中...' : '更换Logo' }}
+            </button>
             <p class="upload-hint">建议尺寸: 200x200px</p>
+            <input
+              ref="logoFileInput"
+              type="file"
+              accept="image/*"
+              class="file-input"
+              @change="handleLogoUpload"
+            >
           </div>
         </div>
 
@@ -383,7 +392,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { settingsApi } from '../../services/brandApi.js'
+import { materialApi, settingsApi } from '../../services/brandApi.js'
 import {
   getCurrentBrandId,
   getDefaultBrandInfo,
@@ -393,7 +402,9 @@ import {
   getDefaultSyncSettings,
   getSyncStatusText as mapSyncStatusText,
   resolveSyncStatus,
+  resolveUploadedLogoUrl,
   unwrapApiResponse,
+  validateLogoFile,
   validatePasswordForm,
 } from './settings.logic.js'
 
@@ -401,6 +412,8 @@ const saving = ref(false)
 const showChangePassword = ref(false)
 const showDeleteAccount = ref(false)
 const currentBrandId = ref(0)
+const logoUploading = ref(false)
+const logoFileInput = ref(null)
 
 const brandInfo = reactive(getDefaultBrandInfo())
 
@@ -427,8 +440,49 @@ const mergeReactiveState = (target, source) => {
 }
 
 const uploadLogo = () => {
-  // TODO: 实现Logo上传功能
-  alert('Logo上传功能开发中...')
+  logoFileInput.value?.click()
+}
+
+const handleLogoUpload = async (event) => {
+  const [file] = event?.target?.files || []
+  const validationError = validateLogoFile(file)
+  if (validationError) {
+    alert(validationError)
+    return
+  }
+
+  if (!currentBrandId.value) {
+    alert('未找到品牌信息，请重新登录')
+    return
+  }
+
+  logoUploading.value = true
+  try {
+    const uploadResp = await materialApi.uploadMaterial(file, 'image')
+    const logoUrl = resolveUploadedLogoUrl(uploadResp)
+
+    if (!logoUrl) {
+      throw new Error('上传成功但未返回图片地址')
+    }
+
+    brandInfo.logo = logoUrl
+
+    await settingsApi.updateBrandInfo(currentBrandId.value, {
+      name: brandInfo.name,
+      logo: brandInfo.logo,
+      description: brandInfo.description,
+    })
+
+    alert('Logo 上传并保存成功')
+  } catch (error) {
+    console.error('Logo 上传失败:', error)
+    alert(error?.message || 'Logo 上传失败，请重试')
+  } finally {
+    logoUploading.value = false
+    if (event?.target) {
+      event.target.value = ''
+    }
+  }
 }
 
 const saveBrandInfo = async () => {
@@ -662,6 +716,15 @@ onMounted(() => {
   font-size: 14px;
   cursor: pointer;
   margin-bottom: 8px;
+}
+
+.upload-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.file-input {
+  display: none;
 }
 
 .upload-hint {

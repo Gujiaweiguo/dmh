@@ -7,8 +7,10 @@ import {
   getDefaultRewardSettings,
   getDefaultSyncSettings,
   getSyncStatusText,
+  resolveUploadedLogoUrl,
   resolveSyncStatus,
   unwrapApiResponse,
+  validateLogoFile,
   validatePasswordForm,
 } from '../../src/views/brand/settings.logic.js'
 
@@ -80,5 +82,18 @@ describe('settings logic', () => {
     expect(resolveSyncStatus({ status: 'ok' })).toBe('connected')
     expect(resolveSyncStatus({ status: 'error' })).toBe('error')
     expect(resolveSyncStatus({})).toBe('error')
+  })
+
+  it('validates logo file', () => {
+    expect(validateLogoFile(null)).toBe('请选择图片文件')
+    expect(validateLogoFile({ type: 'text/plain', size: 1 })).toBe('仅支持图片文件上传')
+    expect(validateLogoFile({ type: 'image/png', size: 6 * 1024 * 1024 })).toBe('图片大小不能超过 5MB')
+    expect(validateLogoFile({ type: 'image/png', size: 1024 })).toBe('')
+  })
+
+  it('resolves uploaded logo url from api payload', () => {
+    expect(resolveUploadedLogoUrl({ data: { url: 'https://a/logo.png' } })).toBe('https://a/logo.png')
+    expect(resolveUploadedLogoUrl({ data: { fileUrl: 'https://a/file.png' } })).toBe('https://a/file.png')
+    expect(resolveUploadedLogoUrl({ data: {} })).toBe('')
   })
 })

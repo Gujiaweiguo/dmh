@@ -43,6 +43,17 @@ describe('h5 api service', () => {
 		expect(config.body).toBe(JSON.stringify({ status: 'paid' }));
 	});
 
+	it('api.post keeps FormData body without forcing json content-type', async () => {
+		fetch.mockResolvedValue({ ok: true, json: async () => ({ ok: true }) });
+		const formData = new FormData();
+		formData.append('file', new Blob(['a'], { type: 'text/plain' }), 'a.txt');
+		await api.post('/material/upload', formData);
+		const [, config] = fetch.mock.calls[0];
+		expect(config.method).toBe('POST');
+		expect(config.body).toBe(formData);
+		expect(config.headers['Content-Type']).toBeUndefined();
+	});
+
 	it('api.delete sends request', async () => {
 		fetch.mockResolvedValue({ ok: true, json: async () => ({ ok: true }) });
 		await api.delete('/orders/1');
