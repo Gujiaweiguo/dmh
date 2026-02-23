@@ -101,3 +101,62 @@ export const getMockMaterials = () => [
     createdAt: '2025-12-28',
   },
 ]
+
+export const getMaterialDetailItems = (material) => {
+  if (!material) return []
+  const items = [
+    { label: '素材名称', value: material.name || '-' },
+    { label: '素材类型', value: getMaterialTypeText(material.type) },
+    { label: '素材描述', value: material.description || '-' },
+    { label: '创建时间', value: material.createdAt || '-' },
+  ]
+  if (material.type === 'image' && material.url) {
+    items.push({ label: '图片链接', value: material.url })
+  }
+  if (material.type === 'text' && material.content) {
+    items.push({ label: '文案内容', value: material.content })
+  }
+  return items
+}
+
+export const copyMaterialToClipboard = async (material) => {
+  if (!material) return false
+  
+  let textToCopy = ''
+  if (material.type === 'text' && material.content) {
+    textToCopy = material.content
+  } else if (material.type === 'image' && material.url) {
+    textToCopy = material.url
+  } else {
+    textToCopy = material.name || ''
+  }
+  
+  try {
+    await navigator.clipboard.writeText(textToCopy)
+    return true
+  } catch {
+    return false
+  }
+}
+
+export const buildMaterialUpdatePayload = (material, updates) => {
+  return {
+    id: material?.id,
+    name: updates?.name || material?.name || '',
+    description: updates?.description || material?.description || '',
+    category: updates?.category || material?.type || 'image',
+  }
+}
+
+export const validateMaterialEdit = (form) => {
+  if (!form || !form.name || !form.name.trim()) {
+    return '请填写素材名称'
+  }
+  return ''
+}
+
+export const getDefaultEditForm = (material = null) => ({
+  name: material?.name || '',
+  description: material?.description || '',
+  category: material?.type || 'image',
+})

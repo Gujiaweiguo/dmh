@@ -105,3 +105,59 @@ export const resolveUploadedLogoUrl = (payload) => {
   const body = unwrapApiResponse(payload)
   return body.url || body.fileUrl || body.logo || ''
 }
+
+const escapeCsvCell = (value) => {
+  const text = String(value ?? '')
+  if (text.includes(',') || text.includes('"') || text.includes('\n')) {
+    return `"${text.replace(/"/g, '""')}"`
+  }
+  return text
+}
+
+export const buildBrandDataCsv = (brandInfo, rewardSettings, notificationSettings) => {
+  const rows = [
+    { category: '品牌信息', field: '品牌名称', value: brandInfo?.name || '' },
+    { category: '品牌信息', field: '品牌描述', value: brandInfo?.description || '' },
+    { category: '品牌信息', field: '联系电话', value: brandInfo?.phone || '' },
+    { category: '品牌信息', field: '联系邮箱', value: brandInfo?.email || '' },
+    { category: '品牌信息', field: 'Logo', value: brandInfo?.logo || '' },
+    { category: '奖励设置', field: '默认佣金比例(%)', value: String(rewardSettings?.defaultRate || 0) },
+    { category: '奖励设置', field: '最低提现金额', value: String(rewardSettings?.minWithdraw || 0) },
+    { category: '奖励设置', field: '结算方式', value: rewardSettings?.settlementType || '' },
+    { category: '通知设置', field: '新订单通知', value: notificationSettings?.newOrder ? '是' : '否' },
+    { category: '通知设置', field: '新推广员通知', value: notificationSettings?.newPromoter ? '是' : '否' },
+    { category: '通知设置', field: '日报通知', value: notificationSettings?.dailyReport ? '是' : '否' },
+    { category: '通知设置', field: '通知邮箱', value: notificationSettings?.email || '' },
+  ]
+
+  const headers = ['分类', '字段', '值']
+  const lines = [headers.map(escapeCsvCell).join(',')]
+
+  rows.forEach((row) => {
+    lines.push([row.category, row.field, row.value].map(escapeCsvCell).join(','))
+  })
+
+  return lines.join('\n')
+}
+
+export const downloadCsv = (csvContent, filename) => {
+  if (!csvContent) return false
+
+  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename || 'export.csv'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+
+  return true
+}
+
+export const getExportFilename = (prefix = 'brand-data') => {
+  const now = new Date()
+  const dateStr = now.toISOString().slice(0, 10)
+  return `${prefix}-${dateStr}.csv`
+}

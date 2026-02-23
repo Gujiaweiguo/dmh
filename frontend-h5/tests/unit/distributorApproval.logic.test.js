@@ -9,7 +9,10 @@ import {
   buildApprovePayload,
   buildRejectPayload,
   getMockPendingApplications,
-  getAvatarText
+  getAvatarText,
+  buildPaginationParams,
+  calculateHasMore,
+  mergePaginatedResults
 } from '../../src/views/brand/distributorApproval.logic.js'
 
 describe('distributorApproval.logic', () => {
@@ -188,5 +191,96 @@ describe('distributorApproval.logic', () => {
     it('returns custom fallback', () => {
       expect(getAvatarText(null, 'X')).toBe('X')
     })
+  })
+})
+
+// Added by pagination feature implementation
+import {
+  buildPaginationParams as bpp,
+  calculateHasMore as chm,
+  mergePaginatedResults as mpr
+} from '../../src/views/brand/distributorApproval.logic.js'
+
+describe('buildPaginationParams', () => {
+  it('builds params with all fields', () => {
+    const params = bpp(2, 10, 'pending')
+    expect(params).toBe('page=2&pageSize=10&status=pending')
+  })
+
+  it('defaults page to 1', () => {
+    const params = bpp(null, 20, 'pending')
+    expect(params).toContain('page=1')
+  })
+
+  it('defaults pageSize to 20', () => {
+    const params = bpp(1, null, 'pending')
+    expect(params).toContain('pageSize=20')
+  })
+
+  it('works without status', () => {
+    const params = bpp(1, 10, null)
+    expect(params).toBe('page=1&pageSize=10')
+  })
+})
+
+describe('calculateHasMore', () => {
+  it('returns true when list length less than total', () => {
+    expect(chm(10, 20, 100)).toBe(true)
+  })
+
+  it('returns false when list length equals total', () => {
+    expect(chm(100, 20, 100)).toBe(false)
+  })
+
+  it('returns true when no total but list >= pageSize', () => {
+    expect(chm(20, 20, undefined)).toBe(true)
+  })
+
+  it('returns false when no total and list < pageSize', () => {
+    expect(chm(15, 20, undefined)).toBe(false)
+  })
+})
+
+describe('mergePaginatedResults', () => {
+  const existingList = [
+    { id: 1, name: 'Item 1' },
+    { id: 2, name: 'Item 2' }
+  ]
+  const newList = [
+    { id: 3, name: 'Item 3' },
+    { id: 4, name: 'Item 4' }
+  ]
+
+  it('replaces list when append is false', () => {
+    const result = mpr(existingList, newList, false)
+    expect(result).toEqual(newList)
+  })
+
+  it('appends new items when append is true', () => {
+    const result = mpr(existingList, newList, true)
+    expect(result).toHaveLength(4)
+    expect(result[2]).toEqual({ id: 3, name: 'Item 3' })
+  })
+
+  it('filters out duplicates by id', () => {
+    const duplicateList = [{ id: 1, name: 'Updated' }, { id: 5, name: 'New' }]
+    const result = mpr(existingList, duplicateList, true)
+    expect(result).toHaveLength(3)
+    expect(result.find(item => item.id === 1)?.name).toBe('Item 1')
+  })
+
+  it('returns existing list when new list is empty', () => {
+    const result = mpr(existingList, [], true)
+    expect(result).toEqual(existingList)
+  })
+
+  it('returns new list when existing is null and not appending', () => {
+    const result = mpr(null, newList, false)
+    expect(result).toEqual(newList)
+  })
+
+  it('handles null existing list when appending', () => {
+    const result = mpr(null, newList, true)
+    expect(result).toEqual(newList)
   })
 })

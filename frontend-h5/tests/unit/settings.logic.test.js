@@ -97,3 +97,84 @@ describe('settings logic', () => {
     expect(resolveUploadedLogoUrl({ data: {} })).toBe('')
   })
 })
+
+import {
+  buildBrandDataCsv,
+  getExportFilename,
+} from '../../src/views/brand/settings.logic.js'
+
+describe('buildBrandDataCsv', () => {
+  it('generates csv with all brand data', () => {
+    const brandInfo = {
+      name: '测试品牌',
+      description: '测试描述',
+      phone: '400-123-4567',
+      email: 'test@brand.com',
+      logo: 'https://example.com/logo.png'
+    }
+    const rewardSettings = {
+      defaultRate: 15,
+      minWithdraw: 50,
+      settlementType: 'daily'
+    }
+    const notificationSettings = {
+      newOrder: true,
+      newPromoter: false,
+      dailyReport: true,
+      email: 'admin@brand.com'
+    }
+
+    const csv = buildBrandDataCsv(brandInfo, rewardSettings, notificationSettings)
+
+    expect(csv).toContain('分类,字段,值')
+    expect(csv).toContain('品牌信息,品牌名称,测试品牌')
+    expect(csv).toContain('品牌信息,联系电话,400-123-4567')
+    expect(csv).toContain('奖励设置,默认佣金比例(%),15')
+    expect(csv).toContain('奖励设置,最低提现金额,50')
+    expect(csv).toContain('通知设置,新订单通知,是')
+    expect(csv).toContain('通知设置,新推广员通知,否')
+    expect(csv).toContain('通知设置,日报通知,是')
+  })
+
+  it('handles empty data gracefully', () => {
+    const csv = buildBrandDataCsv(null, null, null)
+
+    expect(csv).toContain('分类,字段,值')
+    expect(csv).toContain('品牌信息,品牌名称,')
+    expect(csv).toContain('奖励设置,默认佣金比例(%),0')
+  })
+
+  it('escapes special characters in csv', () => {
+    const brandInfo = {
+      name: '品牌,包含逗号',
+      description: '描述"包含引号',
+      phone: '400-123-4567',
+      email: 'test@brand.com'
+    }
+
+    const csv = buildBrandDataCsv(brandInfo, {}, {})
+
+    expect(csv).toContain('"品牌,包含逗号"')
+    expect(csv).toContain('"描述""包含引号"')
+  })
+})
+
+describe('getExportFilename', () => {
+  it('generates filename with date', () => {
+    const filename = getExportFilename('brand-data')
+
+    expect(filename).toMatch(/^brand-data-\d{4}-\d{2}-\d{2}\.csv$/)
+  })
+
+  it('uses default prefix if not provided', () => {
+    const filename = getExportFilename()
+
+    expect(filename).toMatch(/^brand-data-\d{4}-\d{2}-\d{2}\.csv$/)
+  })
+
+  it('uses custom prefix', () => {
+    const filename = getExportFilename('my-export')
+
+    expect(filename).toMatch(/^my-export-\d{4}-\d{2}-\d{2}\.csv$/)
+  })
+})

@@ -170,6 +170,71 @@
       </div>
     </div>
 
+    <!-- 素材详情模态框 -->
+    <div v-if="showDetailModal" class="modal-overlay" @click="showDetailModal = false">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>素材详情</h3>
+          <button @click="showDetailModal = false" class="close-btn">✕</button>
+        </div>
+        
+        <div class="detail-body">
+          <div v-if="currentMaterial?.type === 'image'" class="detail-preview">
+            <img :src="currentMaterial?.url" :alt="currentMaterial?.name" class="preview-image">
+          </div>
+          <div v-else-if="currentMaterial?.type === 'text'" class="detail-content">
+            <p>{{ currentMaterial?.content }}</p>
+          </div>
+          
+          <div class="detail-info">
+            <div v-for="item in getMaterialDetailItems(currentMaterial)" :key="item.label" class="detail-row">
+              <span class="detail-label">{{ item.label }}:</span>
+              <span class="detail-value">{{ item.value }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button @click="useMaterial(currentMaterial)" class="action-btn use">复制内容</button>
+          <button @click="showDetailModal = false; editMaterial(currentMaterial)" class="action-btn edit">编辑</button>
+          <button @click="showDetailModal = false" class="cancel-btn">关闭</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 素材编辑模态框 -->
+    <div v-if="showEditModal" class="modal-overlay" @click="showEditModal = false">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>编辑素材</h3>
+          <button @click="showEditModal = false" class="close-btn">✕</button>
+        </div>
+        
+        <div class="edit-form">
+          <div class="form-group">
+            <label>素材名称</label>
+            <input v-model="editForm.name" type="text" class="form-input" placeholder="请输入素材名称">
+          </div>
+          <div class="form-group">
+            <label>素材描述</label>
+            <textarea v-model="editForm.description" class="form-textarea" placeholder="请输入素材描述"></textarea>
+          </div>
+          <div class="form-group">
+            <label>分类</label>
+            <select v-model="editForm.category" class="form-select">
+              <option value="image">图片素材</option>
+              <option value="text">文案素材</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button @click="showEditModal = false" class="cancel-btn">取消</button>
+          <button @click="saveMaterialEdit" class="confirm-btn">保存</button>
+        </div>
+      </div>
+    </div>
+
     <!-- 底部导航 -->
     <div class="bottom-nav">
       <router-link to="/brand/dashboard" class="nav-item">
@@ -218,6 +283,10 @@ import {
   getMockMaterials,
   validateAITextInput,
   validateUploadInput,
+  getMaterialDetailItems,
+  copyMaterialToClipboard,
+  getDefaultEditForm,
+  validateMaterialEdit,
 } from './materials.logic.js'
 
 const materials = ref([])
@@ -225,6 +294,10 @@ const currentCategory = ref('all')
 const showUploadModal = ref(false)
 const showAITextModal = ref(false)
 const showAIImageModal = ref(false)
+const showDetailModal = ref(false)
+const showEditModal = ref(false)
+const currentMaterial = ref(null)
+const editForm = reactive(getDefaultEditForm())
 const uploading = ref(false)
 const aiGenerating = ref(false)
 
@@ -343,18 +416,48 @@ const generateAIText = async () => {
 }
 
 const viewMaterial = (material) => {
-  // TODO: 实现素材详情查看
-  alert(`查看素材: ${material.name}`)
+  currentMaterial.value = material
+  showDetailModal.value = true
 }
 
-const useMaterial = (material) => {
-  // TODO: 实现素材使用功能
-  alert(`使用素材: ${material.name}`)
+const useMaterial = async (material) => {
+  const success = await copyMaterialToClipboard(material)
+  if (success) {
+    alert('素材内容已复制到剪贴板')
+  } else {
+    alert('复制失败，请手动复制')
+  }
 }
 
 const editMaterial = (material) => {
-  // TODO: 实现素材编辑功能
-  alert(`编辑素材: ${material.name}`)
+  currentMaterial.value = material
+  Object.assign(editForm, getDefaultEditForm(material))
+  showEditModal.value = true
+}
+
+const saveMaterialEdit = async () => {
+  const errorMsg = validateMaterialEdit(editForm)
+  if (errorMsg) {
+    alert(errorMsg)
+    return
+  }
+
+  try {
+    const index = materials.value.findIndex(m => m.id === currentMaterial.value.id)
+    if (index > -1) {
+      materials.value[index] = {
+        ...materials.value[index],
+        name: editForm.name,
+        description: editForm.description,
+        type: editForm.category,
+      }
+      alert('保存成功')
+      showEditModal.value = false
+    }
+  } catch (error) {
+    console.error('保存失败:', error)
+    alert('保存失败')
+  }
 }
 
 const deleteMaterial = (material) => {

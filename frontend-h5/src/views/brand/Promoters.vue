@@ -185,6 +185,54 @@
       </div>
     </div>
 
+    <!-- 联系推广员模态框 -->
+    <div v-if="showContactModal" class="modal-overlay" @click="showContactModal = false">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>联系推广员</h3>
+          <button @click="showContactModal = false" class="close-btn">✕</button>
+        </div>
+        
+        <div class="contact-info">
+          <p class="contact-name">{{ currentContactPromoter?.name }}</p>
+          <p class="contact-phone">{{ currentContactPromoter?.phone }}</p>
+        </div>
+
+        <div class="contact-form">
+          <div class="form-group">
+            <label>联系方式</label>
+            <div class="radio-group">
+              <label class="radio-item">
+                <input type="radio" v-model="contactForm.method" value="phone">
+                <span>电话</span>
+              </label>
+              <label class="radio-item">
+                <input type="radio" v-model="contactForm.method" value="sms">
+                <span>短信</span>
+              </label>
+            </div>
+          </div>
+
+          <div v-if="contactForm.method === 'sms'" class="form-group">
+            <label>短信内容</label>
+            <textarea
+              v-model="contactForm.message"
+              class="form-textarea"
+              placeholder="请输入短信内容"
+              rows="3"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button @click="showContactModal = false" class="cancel-btn">取消</button>
+          <button @click="executeContact" class="confirm-btn">
+            {{ contactForm.method === 'phone' ? '拨打电话' : '发送短信' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- 底部导航 -->
     <div class="bottom-nav">
       <router-link to="/brand/dashboard" class="nav-item">
@@ -221,6 +269,7 @@
 
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import {
   buildPromoterLink,
   buildPromoterLinkForm,
@@ -228,8 +277,12 @@ import {
   filterAndSortPromoters,
   formatPromoterTime,
   getPromoterStatusText,
+  getDefaultContactForm,
+  validateContactForm,
+  buildContactAction,
 } from './promoters.logic.js'
 
+const router = useRouter()
 const promoters = ref([])
 const campaigns = ref([])
 const loading = ref(false)
@@ -237,6 +290,9 @@ const currentFilter = ref('all')
 const searchKeyword = ref('')
 const showLinkModal = ref(false)
 const generatedLink = ref('')
+const showContactModal = ref(false)
+const currentContactPromoter = ref(null)
+const contactForm = reactive(getDefaultContactForm())
 
 const promoterStats = reactive({
   active: 0,
@@ -296,8 +352,7 @@ const calculateStats = () => {
 }
 
 const viewPromoterDetail = (promoter) => {
-  // TODO: 实现推广员详情页面
-  alert(`查看推广员详情: ${promoter.name}`)
+  router.push(`/brand/promoter-detail/${promoter.id}`)
 }
 
 const generateLink = (promoter) => {
@@ -324,13 +379,27 @@ const copyLink = async () => {
 }
 
 const viewRewards = (promoter) => {
-  // TODO: 实现奖励记录页面
-  alert(`查看 ${promoter.name} 的奖励记录`)
+  router.push(`/brand/reward-records/${promoter.id}`)
 }
 
 const contactPromoter = (promoter) => {
-  // TODO: 实现联系推广员功能
-  alert(`联系推广员: ${promoter.name} (${promoter.phone})`)
+  currentContactPromoter.value = promoter
+  Object.assign(contactForm, getDefaultContactForm())
+  showContactModal.value = true
+}
+
+const executeContact = () => {
+  const errorMsg = validateContactForm(contactForm, currentContactPromoter.value)
+  if (errorMsg) {
+    alert(errorMsg)
+    return
+  }
+
+  const action = buildContactAction(contactForm, currentContactPromoter.value)
+  if (action?.link) {
+    window.location.href = action.link
+    showContactModal.value = false
+  }
 }
 
 onMounted(() => {
@@ -853,5 +922,61 @@ onMounted(() => {
 
 .nav-text {
   font-size: 12px;
+}
+
+.contact-info {
+  padding: 20px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+}
+
+.contact-name {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  margin: 0 0 4px;
+}
+
+.contact-phone {
+  font-size: 14px;
+  color: #667eea;
+  margin: 0;
+}
+
+.contact-form {
+  padding: 20px;
+}
+
+.radio-group {
+  display: flex;
+  gap: 16px;
+}
+
+.radio-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.radio-item input {
+  width: 18px;
+  height: 18px;
+}
+
+.form-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  resize: none;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: #667eea;
 }
 </style>

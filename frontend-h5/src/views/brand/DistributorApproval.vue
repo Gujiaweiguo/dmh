@@ -326,7 +326,10 @@ import {
   buildTabs,
   validateRejection,
   getMockPendingApplications,
-  getAvatarText
+  getAvatarText,
+  buildPaginationParams,
+  calculateHasMore,
+  mergePaginatedResults
 } from './distributorApproval.logic.js'
 
 const router = useRouter()
@@ -367,7 +370,11 @@ const getCurrentBrandId = () => {
 
 
 // 加载申请列表
-const loadApplications = async () => {
+const loadApplications = async (append = false) => {
+  if (!append) {
+    currentPage.value = 1
+    pendingList.value = []
+  }
   loading.value = true
   try {
     const token = localStorage.getItem('dmh_token')
@@ -378,7 +385,8 @@ const loadApplications = async () => {
       return
     }
 
-    const response = await fetch(`/api/v1/brands/${currentBrandId}/distributor/applications?page=1&pageSize=100&status=pending`, {
+    const params = buildPaginationParams(currentPage.value, pageSize.value, 'pending')
+    const response = await fetch(`/api/v1/brands/${currentBrandId}/distributor/applications?${params}`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -386,9 +394,14 @@ const loadApplications = async () => {
 
     if (response.ok) {
       const data = await response.json()
-      pendingList.value = data.applications || []
+      const newList = data.applications || []
+      pendingList.value = mergePaginatedResults(pendingList.value, newList, append)
+      hasMore.value = calculateHasMore(pendingList.value.length, pageSize.value, data.total)
     } else {
-      pendingList.value = getMockPendingApplications()
+      if (!append) {
+        pendingList.value = getMockPendingApplications()
+        hasMore.value = false
+      }
     }
   } catch (error) {
     console.error('加载申请失败:', error)
@@ -398,7 +411,11 @@ const loadApplications = async () => {
 }
 
 // 加载已处理列表
-const loadProcessed = async () => {
+const loadProcessed = async (append = false) => {
+  if (!append) {
+    currentPage.value = 1
+    processedList.value = []
+  }
   loading.value = true
   try {
     const token = localStorage.getItem('dmh_token')
@@ -409,7 +426,8 @@ const loadProcessed = async () => {
       return
     }
 
-    const response = await fetch(`/api/v1/brands/${currentBrandId}/distributor/applications?page=1&pageSize=50&status=approved,rejected`, {
+    const params = buildPaginationParams(currentPage.value, pageSize.value, 'approved,rejected')
+    const response = await fetch(`/api/v1/brands/${currentBrandId}/distributor/applications?${params}`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -417,9 +435,14 @@ const loadProcessed = async () => {
 
     if (response.ok) {
       const data = await response.json()
-      processedList.value = data.applications || []
+      const newList = data.applications || []
+      processedList.value = mergePaginatedResults(processedList.value, newList, append)
+      hasMore.value = calculateHasMore(processedList.value.length, pageSize.value, data.total)
     } else {
-      processedList.value = []
+      if (!append) {
+        processedList.value = []
+        hasMore.value = false
+      }
     }
   } catch (error) {
     console.error('加载已处理失败:', error)
@@ -533,9 +556,13 @@ const rejectApplication = async () => {
 }
 
 // 加载更多
-const loadMore = () => {
+const loadMore = async () => {
   currentPage.value++
-  // TODO: 实现分页加载
+  if (activeTab.value === 'pending') {
+    await loadApplications(true)
+  } else {
+    await loadProcessed(true)
+  }
 }
 
 // 切换标签时重新加载

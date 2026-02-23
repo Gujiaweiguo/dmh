@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, beforeEach } from 'vitest'
 import {
   buildAIGeneratedText,
   createAIGeneratedMaterial,
@@ -91,5 +91,134 @@ describe('materials logic', () => {
     const mock = getMockMaterials()
     expect(mock).toHaveLength(3)
     expect(mock[0]).toMatchObject({ type: 'image' })
+  })
+})
+
+import {
+  getMaterialDetailItems,
+  copyMaterialToClipboard,
+  getDefaultEditForm,
+  validateMaterialEdit,
+} from '../../src/views/brand/materials.logic.js'
+
+describe('getMaterialDetailItems', () => {
+  it('returns empty array for null material', () => {
+    expect(getMaterialDetailItems(null)).toEqual([])
+  })
+
+  it('returns basic items for image material', () => {
+    const material = {
+      name: '测试图片',
+      type: 'image',
+      description: '测试描述',
+      url: 'https://example.com/image.png',
+      createdAt: '2026-02-20',
+    }
+    const items = getMaterialDetailItems(material)
+
+    expect(items).toHaveLength(5)
+    expect(items.find(i => i.label === '素材名称')?.value).toBe('测试图片')
+    expect(items.find(i => i.label === '素材类型')?.value).toBe('图片')
+    expect(items.find(i => i.label === '图片链接')?.value).toBe('https://example.com/image.png')
+  })
+
+  it('returns content for text material', () => {
+    const material = {
+      name: '测试文案',
+      type: 'text',
+      description: '文案描述',
+      content: '这是测试文案内容',
+      createdAt: '2026-02-20',
+    }
+    const items = getMaterialDetailItems(material)
+
+    expect(items.find(i => i.label === '文案内容')?.value).toBe('这是测试文案内容')
+  })
+})
+
+describe('copyMaterialToClipboard', () => {
+  beforeEach(() => {
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: async (text) => true,
+      },
+    })
+  })
+
+  it('returns false for null material', async () => {
+    const result = await copyMaterialToClipboard(null)
+    expect(result).toBe(false)
+  })
+
+  it('copies content for text material', async () => {
+    const material = {
+      name: '文案',
+      type: 'text',
+      content: '测试文案内容',
+    }
+    const result = await copyMaterialToClipboard(material)
+    expect(result).toBe(true)
+  })
+
+  it('copies url for image material', async () => {
+    const material = {
+      name: '图片',
+      type: 'image',
+      url: 'https://example.com/image.png',
+    }
+    const result = await copyMaterialToClipboard(material)
+    expect(result).toBe(true)
+  })
+
+  it('copies name as fallback', async () => {
+    const material = {
+      name: '素材名称',
+      type: 'other',
+    }
+    const result = await copyMaterialToClipboard(material)
+    expect(result).toBe(true)
+  })
+})
+
+describe('getDefaultEditForm', () => {
+  it('returns empty form without material', () => {
+    const form = getDefaultEditForm()
+    expect(form).toEqual({
+      name: '',
+      description: '',
+      category: 'image',
+    })
+  })
+
+  it('populates form from material', () => {
+    const material = {
+      name: '现有素材',
+      description: '现有描述',
+      type: 'text',
+    }
+    const form = getDefaultEditForm(material)
+    expect(form).toEqual({
+      name: '现有素材',
+      description: '现有描述',
+      category: 'text',
+    })
+  })
+})
+
+describe('validateMaterialEdit', () => {
+  it('returns error for null form', () => {
+    expect(validateMaterialEdit(null)).toBe('请填写素材名称')
+  })
+
+  it('returns error for empty name', () => {
+    expect(validateMaterialEdit({ name: '' })).toBe('请填写素材名称')
+  })
+
+  it('returns error for whitespace-only name', () => {
+    expect(validateMaterialEdit({ name: '   ' })).toBe('请填写素材名称')
+  })
+
+  it('returns empty string for valid form', () => {
+    expect(validateMaterialEdit({ name: '素材名称' })).toBe('')
   })
 })

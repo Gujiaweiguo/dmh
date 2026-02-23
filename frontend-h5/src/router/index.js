@@ -16,6 +16,8 @@ import BrandOrderDetail from "../views/brand/OrderDetail.vue";
 import BrandOrders from "../views/brand/Orders.vue";
 import PosterRecords from "../views/brand/PosterRecords.vue";
 import BrandPromoters from "../views/brand/Promoters.vue";
+import BrandPromoterDetail from "../views/brand/PromoterDetail.vue";
+import BrandRewardRecords from "../views/brand/RewardRecords.vue";
 import BrandSettings from "../views/brand/Settings.vue";
 import VerificationRecords from "../views/brand/VerificationRecords.vue";
 import CampaignDetail from "../views/CampaignDetail.vue";
@@ -149,6 +151,18 @@ const routes = [
 		path: "/brand/promoters",
 		name: "BrandPromoters",
 		component: BrandPromoters,
+		meta: { requiresAuth: true, hasBrand: true },
+	},
+	{
+		path: "/brand/promoter-detail/:id",
+		name: "BrandPromoterDetail",
+		component: BrandPromoterDetail,
+		meta: { requiresAuth: true, hasBrand: true },
+	},
+	{
+		path: "/brand/reward-records/:promoterId?",
+		name: "BrandRewardRecords",
+		component: BrandRewardRecords,
 		meta: { requiresAuth: true, hasBrand: true },
 	},
 	{

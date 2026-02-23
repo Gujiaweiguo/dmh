@@ -75,14 +75,14 @@
    - [x] 订单详情页面 (Orders.vue) - implemented by `update-h5-brand-p1-features`
 
 2. **第二阶段 (P2)**
-   - [ ] 分页加载 (DistributorApproval.vue)
-   - [ ] 推广员详情页面 (Promoters.vue)
-   - [ ] 奖励记录页面 (Promoters.vue)
-   - [ ] 素材相关功能 (Materials.vue)
-   - [ ] 数据导出功能 (Settings.vue)
+   - [x] 分页加载 (DistributorApproval.vue) - implemented
+   - [x] 推广员详情页面 (Promoters.vue) - implemented by `add-h5-brand-p2-promoter-features`
+   - [x] 奖励记录页面 (Promoters.vue) - implemented by `add-h5-brand-p2-promoter-features`
+   - [x] 素材相关功能 (Materials.vue) - implemented
+   - [x] 数据导出功能 (Settings.vue) - implemented
 
 3. **第三阶段 (P3)**
-   - [ ] 联系推广员功能 (Promoters.vue)
+   - [x] 联系推广员功能 (Promoters.vue) - implemented
 
 ---
 

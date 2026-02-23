@@ -598,8 +598,20 @@ const changePassword = async () => {
 }
 
 const exportAllData = () => {
-  // TODO: 实现数据导出功能
-  alert('数据导出功能开发中...')
+  const csv = buildBrandDataCsv(brandInfo, rewardSettings, notificationSettings)
+  if (!csv) {
+    alert('没有可导出的数据')
+    return
+  }
+
+  const filename = getExportFilename('brand-settings')
+  const success = downloadCsv(csv, filename)
+
+  if (success) {
+    alert('数据导出成功')
+  } else {
+    alert('数据导出失败')
+  }
 }
 
 const loadSettings = async () => {

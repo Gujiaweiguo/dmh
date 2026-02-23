@@ -74,3 +74,49 @@ export const buildPromoterLink = (baseUrl, campaignId, promoterId) => {
   if (!campaignId || !promoterId) return ''
   return `${baseUrl}/campaign/${campaignId}?ref=${promoterId}`
 }
+
+export const buildPhoneLink = (phone) => {
+  if (!phone) return ''
+  const cleanPhone = phone.replace(/[^\d+]/g, '')
+  return `tel:${cleanPhone}`
+}
+
+export const buildSmsLink = (phone, message = '') => {
+  if (!phone) return ''
+  const cleanPhone = phone.replace(/[^\d+]/g, '')
+  if (message) {
+    return `sms:${cleanPhone}?body=${encodeURIComponent(message)}`
+  }
+  return `sms:${cleanPhone}`
+}
+
+export const getDefaultContactForm = () => ({
+  method: 'phone',
+  message: '',
+})
+
+export const validateContactForm = (form, promoter) => {
+  if (!promoter?.phone) {
+    return '推广员没有联系电话'
+  }
+  if (form?.method === 'sms' && !form?.message?.trim()) {
+    return '请输入短信内容'
+  }
+  return ''
+}
+
+export const buildContactAction = (form, promoter) => {
+  if (!promoter?.phone || !form) return null
+  
+  if (form.method === 'phone') {
+    return {
+      type: 'phone',
+      link: buildPhoneLink(promoter.phone),
+    }
+  }
+  
+  return {
+    type: 'sms',
+    link: buildSmsLink(promoter.phone, form.message),
+  }
+}

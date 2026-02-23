@@ -135,3 +135,32 @@ export const getMockPendingApplications = () => [
 export const getAvatarText = (username, fallback = '申') => {
   return username?.charAt(0) || fallback
 }
+
+export const buildPaginationParams = (page, pageSize, status) => {
+  const params = new URLSearchParams()
+  params.set('page', String(page || 1))
+  params.set('pageSize', String(pageSize || 20))
+  if (status) {
+    params.set('status', status)
+  }
+  return params.toString()
+}
+
+export const calculateHasMore = (currentListLength, pageSize, total) => {
+  if (typeof total === 'number') {
+    return currentListLength < total
+  }
+  return currentListLength >= pageSize
+}
+
+export const mergePaginatedResults = (existingList, newList, append = true) => {
+  if (!append) {
+    return newList || []
+  }
+  if (!Array.isArray(newList) || newList.length === 0) {
+    return existingList || []
+  }
+  const existingIds = new Set((existingList || []).map(item => item.id))
+  const uniqueNewItems = newList.filter(item => !existingIds.has(item.id))
+  return [...(existingList || []), ...uniqueNewItems]
+}

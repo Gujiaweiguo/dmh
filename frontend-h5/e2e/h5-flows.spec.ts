@@ -101,3 +101,139 @@ test.describe('H5 Order Flow', () => {
     await expect(page.locator('text=订单详情')).toBeVisible();
   });
 });
+
+
+test.describe('H5 Promoter Flow', () => {
+  test('promoter list page loads', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('dmh_token', 'e2e-token');
+      localStorage.setItem('dmh_user_info', JSON.stringify({ brandIds: [1] }));
+    });
+
+    await page.route('**/api/v1/promoter/list**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          data: {
+            list: [
+              {
+                id: 1,
+                name: '测试推广员',
+                phone: '138****1234',
+                status: 'active',
+                level: 'VIP',
+                totalOrders: 50,
+                totalRewards: 2000,
+                conversionRate: 15,
+                recentActivities: [],
+              },
+            ],
+          },
+        }),
+      });
+    });
+
+    await page.goto('/brand/promoters');
+    await expect(page.locator('text=推广员管理')).toBeVisible();
+  });
+
+  test('promoter detail and reward records flow', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('dmh_token', 'e2e-token');
+      localStorage.setItem('dmh_user_info', JSON.stringify({ brandIds: [1] }));
+    });
+
+    await page.route('**/api/v1/promoter/detail/1**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          data: {
+            id: 1,
+            name: '测试推广员',
+            phone: '138****1234',
+            status: 'active',
+            level: 'VIP',
+            totalOrders: 50,
+            totalRewards: 2000,
+            conversionRate: 15,
+            campaignCount: 5,
+            createdAt: '2026-01-15',
+            lastActiveAt: '2026-02-23',
+            links: [],
+          },
+        }),
+      });
+    });
+
+    await page.route('**/api/v1/promoter/rewards/1**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          data: [
+            {
+              id: 1,
+              type: 'commission',
+              status: 'paid',
+              amount: 100,
+              description: '订单佣金',
+              createdAt: '2026-02-20',
+            },
+            {
+              id: 2,
+              type: 'bonus',
+              status: 'pending',
+              amount: 50,
+              description: '活动奖金',
+              createdAt: '2026-02-21',
+            },
+          ],
+        }),
+      });
+    });
+
+    // Navigate to promoter detail
+    await page.goto('/brand/promoter-detail/1');
+    await expect(page.locator('text=推广员详情')).toBeVisible();
+    await expect(page.locator('text=测试推广员')).toBeVisible();
+
+    // Click view reward records button
+    await page.locator('button:has-text("查看奖励记录")').click();
+    await expect(page).toHaveURL(/\/brand\/reward-records\/1/);
+    await expect(page.locator('text=奖励记录')).toBeVisible();
+  });
+
+  test('reward records page with filters', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('dmh_token', 'e2e-token');
+      localStorage.setItem('dmh_user_info', JSON.stringify({ brandIds: [1] }));
+    });
+
+    await page.route('**/api/v1/promoter/rewards/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          data: [
+            {
+              id: 1,
+              type: 'commission',
+              status: 'paid',
+              amount: 100,
+              description: '订单佣金',
+              createdAt: '2026-02-20',
+            },
+          ],
+        }),
+      });
+    });
+
+    await page.goto('/brand/reward-records');
+    await expect(page.locator('text=奖励记录')).toBeVisible();
+
+    // Check filter exists
+    await expect(page.locator('select').first()).toBeVisible();
+  });
+});
