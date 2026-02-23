@@ -1273,3 +1273,151 @@ type (
 		Message string `json:"message"`
 	}
 )
+
+// Promoter API types
+type GetPromoterListReq struct {
+	Page     int64  `json:"page,optional" form:"page,optional"`
+	PageSize int64  `json:"pageSize,optional" form:"pageSize,optional"`
+	BrandId  int64  `json:"brandId,optional" form:"brandId,optional"`
+	Status   string `json:"status,optional" form:"status,optional"`
+	Keyword  string `json:"keyword,optional" form:"keyword,optional"`
+}
+
+type PromoterListResp struct {
+	Total     int64          `json:"total"`
+	Promoters []PromoterResp `json:"promoters"`
+}
+
+type PromoterResp struct {
+	Id             int64   `json:"id"`
+	UserId         int64   `json:"userId"`
+	Username       string  `json:"username,optional"`
+	Phone          string  `json:"phone,optional"`
+	BrandId        int64   `json:"brandId"`
+	BrandName      string  `json:"brandName,optional"`
+	Status         string  `json:"status"`
+	Level          string  `json:"level,optional"`
+	TotalOrders    int64   `json:"totalOrders"`
+	TotalRewards   float64 `json:"totalRewards"`
+	ConversionRate float64 `json:"conversionRate"`
+	CreatedAt      string  `json:"createdAt"`
+}
+
+type GetPromoterDetailReq struct {
+	Id int64 `path:"id"`
+}
+
+type PromoterDetailResp struct {
+	Id             int64              `json:"id"`
+	UserId         int64              `json:"userId"`
+	Username       string             `json:"username,optional"`
+	Phone          string             `json:"phone,optional"`
+	BrandId        int64              `json:"brandId"`
+	BrandName      string             `json:"brandName,optional"`
+	Status         string             `json:"status"`
+	Level          string             `json:"level,optional"`
+	TotalOrders    int64              `json:"totalOrders"`
+	TotalRewards   float64            `json:"totalRewards"`
+	ConversionRate float64            `json:"conversionRate"`
+	CampaignCount  int64              `json:"campaignCount"`
+	CreatedAt      string             `json:"createdAt"`
+	LastActiveAt   string             `json:"lastActiveAt,optional"`
+	Links          []PromoterLinkResp `json:"links,optional"`
+}
+
+type PromoterLinkResp struct {
+	Id          int64  `json:"id"`
+	CampaignId  int64  `json:"campaignId"`
+	CampaignName string `json:"campaignName,optional"`
+	LinkCode    string `json:"linkCode"`
+	ClickCount  int64  `json:"clickCount"`
+	OrderCount  int64  `json:"orderCount"`
+	CreatedAt   string `json:"createdAt"`
+}
+
+type GeneratePromoterLinkReq struct {
+	PromoterId int64 `json:"promoterId"`
+	CampaignId int64 `json:"campaignId"`
+}
+
+type GeneratePromoterLinkResp struct {
+	LinkCode string `json:"linkCode"`
+	LinkUrl  string `json:"linkUrl"`
+	Qrcode   string `json:"qrcode,optional"`
+}
+
+type GetPromoterRewardsReq struct {
+	PromoterId int64  `path:"promoterId"`
+	Page       int64  `json:"page,optional" form:"page,optional"`
+	PageSize   int64  `json:"pageSize,optional" form:"pageSize,optional"`
+	Type       string `json:"type,optional" form:"type,optional"`
+	Status     string `json:"status,optional" form:"status,optional"`
+}
+
+type PromoterRewardsListResp struct {
+	Total   int64               `json:"total"`
+	Rewards []PromoterRewardResp `json:"rewards"`
+}
+
+type PromoterRewardResp struct {
+	Id          int64   `json:"id"`
+	Type        string  `json:"type"`
+	Status      string  `json:"status"`
+	Amount      float64 `json:"amount"`
+	Description string  `json:"description,optional"`
+	CreatedAt   string  `json:"createdAt"`
+}
+
+// Material API types
+type UploadMaterialReq struct {
+	Type string `json:"type,optional" form:"type,optional"` // image/text
+}
+
+type UploadMaterialResp struct {
+	Id          int64  `json:"id"`
+	Name        string `json:"name"`
+	Url         string `json:"url"`
+	Type        string `json:"type"`
+	Description string `json:"description,optional"`
+}
+
+type GetMaterialListReq struct {
+	Page     int64  `json:"page,optional" form:"page,optional"`
+	PageSize int64  `json:"pageSize,optional" form:"pageSize,optional"`
+	BrandId  int64  `json:"brandId,optional" form:"brandId,optional"`
+	Type     string `json:"type,optional" form:"type,optional"`
+}
+
+type MaterialListResp struct {
+	Total     int64          `json:"total"`
+	Materials []MaterialResp `json:"materials"`
+}
+
+type MaterialResp struct {
+	Id          int64  `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description,optional"`
+	Type        string `json:"type"`
+	Url         string `json:"url"`
+	Content     string `json:"content,optional"`
+	CreatedAt   string `json:"createdAt"`
+}
+
+type DeleteMaterialReq struct {
+	Id int64 `path:"id"`
+}
+
+type DeleteMaterialResp struct {
+	Success bool `json:"success"`
+}
+
+// AI API types
+type GenerateCopywritingReq struct {
+	Topic  string `json:"topic"`
+	Style  string `json:"style,optional"`  // professional/casual/urgent/emotional
+	Length string `json:"length,optional"` // short/medium/long
+}
+
+type GenerateCopywritingResp struct {
+	Content string `json:"content"`
+}

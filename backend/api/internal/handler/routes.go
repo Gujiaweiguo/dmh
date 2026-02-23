@@ -12,6 +12,9 @@ import (
 	campaign "dmh/api/internal/handler/campaign"
 	distributor "dmh/api/internal/handler/distributor"
 	feedback "dmh/api/internal/handler/feedback"
+	promoter "dmh/api/internal/handler/promoter"
+	material "dmh/api/internal/handler/material"
+	ai "dmh/api/internal/handler/ai"
 	member "dmh/api/internal/handler/member"
 	menu "dmh/api/internal/handler/menu"
 	order "dmh/api/internal/handler/order"
@@ -742,6 +745,53 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			},
 		},
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		rest.WithPrefix("/api/v1"),
+	)
+
+	// Promoter, Material, AI routes
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodGet,
+				Path:    "/promoter/list",
+				Handler: promoter.GetPromoterListHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/promoter/detail/:id",
+				Handler: promoter.GetPromoterDetailHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/promoter/generate-link",
+				Handler: promoter.GeneratePromoterLinkHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/promoter/rewards/:promoterId",
+				Handler: promoter.GetPromoterRewardsHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/material/upload",
+				Handler: material.UploadMaterialHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/material/list",
+				Handler: material.GetMaterialListHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodDelete,
+				Path:    "/material/delete/:id",
+				Handler: material.DeleteMaterialHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/ai/generate-copywriting",
+				Handler: ai.GenerateCopywritingHandler(serverCtx),
+			},
+		},
 		rest.WithPrefix("/api/v1"),
 	)
 }
