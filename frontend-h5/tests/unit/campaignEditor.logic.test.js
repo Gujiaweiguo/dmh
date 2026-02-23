@@ -9,6 +9,7 @@ import {
   getPaymentAmountLabel,
   getPaymentAmountPlaceholder,
   getDefaultForm,
+  resolveCampaignBrandId,
   validateCampaignForm,
   canShowQrcodePreview,
   getSaveButtonText,
@@ -78,9 +79,25 @@ describe('campaignEditor.logic', () => {
   describe('getDefaultForm', () => {
     it('should return default form object', () => {
       const form = getDefaultForm()
+      expect(form.brandId).toBe(0)
       expect(form.name).toBe('')
       expect(form.status).toBe('active')
       expect(form.formFields).toEqual([])
+    })
+  })
+
+  describe('resolveCampaignBrandId', () => {
+    it('should prefer brand id from storage', () => {
+      expect(resolveCampaignBrandId('12', '')).toBe(12)
+    })
+
+    it('should fallback to first brand id from user info', () => {
+      expect(resolveCampaignBrandId('', JSON.stringify({ brandIds: [33, 34] }))).toBe(33)
+    })
+
+    it('should return 0 when both sources invalid', () => {
+      expect(resolveCampaignBrandId('', 'invalid-json')).toBe(0)
+      expect(resolveCampaignBrandId('', JSON.stringify({ brandIds: [] }))).toBe(0)
     })
   })
 

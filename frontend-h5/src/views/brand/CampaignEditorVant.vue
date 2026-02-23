@@ -276,12 +276,13 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { showToast, showLoadingToast, closeToast } from 'vant'
 import { campaignApi } from '../../services/brandApi.js'
+import { resolveCampaignBrandId } from './campaignEditor.logic.js'
 
 const router = useRouter()
 const route = useRoute()
 
 const form = reactive({
-  brandId: 1,
+  brandId: 0,
   name: '',
   description: '',
   formFields: [],
@@ -477,6 +478,11 @@ const removeOption = (index) => {
 }
 
 const saveCampaign = async () => {
+  if (!form.brandId) {
+    showToast({ type: 'fail', message: '未找到品牌信息，请重新登录' })
+    return
+  }
+
   if (!form.name.trim()) {
     showToast({ type: 'fail', message: '请输入活动名称' })
     return
@@ -584,6 +590,15 @@ const formatDateTime = (dateTimeLocal) => {
 }
 
 onMounted(() => {
+  form.brandId = resolveCampaignBrandId(
+    localStorage.getItem('brandId') || localStorage.getItem('dmh_current_brand_id'),
+    localStorage.getItem('dmh_user_info'),
+  )
+
+  if (!form.brandId && !isEditMode.value) {
+    showToast({ type: 'fail', message: '未找到品牌信息，请重新登录' })
+  }
+
   loadCampaign()
 })
 </script>

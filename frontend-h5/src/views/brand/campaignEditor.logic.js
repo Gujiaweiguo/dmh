@@ -40,6 +40,7 @@ export const getPaymentAmountPlaceholder = (paymentType) => {
 }
 
 export const getDefaultForm = () => ({
+  brandId: 0,
   name: '',
   description: '',
   startTime: '',
@@ -51,6 +52,25 @@ export const getDefaultForm = () => ({
   paymentAmount: 0,
   formFields: []
 })
+
+export const resolveCampaignBrandId = (storedBrandId, userInfoRaw) => {
+  if (storedBrandId) {
+    const parsed = Number.parseInt(storedBrandId, 10)
+    if (!Number.isNaN(parsed) && parsed > 0) {
+      return parsed
+    }
+  }
+
+  if (!userInfoRaw) return 0
+
+  try {
+    const userInfo = JSON.parse(userInfoRaw)
+    const firstBrandId = Array.isArray(userInfo.brandIds) ? Number(userInfo.brandIds[0]) : 0
+    return Number.isFinite(firstBrandId) && firstBrandId > 0 ? firstBrandId : 0
+  } catch {
+    return 0
+  }
+}
 
 export const validateCampaignForm = (form) => {
   const errors = []
