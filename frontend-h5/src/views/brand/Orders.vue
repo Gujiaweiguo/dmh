@@ -20,6 +20,10 @@
           {{ status.label }}
         </button>
       </div>
+
+      <div class="filter-actions">
+        <button class="export-all-btn" @click="exportFilteredOrders">导出当前筛选</button>
+      </div>
       
       <div class="date-filter">
         <input
@@ -184,8 +188,10 @@
 
 <script setup>
 import { ref, computed, reactive, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import {
   applyOrderStatus,
+  buildOrdersCsv,
   buildExportOrderData,
   calculateOrderStats,
   filterAndSortOrders,
@@ -193,6 +199,8 @@ import {
   getOrderStatusText,
 } from './orders.logic.js'
 import { orderApi } from '@/services/brandApi.js'
+
+const router = useRouter()
 
 const orders = ref([])
 const loading = ref(false)
@@ -290,17 +298,44 @@ const processOrder = async (order, newStatus) => {
 
 
 
+const downloadCsv = (fileName, csvContent) => {
+  const blob = new Blob([`\ufeff${csvContent}`], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = fileName
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+}
+
 const exportOrder = (order) => {
-  // TODO: 实现订单导出功能
-  const data = buildExportOrderData(order)
-  
-  console.log('导出订单数据:', data)
-  alert('导出功能开发中...')
+  const row = buildExportOrderData(order)
+  const headers = Object.keys(row)
+  const values = headers.map((key) => JSON.stringify(row[key] ?? ''))
+  const csv = `${headers.join(',')}\n${values.join(',')}`
+  downloadCsv(`order_${order.id}.csv`, csv)
 }
 
 const viewOrderDetail = (order) => {
-  // TODO: 实现订单详情页面
-  alert(`查看订单 #${order.id} 详情`)
+  router.push(`/brand/order-detail/${order.id}`)
+}
+
+const exportFilteredOrders = () => {
+  if (filteredOrders.value.length === 0) {
+    alert('当前筛选条件下没有可导出订单')
+    return
+  }
+
+  const csv = buildOrdersCsv(filteredOrders.value)
+  if (!csv) {
+    alert('导出失败，请重试')
+    return
+  }
+
+  const suffix = `${dateRange.start || 'all'}_${dateRange.end || 'all'}`
+  downloadCsv(`orders_${currentStatus.value}_${suffix}.csv`, csv)
 }
 
 // 监听筛选条件变化
@@ -380,6 +415,21 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.filter-actions {
+  margin-bottom: 12px;
+}
+
+.export-all-btn {
+  width: 100%;
+  border: 1px solid #2196f3;
+  color: #2196f3;
+  background: #f4faff;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .date-input {

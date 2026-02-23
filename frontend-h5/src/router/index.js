@@ -12,6 +12,7 @@ import BrandLogin from "../views/brand/Login.vue";
 import BrandMaterials from "../views/brand/Materials.vue";
 import BrandMemberDetail from "../views/brand/MemberDetail.vue";
 import BrandMembers from "../views/brand/Members.vue";
+import BrandOrderDetail from "../views/brand/OrderDetail.vue";
 import BrandOrders from "../views/brand/Orders.vue";
 import PosterRecords from "../views/brand/PosterRecords.vue";
 import BrandPromoters from "../views/brand/Promoters.vue";
@@ -124,6 +125,12 @@ const routes = [
 		path: "/brand/orders",
 		name: "BrandOrders",
 		component: BrandOrders,
+		meta: { requiresAuth: true, hasBrand: true },
+	},
+	{
+		path: "/brand/order-detail/:id",
+		name: "BrandOrderDetail",
+		component: BrandOrderDetail,
 		meta: { requiresAuth: true, hasBrand: true },
 	},
 	{

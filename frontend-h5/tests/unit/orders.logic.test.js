@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import {
   applyOrderStatus,
+  buildOrdersCsv,
   buildExportOrderData,
   calculateOrderStats,
   filterAndSortOrders,
   formatOrderDateTime,
+  getOrderDetailItems,
   getOrderStatusText,
 } from '../../src/views/brand/orders.logic.js'
 
@@ -70,5 +72,32 @@ describe('orders logic', () => {
       订单状态: '已支付',
       姓名: '李雷',
     })
+  })
+
+  it('builds csv content for multiple orders', () => {
+    const csv = buildOrdersCsv(orders)
+    expect(csv).toContain('订单号')
+    expect(csv).toContain('活动名称')
+    expect(csv).toContain('A')
+    expect(csv.split('\n').length).toBeGreaterThan(1)
+  })
+
+  it('returns empty csv for empty list', () => {
+    expect(buildOrdersCsv([])).toBe('')
+  })
+
+  it('builds order detail items', () => {
+    const items = getOrderDetailItems({
+      id: 1,
+      campaignName: '活动A',
+      phone: '13800000000',
+      status: 'paid',
+      amount: 100,
+      rewardAmount: 20,
+      referrerName: '张三',
+      createdAt: '2026-02-13 10:00:00',
+    })
+    expect(items.find((item) => item.label === '订单号')?.value).toBe(1)
+    expect(items.find((item) => item.label === '订单状态')?.value).toBe('已支付')
   })
 })
