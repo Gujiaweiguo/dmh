@@ -33,6 +33,8 @@ func setupModelTestDB(t *testing.T) *gorm.DB {
 		&UserFeedback{}, &FAQItem{}, &FeatureSatisfactionSurvey{}, &FeatureUsageStat{}, &FeedbackTag{}, &FeedbackTagRelation{},
 		&PasswordPolicy{}, &PasswordHistory{}, &LoginAttempt{}, &UserSession{}, &SecurityEvent{},
 		&VerificationRecord{},
+		&Promoter{}, &PromoterLink{}, &PromoterReward{},
+		&Material{},
 	)
 	if err != nil {
 		t.Fatalf("Failed to migrate database: %v", err)
@@ -44,6 +46,8 @@ func setupModelTestDB(t *testing.T) *gorm.DB {
 	}
 
 	tables := []string{
+		"promoter_rewards", "promoter_links", "promoters",
+		"materials",
 		"distributor_rewards", "distributor_links", "distributor_level_rewards", "distributor_applications", "distributors",
 		"sync_logs", "rewards", "orders", "campaigns",
 		"member_merge_requests", "member_brand_links", "member_tag_links", "member_profiles", "member_tags", "members",
