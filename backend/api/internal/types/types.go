@@ -1326,13 +1326,13 @@ type PromoterDetailResp struct {
 }
 
 type PromoterLinkResp struct {
-	Id          int64  `json:"id"`
-	CampaignId  int64  `json:"campaignId"`
+	Id           int64  `json:"id"`
+	CampaignId   int64  `json:"campaignId"`
 	CampaignName string `json:"campaignName,optional"`
-	LinkCode    string `json:"linkCode"`
-	ClickCount  int64  `json:"clickCount"`
-	OrderCount  int64  `json:"orderCount"`
-	CreatedAt   string `json:"createdAt"`
+	LinkCode     string `json:"linkCode"`
+	ClickCount   int64  `json:"clickCount"`
+	OrderCount   int64  `json:"orderCount"`
+	CreatedAt    string `json:"createdAt"`
 }
 
 type GeneratePromoterLinkReq struct {
@@ -1355,7 +1355,7 @@ type GetPromoterRewardsReq struct {
 }
 
 type PromoterRewardsListResp struct {
-	Total   int64               `json:"total"`
+	Total   int64                `json:"total"`
 	Rewards []PromoterRewardResp `json:"rewards"`
 }
 

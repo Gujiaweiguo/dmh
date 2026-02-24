@@ -44,7 +44,6 @@ func main() {
 
 			filename := pathParts[len(pathParts)-1]
 
-
 			if filename == "" {
 				http.Error(w, "Invalid filename", http.StatusBadRequest)
 				return
