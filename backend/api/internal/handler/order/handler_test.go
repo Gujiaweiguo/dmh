@@ -28,7 +28,6 @@ func setupOrderHandlerTestDB(t *testing.T) *gorm.DB {
 		t.Fatalf("Failed to migrate database: %v", err)
 	}
 
-
 	testutil.ClearTables(db, "orders", "campaigns", "brands")
 	return db
 }

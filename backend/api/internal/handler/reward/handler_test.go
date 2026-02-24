@@ -23,7 +23,6 @@ func setupRewardHandlerTestDB(t *testing.T) *gorm.DB {
 		t.Fatalf("Failed to migrate database: %v", err)
 	}
 
-
 	testutil.ClearTables(db, "rewards", "users", "user_balances", "orders")
 	return db
 }

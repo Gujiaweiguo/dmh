@@ -540,7 +540,7 @@ func TestUpdateBrandAssetHandler_NotFound(t *testing.T) {
 	body, _ := json.Marshal(reqBody)
 	req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/brands/%d/assets/%d", brand.Id, asset.ID+1000), bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
-	req.SetPathValue("brandId", fmt.Sprintf("%d", brand.Id))
+	req.SetPathValue("id", fmt.Sprintf("%d", brand.Id))
 	req.SetPathValue("id", fmt.Sprintf("%d", asset.ID+1000))
 	resp := httptest.NewRecorder()
 
@@ -622,7 +622,7 @@ func TestGetBrandAssetHandler_Success(t *testing.T) {
 	handler := GetBrandAssetHandler(svcCtx)
 
 	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/brands/%d/assets/%d", brand.Id, asset.ID), nil)
-	req.SetPathValue("brandId", fmt.Sprintf("%d", brand.Id))
+	req.SetPathValue("id", fmt.Sprintf("%d", brand.Id))
 	req.SetPathValue("id", fmt.Sprintf("%d", asset.ID))
 	resp := httptest.NewRecorder()
 
@@ -647,7 +647,7 @@ func TestUpdateBrandAssetHandler_Success(t *testing.T) {
 	body, _ := json.Marshal(reqBody)
 	req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/brands/%d/assets/%d", brand.Id, asset.ID), bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
-	req.SetPathValue("brandId", fmt.Sprintf("%d", brand.Id))
+	req.SetPathValue("id", fmt.Sprintf("%d", brand.Id))
 	req.SetPathValue("id", fmt.Sprintf("%d", asset.ID))
 	resp := httptest.NewRecorder()
 
@@ -666,7 +666,7 @@ func TestDeleteBrandAssetHandler_Success(t *testing.T) {
 	handler := DeleteBrandAssetHandler(svcCtx)
 
 	req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/brands/%d/assets/%d", brand.Id, asset.ID), nil)
-	req.SetPathValue("brandId", fmt.Sprintf("%d", brand.Id))
+	req.SetPathValue("id", fmt.Sprintf("%d", brand.Id))
 	req.SetPathValue("id", fmt.Sprintf("%d", asset.ID))
 	resp := httptest.NewRecorder()
 
@@ -721,7 +721,7 @@ func TestUpdateBrandAssetHandler_InvalidJSON(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/brands/%d/assets/%d", brand.Id, asset.ID), strings.NewReader("{invalid"))
 	req.Header.Set("Content-Type", "application/json")
-	req.SetPathValue("brandId", fmt.Sprintf("%d", brand.Id))
+	req.SetPathValue("id", fmt.Sprintf("%d", brand.Id))
 	req.SetPathValue("id", fmt.Sprintf("%d", asset.ID))
 	resp := httptest.NewRecorder()
 
@@ -796,7 +796,7 @@ func TestGetBrandAssetHandler_Success_V2(t *testing.T) {
 	handler := GetBrandAssetHandler(svcCtx)
 
 	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/brands/%d/assets/%d", brand.Id, asset.ID), nil)
-	req.SetPathValue("brandId", fmt.Sprintf("%d", brand.Id))
+	req.SetPathValue("id", fmt.Sprintf("%d", brand.Id))
 	req.SetPathValue("id", fmt.Sprintf("%d", asset.ID))
 	resp := httptest.NewRecorder()
 
@@ -838,7 +838,7 @@ func TestUpdateBrandAssetHandler_ParseError(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/brands/%d/assets/%d", brand.Id, asset.ID), strings.NewReader("{invalid"))
 	req.Header.Set("Content-Type", "application/json")
-	req.SetPathValue("brandId", fmt.Sprintf("%d", brand.Id))
+	req.SetPathValue("id", fmt.Sprintf("%d", brand.Id))
 	req.SetPathValue("id", fmt.Sprintf("%d", asset.ID))
 	resp := httptest.NewRecorder()
 
@@ -937,7 +937,7 @@ func TestUpdateBrandAssetHandler_ReturnsOK(t *testing.T) {
 	body, _ := json.Marshal(reqBody)
 	req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/brands/%d/assets/%d", brand.Id, asset.ID), bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
-	req.SetPathValue("brandId", fmt.Sprintf("%d", brand.Id))
+	req.SetPathValue("id", fmt.Sprintf("%d", brand.Id))
 	req.SetPathValue("id", fmt.Sprintf("%d", asset.ID))
 	resp := httptest.NewRecorder()
 
@@ -978,7 +978,7 @@ func TestDeleteBrandAssetHandler_ReturnsOK(t *testing.T) {
 	handler := DeleteBrandAssetHandler(svcCtx)
 
 	req := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/brands/%d/assets/%d", brand.Id, asset.ID), nil)
-	req.SetPathValue("brandId", fmt.Sprintf("%d", brand.Id))
+	req.SetPathValue("id", fmt.Sprintf("%d", brand.Id))
 	req.SetPathValue("id", fmt.Sprintf("%d", asset.ID))
 	resp := httptest.NewRecorder()
 
@@ -997,7 +997,7 @@ func TestGetBrandAssetHandler_ReturnsOK(t *testing.T) {
 	handler := GetBrandAssetHandler(svcCtx)
 
 	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/brands/%d/assets/%d", brand.Id, asset.ID), nil)
-	req.SetPathValue("brandId", fmt.Sprintf("%d", brand.Id))
+	req.SetPathValue("id", fmt.Sprintf("%d", brand.Id))
 	req.SetPathValue("id", fmt.Sprintf("%d", asset.ID))
 	resp := httptest.NewRecorder()
 
