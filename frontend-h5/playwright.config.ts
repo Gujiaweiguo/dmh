@@ -1,5 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const playwrightPort = process.env.PW_WEB_PORT || '3100';
+const playwrightBaseUrl = process.env.PLAYWRIGHT_BASE_URL || `http://127.0.0.1:${playwrightPort}`;
+
 export default defineConfig({
   testDir: './e2e',
   timeout: 30 * 1000,
@@ -7,7 +10,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:3100',
+    baseURL: playwrightBaseUrl,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     // CI 环境下使用 headless，本地开发保持非 headless
@@ -23,4 +26,10 @@ export default defineConfig({
       },
     },
   ],
+
+  webServer: {
+    command: `npm run dev -- --host 127.0.0.1 --port ${playwrightPort} --strictPort`,
+    url: playwrightBaseUrl,
+    reuseExistingServer: process.env.PW_REUSE_SERVER === 'true',
+  },
 });
