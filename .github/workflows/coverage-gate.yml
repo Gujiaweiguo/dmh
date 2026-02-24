@@ -42,15 +42,18 @@ jobs:
           done
           mysql -h 127.0.0.1 -uroot -p'Admin168' -e "CREATE DATABASE IF NOT EXISTS dmh_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
       - name: Run tests with coverage
+        id: coverage
         working-directory: backend
         run: |
           go test -p 1 ./... -coverprofile=coverage.out -covermode=atomic
           COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
           echo "Backend coverage: ${COVERAGE}%"
           echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
-          if (( $(echo "$COVERAGE < 70" | bc -l) )); then
-            echo "::warning::Backend coverage ${COVERAGE}% is below 70% target"
+          if (( $(echo "$COVERAGE < 76" | bc -l) )); then
+            echo "::error::Backend coverage ${COVERAGE}% is below 76% threshold"
+            exit 1
           fi
+          echo "✓ Backend coverage ${COVERAGE}% meets 76% threshold"
     outputs:
       coverage: ${{ steps.coverage.outputs.coverage }}
 
@@ -66,7 +69,16 @@ jobs:
         run: npm ci
       - name: Run tests with coverage
         working-directory: frontend-admin
-        run: npm run test:cov
+        run: |
+          npm run test:cov 2>&1 | tee /tmp/admin-coverage.log
+          PCT=$(grep -E "All files\s*\|" /tmp/admin-coverage.log | tail -1 | awk -F'|' '{gsub(/ /,"",$2); print $2}' | tr -d '%' || true)
+          echo "Frontend Admin coverage: ${PCT}%"
+          if echo "$PCT" | grep -Eq '^[0-9]+(\.[0-9]+)?$' && [ "${PCT%.*}" -ge 70 ]; then
+            echo "✓ Frontend Admin coverage ${PCT}% meets 70% threshold"
+          else
+            echo "::error::Frontend Admin coverage ${PCT}% is below 70% threshold"
+            exit 1
+          fi
 
   frontend-h5-coverage:
     runs-on: ubuntu-latest
@@ -80,4 +92,13 @@ jobs:
         run: npm ci
       - name: Run tests with coverage
         working-directory: frontend-h5
-        run: npm run test:cov
+        run: |
+          npm run test:cov 2>&1 | tee /tmp/h5-coverage.log
+          PCT=$(grep -E "All files\s*\|" /tmp/h5-coverage.log | tail -1 | awk -F'|' '{gsub(/ /,"",$2); print $2}' | tr -d '%' || true)
+          echo "Frontend H5 coverage: ${PCT}%"
+          if echo "$PCT" | grep -Eq '^[0-9]+(\.[0-9]+)?$' && [ "${PCT%.*}" -ge 44 ]; then
+            echo "✓ Frontend H5 coverage ${PCT}% meets 44% threshold"
+          else
+            echo "::error::Frontend H5 coverage ${PCT}% is below 44% threshold"
+            exit 1
+          fi

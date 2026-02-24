@@ -2,6 +2,9 @@ name: Full Regression
 
 on:
   workflow_dispatch:
+  schedule:
+    # 每天凌晨 2:00 UTC（北京时间 10:00）
+    - cron: '0 2 * * *'
   push:
     branches:
       - main
@@ -11,6 +14,10 @@ on:
 
 permissions:
   contents: read
+
+concurrency:
+  group: full-regression-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   stability-checks:

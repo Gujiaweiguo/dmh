@@ -22,6 +22,10 @@ on:
       - openspec/**
       - .github/workflows/system-test-gate.yml
 
+concurrency:
+  group: system-test-gate-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   system-test-gate:
     name: Backend integration + Admin/H5 E2E + OpenSpec

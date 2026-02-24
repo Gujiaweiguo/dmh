@@ -20,6 +20,10 @@ on:
       - frontend-h5/**
       - .github/workflows/stability-checks.yml
 
+concurrency:
+  group: stability-checks-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   stability-checks:
     name: Backend full tests + Admin unit + Security E2E
