@@ -221,7 +221,7 @@ jobs:
       - name: Run H5 E2E tests
         run: |
           cd frontend-h5
-          npm run test:e2e:headless -- --reporter=line
+          PW_REUSE_SERVER=true npm run test:e2e:headless -- --reporter=line
 
       - name: Validate OpenSpec
         run: openspec validate --all --no-interactive
