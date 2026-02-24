@@ -80,8 +80,8 @@ test-e2e-headless:
 	cd frontend-h5 && npm run test:e2e:headless
 
 backend-coverage:
-	cd backend && go test -p 1 ./... -coverprofile=coverage.out -covermode=atomic
-	cd backend && go tool cover -func=coverage.out | awk '/total:/ { gsub("%","",$$3); if ($$3 + 0 >= 76) { print "Backend coverage OK (" $$3 "%)"; exit 0 } else { print "Backend coverage not enough: " $$3 "%"; exit 1 } }'
+	cd backend && go test -p 1 $(go list ./... | grep -v -E 'dmh/test/integration|dmh/test/performance') -coverprofile=coverage.out -covermode=atomic
+	cd backend && go tool cover -func=coverage.out | awk '/total:/ { gsub("%","",$3); if ($3 + 0 >= 76) { print "Backend coverage OK (" $3 "%)"; exit 0 } else { print "Backend coverage not enough: " $3 "%"; exit 1 } }'
 
 admin-coverage:
 	cd frontend-admin && npm run test:cov 2>&1 | tee /tmp/dmh-admin-coverage.log

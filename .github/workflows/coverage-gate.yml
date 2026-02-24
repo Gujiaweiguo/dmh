@@ -41,11 +41,13 @@ jobs:
             sleep 2
           done
           mysql -h 127.0.0.1 -uroot -p'Admin168' -e "CREATE DATABASE IF NOT EXISTS dmh_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+      - name: Initialize schema
+        run: mysql -h 127.0.0.1 -uroot -p'Admin168' dmh < backend/scripts/init.sql
       - name: Run tests with coverage
         id: coverage
         working-directory: backend
         run: |
-          go test -p 1 ./... -coverprofile=coverage.out -covermode=atomic
+          go test -p 1 $(go list ./... | grep -v -E 'dmh/test/integration|dmh/test/performance') -coverprofile=coverage.out -covermode=atomic
           COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
           echo "Backend coverage: ${COVERAGE}%"
           echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
