@@ -18,7 +18,7 @@
 
 | 技术 | 版本 | 说明 |
 |------|------|------|
-| Go | 1.23+ | 编程语言（以 `backend/go.mod` 为准，当前为 `1.23.0`） |
+| Go | 1.24+ | 编程语言（以 `backend/go.mod` 为准，当前为 `1.24.0`） |
 | go-zero | 1.6.0 | 微服务框架 |
 | GORM | 1.25.5 | ORM 框架 |
 | JWT | - | 身份认证 |
@@ -142,8 +142,8 @@ docker compose version
 sudo mkdir -p /opt/software /opt/module
 sudo chown -R $USER:$USER /opt/software /opt/module
 
-# 2) 严格对齐 go.mod：Go 1.23.0
-GO_VERSION=1.23.0
+# 2) 严格对齐 go.mod：Go 1.24.0
+GO_VERSION=1.24.0
 arch=$(uname -m)
 case "$arch" in
   x86_64) goarch=amd64 ;;

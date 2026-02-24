@@ -108,8 +108,8 @@ cd DMH
 #### 2. 数据库初始化
 
 ```bash
-# 推荐：使用脚本一键初始化（本地开发、数据库用 Docker）
-./dmh.sh init
+# 初始化数据库（使用 Docker 容器内的 MySQL）
+docker exec -i mysql8 mysql -uroot -p'Admin168' < backend/scripts/init.sql
 ```
 
 #### 3. 启动后端服务

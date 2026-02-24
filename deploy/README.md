@@ -72,7 +72,7 @@ my-net 网络 (172.19.0.0/16)
 
 **启动命令**：
 ```bash
-cd /opt/code/dmh/deployment
+cd /opt/code/dmh/deploy
 docker compose -f docker-compose-simple.yml up -d
 ```
 
@@ -104,7 +104,7 @@ cd /opt/code/dmh/deploy/scripts
 ### 查看容器状态
 
 ```bash
-cd /opt/code/dmh/deployment
+cd /opt/code/dmh/deploy
 docker compose -f docker-compose-simple.yml ps
 ```
 
@@ -342,7 +342,7 @@ A: 重新构建前端，然后重启 nginx 容器：
 cd /opt/code/dmh/frontend-admin
 npm run build
 
-cd /opt/code/dmh/deployment
+cd /opt/code/dmh/deploy
 docker compose -f docker-compose-simple.yml restart dmh-nginx
 ```
 
@@ -353,7 +353,7 @@ A: 更新二进制文件和配置，然后重启 api 容器：
 # 更新 /tmp/dmh 二进制文件
 # 更新 /tmp/dmh-api.yaml 配置文件
 
-cd /opt/code/dmh/deployment
+cd /opt/code/dmh/deploy
 docker compose -f docker-compose-simple.yml restart dmh-api
 ```
 
