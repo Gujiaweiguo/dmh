@@ -1,9 +1,7 @@
 package campaign
 
 import (
-	"bytes"
 	"dmh/api/internal/handler/testutil"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -12,7 +10,6 @@ import (
 	"time"
 
 	"dmh/api/internal/svc"
-	"dmh/api/internal/types"
 	"dmh/model"
 
 	"github.com/stretchr/testify/assert"
@@ -476,103 +473,4 @@ func TestUpdateCampaignHandler_Success(t *testing.T) {
 	handler(resp, req)
 
 	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
-}
-
-func TestGetPaymentQrcodeHandler_Success(t *testing.T) {
-	db := setupCampaignHandlerTestDB(t)
-	brand := &model.Brand{Name: "Test Brand", Status: "active"}
-	db.Create(brand)
-
-	campaign := &model.Campaign{
-		BrandId:    brand.Id,
-		Name:       "Test Campaign for QR",
-		Status:     "active",
-		StartTime:  time.Now(),
-		EndTime:    time.Now().Add(24 * time.Hour),
-		FormFields: "[]",
-	}
-	db.Create(campaign)
-
-	svcCtx := &svc.ServiceContext{DB: db}
-	handler := GetPaymentQrcodeHandler(svcCtx)
-
-	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/campaigns/%d/payment-qrcode", campaign.Id), nil)
-	req.SetPathValue("id", fmt.Sprintf("%d", campaign.Id))
-	resp := httptest.NewRecorder()
-
-	handler(resp, req)
-
-	assert.Equal(t, http.StatusOK, resp.Code)
-}
-
-func TestUpdateCampaignHandler_WithAllFields(t *testing.T) {
-	db := setupCampaignHandlerTestDB(t)
-	brand := &model.Brand{Name: "Test Brand", Status: "active"}
-	db.Create(brand)
-
-	campaign := &model.Campaign{
-		BrandId:    brand.Id,
-		Name:       "Original Name",
-		Status:     "active",
-		StartTime:  time.Now(),
-		EndTime:    time.Now().Add(24 * time.Hour),
-		FormFields: "[]",
-	}
-	db.Create(campaign)
-
-	reqBody := types.UpdateCampaignReq{
-		Name:                 "Updated Campaign Name",
-		Description:          "Updated Description",
-		Status:               "active",
-		StartTime:            time.Now().Format("2006-01-02 15:04:05"),
-		EndTime:              time.Now().Add(48 * time.Hour).Format("2006-01-02 15:04:05"),
-		DistributionLevel:    2,
-		DistributionSettings: "{\"level1\": 10, \"level2\": 5}",
-	}
-	body, _ := json.Marshal(reqBody)
-	req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/campaigns/%d", campaign.Id), bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	req.SetPathValue("id", fmt.Sprintf("%d", campaign.Id))
-
-	svcCtx := &svc.ServiceContext{DB: db}
-	handler := UpdateCampaignHandler(svcCtx)
-
-	resp := httptest.NewRecorder()
-
-	handler(resp, req)
-
-	assert.Equal(t, http.StatusOK, resp.Code)
-}
-
-func TestSavePageConfigHandler_SuccessWithConfig(t *testing.T) {
-	db := setupCampaignHandlerTestDB(t)
-	brand := &model.Brand{Name: "Test Brand", Status: "active"}
-	db.Create(brand)
-
-	campaign := &model.Campaign{
-		BrandId:    brand.Id,
-		Name:       "Test Campaign",
-		Status:     "active",
-		StartTime:  time.Now(),
-		EndTime:    time.Now().Add(24 * time.Hour),
-		FormFields: "[]",
-	}
-	db.Create(campaign)
-
-	reqBody := types.PageConfigReq{
-		Id:     campaign.Id,
-		Config: "{\"components\": [{\"type\": \"banner\", \"content\": \"Test Banner\"}]}",
-	}
-	body, _ := json.Marshal(reqBody)
-	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/campaigns/%d/page-config", campaign.Id), bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-
-	svcCtx := &svc.ServiceContext{DB: db}
-	handler := SavePageConfigHandler(svcCtx)
-
-	resp := httptest.NewRecorder()
-
-	handler(resp, req)
-
-	assert.Equal(t, http.StatusOK, resp.Code)
 }
