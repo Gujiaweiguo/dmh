@@ -1006,16 +1006,14 @@ func TestGetBrandAssetHandler_ReturnsOK(t *testing.T) {
 	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
 }
 
-
-
 func TestGetBrandAssetsHandler_WithMultipleAssets(t *testing.T) {
 	db := setupBrandHandlerTestDB(t)
 	brand := createTestBrandForHandler(t, db, "Test Brand Multiple Assets")
 	for i := 0; i < 5; i++ {
 		asset := &model.BrandAsset{
 			BrandID: brand.Id,
-			Type:     "image",
-			FileUrl:  fmt.Sprintf("https://example.com/asset%d.png", i),
+			Type:    "image",
+			FileUrl: fmt.Sprintf("https://example.com/asset%d.png", i),
 		}
 		db.Create(asset)
 	}
@@ -1038,9 +1036,9 @@ func TestUpdateBrandHandler_WithAllFields(t *testing.T) {
 
 	reqBody := types.UpdateBrandReq{
 		Name:        "Updated Brand Name",
-		Description:  "Updated Description",
-		Logo:         "https://example.com/new-logo.png",
-		Status:       "active",
+		Description: "Updated Description",
+		Logo:        "https://example.com/new-logo.png",
+		Status:      "active",
 	}
 	body, _ := json.Marshal(reqBody)
 	req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/brands/%d", brand.Id), bytes.NewReader(body))

@@ -743,11 +743,11 @@ func TestGetDistributorStatisticsHandler_Success(t *testing.T) {
 	db := setupDistributorHandlerTestDB(t)
 	user := createTestUserForHandler(t, db, "testuser_stats", "13800138001")
 	distributor := &model.Distributor{
-		UserId:      user.Id,
-		Code:        "DIST001",
-		Level:       1,
-		Status:     "active",
-		BrandId:     1,
+		UserId:  user.Id,
+		Code:    "DIST001",
+		Level:   1,
+		Status:  "active",
+		BrandId: 1,
 	}
 	db.Create(distributor)
 
@@ -767,11 +767,11 @@ func TestTrackDistributorLinkHandler_Success(t *testing.T) {
 	db := setupDistributorHandlerTestDB(t)
 	user := createTestUserForHandler(t, db, "testuser_track", "13800138002")
 	distributor := &model.Distributor{
-		UserId:      user.Id,
-		Code:        "DIST002",
-		Level:       1,
-		Status:     "active",
-		BrandId:     1,
+		UserId:  user.Id,
+		Code:    "DIST002",
+		Level:   1,
+		Status:  "active",
+		BrandId: 1,
 	}
 	db.Create(distributor)
 
@@ -790,22 +790,22 @@ func TestGetDistributorSubordinatesHandler_Success(t *testing.T) {
 	db := setupDistributorHandlerTestDB(t)
 	user := createTestUserForHandler(t, db, "testuser_sub", "13800138003")
 	distributor := &model.Distributor{
-		UserId:      user.Id,
-		Code:        "DIST003",
-		Level:       1,
-		Status:     "active",
-		BrandId:     1,
+		UserId:  user.Id,
+		Code:    "DIST003",
+		Level:   1,
+		Status:  "active",
+		BrandId: 1,
 	}
 	db.Create(distributor)
 
 	for i := 0; i < 3; i++ {
 		sub := &model.Distributor{
-			UserId:      user.Id,
-			ParentId:    &distributor.Id,
-			Code:        fmt.Sprintf("DIST003-%d", i),
-			Level:       2,
-			Status:     "active",
-			BrandId:     1,
+			UserId:   user.Id,
+			ParentId: &distributor.Id,
+			Code:     fmt.Sprintf("DIST003-%d", i),
+			Level:    2,
+			Status:   "active",
+			BrandId:  1,
 		}
 		db.Create(sub)
 	}

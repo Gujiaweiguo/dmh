@@ -3,8 +3,8 @@ package poster
 import (
 	"bytes"
 	"dmh/api/internal/handler/testutil"
-	"encoding/json"
 	"dmh/api/internal/types"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -723,8 +723,8 @@ func TestGenerateCampaignPosterHandler_WithValidCampaign(t *testing.T) {
 	db.Create(campaign)
 
 	reqBody := types.GeneratePosterReq{
-		TemplateId:  1,
-		DesignData:  "{\"backgroundColor\": \"#ffffff\"}",
+		TemplateId: 1,
+		DesignData: "{\"backgroundColor\": \"#ffffff\"}",
 	}
 	body, _ := json.Marshal(reqBody)
 	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/campaigns/%d/poster", campaign.Id), bytes.NewReader(body))
@@ -744,17 +744,17 @@ func TestGenerateDistributorPosterHandler_WithValidDistributor(t *testing.T) {
 	db := setupPosterHandlerTestDB(t)
 	user := createTestUserForHandler(t, db, "testuser_poster", "13800138004")
 	distributor := &model.Distributor{
-		UserId:      user.Id,
-		Code:        "DIST004",
-		Level:       1,
-		Status:     "active",
-		BrandId:     1,
+		UserId:  user.Id,
+		Code:    "DIST004",
+		Level:   1,
+		Status:  "active",
+		BrandId: 1,
 	}
 	db.Create(distributor)
 
 	reqBody := types.GeneratePosterReq{
-		TemplateId:  1,
-		DesignData:  "{\"backgroundColor\": \"#ffffff\"}",
+		TemplateId: 1,
+		DesignData: "{\"backgroundColor\": \"#ffffff\"}",
 	}
 	body, _ := json.Marshal(reqBody)
 

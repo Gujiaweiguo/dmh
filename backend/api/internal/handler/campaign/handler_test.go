@@ -521,12 +521,12 @@ func TestUpdateCampaignHandler_WithAllFields(t *testing.T) {
 	db.Create(campaign)
 
 	reqBody := types.UpdateCampaignReq{
-		Name:           "Updated Campaign Name",
-		Description:     "Updated Description",
-		Status:         "active",
-		StartTime:      time.Now().Format("2006-01-02 15:04:05"),
-		EndTime:        time.Now().Add(48 * time.Hour).Format("2006-01-02 15:04:05"),
-		DistributionLevel: 2,
+		Name:                 "Updated Campaign Name",
+		Description:          "Updated Description",
+		Status:               "active",
+		StartTime:            time.Now().Format("2006-01-02 15:04:05"),
+		EndTime:              time.Now().Add(48 * time.Hour).Format("2006-01-02 15:04:05"),
+		DistributionLevel:    2,
 		DistributionSettings: "{\"level1\": 10, \"level2\": 5}",
 	}
 	body, _ := json.Marshal(reqBody)
@@ -561,7 +561,7 @@ func TestSavePageConfigHandler_SuccessWithConfig(t *testing.T) {
 
 	reqBody := types.PageConfigReq{
 		Id:     campaign.Id,
-		Config:  "{\"components\": [{\"type\": \"banner\", \"content\": \"Test Banner\"}]}",
+		Config: "{\"components\": [{\"type\": \"banner\", \"content\": \"Test Banner\"}]}",
 	}
 	body, _ := json.Marshal(reqBody)
 	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/campaigns/%d/page-config", campaign.Id), bytes.NewReader(body))
