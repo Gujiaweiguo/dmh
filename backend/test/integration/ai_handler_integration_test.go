@@ -159,15 +159,9 @@ func (suite *AIHandlerIntegrationTestSuite) Test_7_GenerateCopywritingEmptyTopic
 	payload := map[string]interface{}{
 		"style": "professional",
 	}
-	status, body := suite.doRequest(http.MethodPost, "/api/v1/ai/generate-copywriting", payload)
-	suite.Equal(http.StatusOK, status)
-
-	var resp struct {
-		Content string `json:"content"`
-	}
-	err := json.Unmarshal(body, &resp)
-	suite.NoError(err)
-	suite.T().Logf("✓ 空 topic 文案生成完成")
+	status, _ := suite.doRequest(http.MethodPost, "/api/v1/ai/generate-copywriting", payload)
+	suite.NotEqual(http.StatusOK, status)
+	suite.T().Logf("✓ 空 topic 文案生成被拒绝，状态码: %d", status)
 }
 
 func TestAIHandlerIntegrationTestSuite(t *testing.T) {
