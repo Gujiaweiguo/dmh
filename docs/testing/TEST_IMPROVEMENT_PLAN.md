@@ -248,6 +248,10 @@ jobs:
         run: cd frontend-admin && npm run test -- --coverage
       - name: Check coverage threshold
         run: |
+          # 已实现：见 .github/workflows/coverage-gate.yml 和 pr-gate.yml
+          # 后端阈值 78%，Admin 阈值 80%，H5 阈值 70%
+          echo "See .github/workflows/coverage-gate.yml for actual implementation"
+        run: |
           # TODO: 添加覆盖率阈值检查
           echo "Frontend coverage check placeholder"
 ```
@@ -288,6 +292,10 @@ jobs:
 ### 6.1 覆盖率目标
 
 | 阶段 | 后端 | Admin | H5 | 时间 |
+|------|------|-------|-----|------|
+| 当前 | ~79% | 83.65% | 87.37% | - |
+| CI 阈值 | 78% | 80% | 70% | 已实现 |
+| 目标 | 80% | 85% | 85% | +4周 |
 |------|------|-------|-----|------|
 | 当前 | 76.7% | 4.4% | 1.1% | - |
 | Phase 1 | 78% | 10% | 10% | +1周 |
