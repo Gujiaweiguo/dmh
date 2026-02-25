@@ -716,3 +716,95 @@ func TestGetVerificationRecordsLogic_Empty(t *testing.T) {
 func int64Ptr(i int64) *int64 {
 	return &i
 }
+
+// Tests for normalizeRoles function
+func TestNormalizeRoles_StringSlice(t *testing.T) {
+	roles := []string{"platform_admin", "brand_admin"}
+	result := normalizeRoles(roles)
+	assert.Equal(t, roles, result)
+}
+
+func TestNormalizeRoles_InterfaceSlice(t *testing.T) {
+	roles := []interface{}{"platform_admin", "brand_admin", "  participant  "}
+	result := normalizeRoles(roles)
+	assert.Equal(t, []string{"platform_admin", "brand_admin", "participant"}, result)
+}
+
+func TestNormalizeRoles_InterfaceSliceWithNonString(t *testing.T) {
+	roles := []interface{}{"platform_admin", 123, "brand_admin"}
+	result := normalizeRoles(roles)
+	assert.Equal(t, []string{"platform_admin", "brand_admin"}, result)
+}
+
+func TestNormalizeRoles_InterfaceSliceWithEmpty(t *testing.T) {
+	roles := []interface{}{"platform_admin", "   ", "brand_admin"}
+	result := normalizeRoles(roles)
+	assert.Equal(t, []string{"platform_admin", "brand_admin"}, result)
+}
+
+func TestNormalizeRoles_EmptyInterfaceSlice(t *testing.T) {
+	roles := []interface{}{}
+	result := normalizeRoles(roles)
+	assert.Empty(t, result)
+}
+
+func TestNormalizeRoles_String(t *testing.T) {
+	result := normalizeRoles("platform_admin")
+	assert.Equal(t, []string{"platform_admin"}, result)
+}
+
+func TestNormalizeRoles_EmptyString(t *testing.T) {
+	result := normalizeRoles("")
+	assert.Nil(t, result)
+}
+
+func TestNormalizeRoles_WhitespaceString(t *testing.T) {
+	result := normalizeRoles("   ")
+	assert.Nil(t, result)
+}
+
+func TestNormalizeRoles_UnknownType(t *testing.T) {
+	result := normalizeRoles(123)
+	assert.Nil(t, result)
+}
+
+func TestNormalizeRoles_Nil(t *testing.T) {
+	result := normalizeRoles(nil)
+	assert.Nil(t, result)
+}
+
+// Tests for hasVerificationPermission function
+func TestHasVerificationPermission_NilContext(t *testing.T) {
+	result := hasVerificationPermission(nil)
+	assert.False(t, result)
+}
+
+func TestHasVerificationPermission_NoRoles(t *testing.T) {
+	ctx := context.Background()
+	result := hasVerificationPermission(ctx)
+	assert.False(t, result)
+}
+
+func TestHasVerificationPermission_PlatformAdmin(t *testing.T) {
+	ctx := context.WithValue(context.Background(), "roles", []string{"platform_admin"})
+	result := hasVerificationPermission(ctx)
+	assert.True(t, result)
+}
+
+func TestHasVerificationPermission_BrandAdmin(t *testing.T) {
+	ctx := context.WithValue(context.Background(), "roles", []string{"brand_admin"})
+	result := hasVerificationPermission(ctx)
+	assert.True(t, result)
+}
+
+func TestHasVerificationPermission_Participant(t *testing.T) {
+	ctx := context.WithValue(context.Background(), "roles", []string{"participant"})
+	result := hasVerificationPermission(ctx)
+	assert.False(t, result)
+}
+
+func TestHasVerificationPermission_InterfaceRoles(t *testing.T) {
+	ctx := context.WithValue(context.Background(), "roles", []interface{}{"platform_admin"})
+	result := hasVerificationPermission(ctx)
+	assert.True(t, result)
+}

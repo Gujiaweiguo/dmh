@@ -473,3 +473,254 @@ func TestApplyWithdrawal_PendingWithdrawalExists(t *testing.T) {
 	assert.Nil(t, resp)
 	assert.Contains(t, err.Error(), "pending withdrawal exists")
 }
+
+func TestApproveWithdrawal_NotFound(t *testing.T) {
+	db := setupWithdrawalTestDB(t)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewApproveWithdrawalLogic(context.Background(), svcCtx)
+
+	req := &types.WithdrawalApproveReq{Status: "approved"}
+	resp, err := logic.ApproveWithdrawal(99999, req, 1)
+
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+	assert.Contains(t, err.Error(), "withdrawal not found")
+}
+
+func TestApproveWithdrawal_AlreadyProcessed(t *testing.T) {
+	db := setupWithdrawalTestDB(t)
+
+	user := &model.User{Id: 200, Username: "testuser_processed", Phone: "13800138200"}
+	db.Create(user)
+
+	withdrawal := &model.Withdrawal{
+		ID:            200,
+		UserID:        200,
+		Amount:        100,
+		Status:        "approved",
+		BankName:      "ICBC",
+		BankAccount:   "6222021234567890",
+		AccountName:   "张三",
+		ApprovedAt:     func() *time.Time { t := time.Now(); return &t }(),
+	}
+	db.Create(withdrawal)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewApproveWithdrawalLogic(context.Background(), svcCtx)
+
+	req := &types.WithdrawalApproveReq{Status: "approved"}
+	resp, err := logic.ApproveWithdrawal(200, req, 1)
+
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+	assert.Contains(t, err.Error(), "withdrawal can only be approved when pending")
+}
+
+func TestApproveWithdrawal_WithApprovedAt(t *testing.T) {
+	db := setupWithdrawalTestDB(t)
+
+	user := &model.User{Id: 300, Username: "testuser_approvedat", Phone: "13800138300"}
+	brand := &model.Brand{Id: 300, Name: "Test Brand"}
+	distributor := &model.Distributor{Id: 300, UserId: 300, BrandId: 300}
+	db.Create(user)
+	db.Create(brand)
+	db.Create(distributor)
+
+	withdrawal := &model.Withdrawal{
+		ID:            300,
+		UserID:        300,
+		BrandId:       300,
+		DistributorId: 300,
+		Amount:        100,
+		Status:        "pending",
+		BankName:      "ICBC",
+		BankAccount:   "6222021234567890",
+		AccountName:   "张三",
+	}
+	db.Create(withdrawal)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewApproveWithdrawalLogic(context.Background(), svcCtx)
+
+	req := &types.WithdrawalApproveReq{Status: "approved"}
+	resp, err := logic.ApproveWithdrawal(300, req, 1)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.NotEmpty(t, resp.ApprovedAt)
+}
+
+func TestGetWithdrawals_WithBrandIdFilter(t *testing.T) {
+	db := setupWithdrawalTestDB(t)
+
+	user := &model.User{Id: 400, Username: "testuser_brand", Phone: "13800138400"}
+	brand := &model.Brand{Id: 400, Name: "Test Brand"}
+	brand2 := &model.Brand{Id: 401, Name: "Test Brand 2"}
+	distributor := &model.Distributor{Id: 400, UserId: 400, BrandId: 400}
+	balance := &model.UserBalance{UserId: 400, Balance: 500}
+
+	db.Create(user)
+	db.Create(brand)
+	db.Create(brand2)
+	db.Create(distributor)
+	db.Create(balance)
+
+	withdrawal1 := &model.Withdrawal{
+		ID:            400,
+		UserID:        400,
+		BrandId:       400,
+		DistributorId: 400,
+		Amount:        100,
+		Status:        "pending",
+		BankName:      "ICBC",
+		BankAccount:   "6222021234567890",
+		AccountName:   "张三",
+		CreatedAt:     time.Now(),
+	}
+	withdrawal2 := &model.Withdrawal{
+		ID:            401,
+		UserID:        400,
+		BrandId:       401,
+		DistributorId: 400,
+		Amount:        200,
+		Status:        "pending",
+		BankName:      "CCB",
+		BankAccount:   "6222021234567891",
+		AccountName:   "李四",
+		CreatedAt:     time.Now().Add(-1 * time.Hour),
+	}
+	db.Create(withdrawal1)
+	db.Create(withdrawal2)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewGetWithdrawalsLogic(context.Background(), svcCtx)
+
+	req := &types.WithdrawalListReq{
+		Page:     1,
+		PageSize: 10,
+		BrandId:   400,
+	}
+	resp, err := logic.GetWithdrawals(req)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, int64(1), resp.Total)
+}
+
+func TestGetWithdrawals_WithStatusFilter(t *testing.T) {
+	db := setupWithdrawalTestDB(t)
+
+	user := &model.User{Id: 500, Username: "testuser_status", Phone: "13800138500"}
+	brand := &model.Brand{Id: 500, Name: "Test Brand"}
+	distributor := &model.Distributor{Id: 500, UserId: 500, BrandId: 500}
+	balance := &model.UserBalance{UserId: 500, Balance: 500}
+
+	db.Create(user)
+	db.Create(brand)
+	db.Create(distributor)
+	db.Create(balance)
+
+	withdrawal1 := &model.Withdrawal{
+		ID:            500,
+		UserID:        500,
+		BrandId:       500,
+		DistributorId: 500,
+		Amount:        100,
+		Status:        "pending",
+		BankName:      "ICBC",
+		BankAccount:   "6222021234567890",
+		AccountName:   "张三",
+		CreatedAt:     time.Now(),
+	}
+	withdrawal2 := &model.Withdrawal{
+		ID:            501,
+		UserID:        500,
+		BrandId:       500,
+		DistributorId: 500,
+		Amount:        200,
+		Status:        "approved",
+		BankName:      "CCB",
+		BankAccount:   "6222021234567891",
+		AccountName:   "李四",
+		CreatedAt:     time.Now().Add(-1 * time.Hour),
+	}
+	db.Create(withdrawal1)
+	db.Create(withdrawal2)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewGetWithdrawalsLogic(context.Background(), svcCtx)
+
+	req := &types.WithdrawalListReq{
+		Page:     1,
+		PageSize: 10,
+		Status:   "pending",
+	}
+	resp, err := logic.GetWithdrawals(req)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	// Should only find withdrawal1 (status=pending)
+	assert.Equal(t, int64(1), resp.Total)
+}
+
+func TestGetWithdrawals_WithUserIdFilter(t *testing.T) {
+	db := setupWithdrawalTestDB(t)
+
+	user1 := &model.User{Id: 600, Username: "testuser_filter1", Phone: "13800138600"}
+	user2 := &model.User{Id: 601, Username: "testuser_filter2", Phone: "13800138601"}
+	brand := &model.Brand{Id: 600, Name: "Test Brand"}
+	distributor := &model.Distributor{Id: 600, UserId: 600, BrandId: 600}
+	balance1 := &model.UserBalance{UserId: 600, Balance: 500}
+	balance2 := &model.UserBalance{UserId: 601, Balance: 500}
+
+	db.Create(user1)
+	db.Create(user2)
+	db.Create(brand)
+	db.Create(distributor)
+	db.Create(balance1)
+	db.Create(balance2)
+
+	withdrawal1 := &model.Withdrawal{
+		ID:            600,
+		UserID:        600,
+		BrandId:       600,
+		DistributorId: 600,
+		Amount:        100,
+		Status:        "pending",
+		BankName:      "ICBC",
+		BankAccount:   "6222021234567890",
+		AccountName:   "张三",
+		CreatedAt:     time.Now(),
+	}
+	withdrawal2 := &model.Withdrawal{
+		ID:            601,
+		UserID:        601,
+		BrandId:       600,
+		DistributorId: 600,
+		Amount:        200,
+		Status:        "pending",
+		BankName:      "CCB",
+		BankAccount:   "6222021234567891",
+		AccountName:   "李四",
+		CreatedAt:     time.Now().Add(-1 * time.Hour),
+	}
+	db.Create(withdrawal1)
+	db.Create(withdrawal2)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewGetWithdrawalsLogic(context.Background(), svcCtx)
+
+	req := &types.WithdrawalListReq{
+		Page:     1,
+		PageSize: 10,
+		UserId:   600,
+	}
+	resp, err := logic.GetWithdrawals(req)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	// Should only find withdrawal1 (UserId=600)
+	assert.Equal(t, int64(1), resp.Total)
+}
+

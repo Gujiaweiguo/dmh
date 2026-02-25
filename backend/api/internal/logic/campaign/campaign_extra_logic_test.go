@@ -398,6 +398,60 @@ func TestSavePageConfigLogic_SavePageConfig_Success(t *testing.T) {
 	assert.NoError(t, result.Error)
 	assert.Equal(t, campaign.Id, pageConfig.CampaignId)
 }
+func TestSavePageConfigLogic_SavePageConfig_Update(t *testing.T) {
+	db := setupCampaignTestDB(t)
+
+	campaign := &model.Campaign{
+		Name:        "测试活动",
+		Description: "测试描述",
+		RewardRule:  10.00,
+		StartTime:   time.Now().Add(-1 * time.Hour),
+		EndTime:     time.Now().Add(24 * time.Hour),
+		Status:      "active",
+		BrandId:     1,
+	}
+	db.Create(campaign)
+
+	// 先创建一个已存在的配置
+	existingConfig := &model.PageConfig{
+		CampaignId: campaign.Id,
+		Components: `{"type":"old","content":"旧内容"}`,
+		Theme:      `{"primaryColor":"#000000"}`,
+	}
+	db.Create(existingConfig)
+
+	ctx := context.Background()
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewSavePageConfigLogic(ctx, svcCtx)
+
+	// 更新配置
+	newComponents := []map[string]interface{}{
+		{"type": "banner", "content": "新内容"},
+	}
+	newTheme := map[string]interface{}{
+		"primaryColor": "#ffffff",
+	}
+
+	req := &types.PageConfigReq{
+		Id:         campaign.Id,
+		Components: newComponents,
+		Theme:      newTheme,
+	}
+
+	resp, err := logic.SavePageConfig(req)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, existingConfig.Id, resp.Id) // 应该是同一个 ID（更新而非新建）
+
+	// 验证数据库中的配置已更新
+	var pageConfig model.PageConfig
+	result := db.Where("campaign_id = ?", campaign.Id).First(&pageConfig)
+	assert.NoError(t, result.Error)
+	assert.Contains(t, pageConfig.Components, "新内容")
+	assert.Contains(t, pageConfig.Theme, "#ffffff")
+}
+
 
 func TestGetPageConfigLogic_GetPageConfig_Success(t *testing.T) {
 	db := setupCampaignTestDB(t)

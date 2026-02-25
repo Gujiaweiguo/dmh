@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"testing"
+	"time"
 
 	"dmh/api/internal/handler/testutil"
 	"dmh/api/internal/svc"
@@ -712,6 +713,130 @@ func TestGetBrandDistributorsLogic_EmptyResult(t *testing.T) {
 	assert.Len(t, resp.Distributors, 0)
 }
 
+func TestGetBrandDistributorsLogic_WithLevelFilter(t *testing.T) {
+	db := setupDistributorTestDB(t)
+
+	createTestDistributor(t, db, 1, 1, 1, "active")
+	createTestDistributor(t, db, 2, 1, 2, "active")
+	createTestDistributor(t, db, 3, 1, 3, "active")
+
+	ctx := context.Background()
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewGetBrandDistributorsLogic(ctx, svcCtx)
+
+	req := &types.GetDistributorsReq{
+		Level:    2,
+		Page:     1,
+		PageSize: 10,
+	}
+
+	resp, err := logic.GetBrandDistributors(req)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, int64(1), resp.Total)
+}
+
+func TestGetBrandDistributorsLogic_WithKeywordFilter(t *testing.T) {
+	db := setupDistributorTestDB(t)
+
+	// Create users with specific usernames
+	user1 := &model.User{Id: 100, Username: "john_doe", Phone: "13900000100", Status: "active"}
+	user2 := &model.User{Id: 101, Username: "jane_doe", Phone: "13900000101", Status: "active"}
+	user3 := &model.User{Id: 102, Username: "bob_smith", Phone: "13900000102", Status: "active"}
+	db.Create(user1)
+	db.Create(user2)
+	db.Create(user3)
+
+	createTestDistributor(t, db, 100, 1, 1, "active")
+	createTestDistributor(t, db, 101, 1, 1, "active")
+	createTestDistributor(t, db, 102, 1, 1, "active")
+
+	ctx := context.Background()
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewGetBrandDistributorsLogic(ctx, svcCtx)
+
+	req := &types.GetDistributorsReq{
+		Keyword:  "doe",
+		Page:     1,
+		PageSize: 10,
+	}
+
+	resp, err := logic.GetBrandDistributors(req)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, int64(2), resp.Total) // john_doe and jane_doe
+}
+
+func TestGetBrandDistributorsLogic_WithParentAndApproved(t *testing.T) {
+	db := setupDistributorTestDB(t)
+	// Create brand first
+	brand := &model.Brand{Id: 1, Name: "Test Brand", Status: "active"}
+	db.Create(brand)
+
+	// Create parent distributor
+	parentUser := &model.User{Id: 200, Username: "parent_user", Phone: "13900000200", Status: "active"}
+	db.Create(parentUser)
+	parentDist := &model.Distributor{
+		UserId:            200,
+		BrandId:           1,
+		Level:             1,
+		Status:            "active",
+		TotalEarnings:     5000,
+		SubordinatesCount: 10,
+	}
+	db.Create(parentDist)
+
+	// Create child distributor with parent
+	childUser := &model.User{Id: 201, Username: "child_user", Phone: "13900000201", Status: "active"}
+	db.Create(childUser)
+	now := time.Now()
+	approvedBy := int64(1)
+	childDist := &model.Distributor{
+		UserId:            201,
+		BrandId:           1,
+		Level:             2,
+		Status:            "active",
+		ParentId:          &parentDist.Id,
+		ApprovedBy:        &approvedBy,
+		ApprovedAt:        &now,
+		TotalEarnings:     1000,
+		SubordinatesCount: 5,
+	}
+	db.Create(childDist)
+
+	ctx := context.Background()
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewGetBrandDistributorsLogic(ctx, svcCtx)
+
+	req := &types.GetDistributorsReq{
+		Page:     1,
+		PageSize: 10,
+	}
+
+	resp, err := logic.GetBrandDistributors(req)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.GreaterOrEqual(t, resp.Total, int64(2))
+
+	// Find the child distributor in the response
+	var foundChild *types.DistributorResp
+	for _, d := range resp.Distributors {
+		if d.UserId == 201 {
+			foundChild = &d
+			break
+		}
+	}
+	assert.NotNil(t, foundChild)
+	if foundChild != nil {
+		assert.Equal(t, parentDist.Id, foundChild.ParentId)
+		assert.NotEmpty(t, foundChild.ParentName)
+		assert.Equal(t, approvedBy, foundChild.ApprovedBy)
+		assert.NotEmpty(t, foundChild.ApprovedAt)
+	}
+}
 func TestGetBrandDistributorApplicationsLogic_Pagination(t *testing.T) {
 	db := setupDistributorTestDB(t)
 

@@ -187,11 +187,49 @@ func TestRegisterLogic_PasswordTooShort(t *testing.T) {
 		Phone:    "13900139004",
 	}
 
+	_, err := logic.Register(req)
+
+	assert.Contains(t, err.Error(), "密码长度不能少于6位")
+}
+
+func TestRegisterLogic_CreateRoleIfNotExist(t *testing.T) {
+	db := setupAuthTestDB(t)
+	// 注意：不预先创建 participant 角色
+
+	ctx := context.Background()
+	svcCtx := &svc.ServiceContext{
+		DB: db,
+		Config: config.Config{
+			Auth: struct {
+				AccessSecret string
+				AccessExpire int64
+			}{
+				AccessSecret: "test-secret-key-for-testing",
+				AccessExpire: 86400,
+			},
+		},
+	}
+	logic := NewRegisterLogic(ctx, svcCtx)
+
+	req := &types.RegisterReq{
+		Username: "newuser_norole",
+		Password: "password123",
+		Phone:    "13900139999",
+		Email:    "test_norole@example.com",
+		RealName: "测试用户无角色",
+	}
+
 	resp, err := logic.Register(req)
 
-	assert.Error(t, err)
-	assert.Nil(t, resp)
-	assert.Contains(t, err.Error(), "密码长度不能少于6位")
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.NotEmpty(t, resp.Token)
+
+	// 验证角色被自动创建
+	var role model.Role
+	err = db.Where("code = ?", "participant").First(&role).Error
+	assert.NoError(t, err)
+	assert.Equal(t, "participant", role.Code)
 }
 
 func TestChangePasswordLogic_Success(t *testing.T) {
@@ -436,6 +474,26 @@ func TestUpdateProfileLogic_UserNotExists(t *testing.T) {
 	}
 
 	resp, err := logic.UpdateProfile(req)
+
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+	assert.Contains(t, err.Error(), "用户不存在")
+}
+
+func TestChangePasswordLogic_UserNotFound(t *testing.T) {
+	db := setupAuthTestDB(t)
+
+	// 使用一个不存在于数据库中的 userId
+	ctx := context.WithValue(context.Background(), "userId", int64(99999))
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewChangePasswordLogic(ctx, svcCtx)
+
+	req := &types.ChangePasswordReq{
+		OldPassword: "oldpassword123",
+		NewPassword: "newpassword456",
+	}
+
+	resp, err := logic.ChangePassword(req)
 
 	assert.Error(t, err)
 	assert.Nil(t, resp)
