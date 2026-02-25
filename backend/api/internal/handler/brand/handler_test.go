@@ -1018,3 +1018,95 @@ func TestGetBrandAssetHandler_ReturnsOK(t *testing.T) {
 
 	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
 }
+func TestGetBrandAssetHandler_WithVars(t *testing.T) {
+	db := setupBrandHandlerTestDB(t)
+	brand := createTestBrandForHandler(t, db, "Test Brand Asset Get OK")
+	asset := &model.BrandAsset{BrandID: brand.Id, Type: "image", FileUrl: "https://example.com/image.png"}
+	db.Create(asset)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetBrandAssetHandler(svcCtx)
+
+	req := setupRequestWithBrandPathVars(http.MethodGet, fmt.Sprintf("/api/v1/brands/%d/assets/%d", brand.Id, asset.ID), nil, brand.Id, asset.ID)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+}
+
+// Additional tests using pathvar.WithVars for better coverage
+func TestGetBrandAssetsHandler_WithVars(t *testing.T) {
+	db := setupBrandHandlerTestDB(t)
+	brand := createTestBrandForHandler(t, db, "Test Brand")
+	asset := &model.BrandAsset{BrandID: brand.Id, Type: "image", FileUrl: "https://example.com/image.png"}
+	db.Create(asset)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetBrandAssetsHandler(svcCtx)
+
+	req := setupRequestWithBrandPathVars(http.MethodGet, fmt.Sprintf("/api/v1/brands/%d/assets?page=1&pageSize=10", brand.Id), nil, brand.Id)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestGetBrandStatsHandler_WithVars(t *testing.T) {
+	db := setupBrandHandlerTestDB(t)
+	brand := createTestBrandForHandler(t, db, "Test Brand")
+	campaign := &model.Campaign{Name: "Test Campaign", BrandId: brand.Id, Status: "active"}
+	db.Create(campaign)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetBrandStatsHandler(svcCtx)
+
+	req := setupRequestWithBrandPathVars(http.MethodGet, fmt.Sprintf("/api/v1/brands/%d/stats", brand.Id), nil, brand.Id)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestUpdateBrandHandler_WithVars(t *testing.T) {
+	db := setupBrandHandlerTestDB(t)
+	brand := createTestBrandForHandler(t, db, "Test Brand")
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := UpdateBrandHandler(svcCtx)
+
+	reqBody := types.UpdateBrandReq{Name: "Updated Brand"}
+	body, _ := json.Marshal(reqBody)
+	req := setupRequestWithBrandPathVars(http.MethodPut, fmt.Sprintf("/api/v1/brands/%d", brand.Id), bytes.NewReader(body), brand.Id)
+	req.Header.Set("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestUpdateBrandAssetHandler_WithVars(t *testing.T) {
+	db := setupBrandHandlerTestDB(t)
+	brand := createTestBrandForHandler(t, db, "Test Brand")
+	asset := &model.BrandAsset{BrandID: brand.Id, Type: "image", FileUrl: "https://example.com/image.png"}
+	db.Create(asset)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := UpdateBrandAssetHandler(svcCtx)
+
+	reqBody := types.BrandAssetReq{Type: "video", FileUrl: "https://example.com/video.mp4"}
+	body, _ := json.Marshal(reqBody)
+	req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/brands/%d/assets/%d", brand.Id, asset.ID), bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	vars := map[string]string{"brandId": fmt.Sprintf("%d", brand.Id), "id": fmt.Sprintf("%d", asset.ID)}
+	req = pathvar.WithVars(req, vars)
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+}
+
