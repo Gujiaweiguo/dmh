@@ -125,3 +125,25 @@ func TestClearTables(t *testing.T) {
 	err := ClearTables(db, "users")
 	assert.NoError(t, err)
 }
+
+func TestMakeRequest_WithExistingContentType(t *testing.T) {
+	body := bytes.NewBufferString(`{"key":"value"}`)
+	req := MakeRequest(http.MethodPost, "/api/test", body)
+	req.Header.Set("Content-Type", "text/plain") // Override default
+
+	assert.Equal(t, "text/plain", req.Header.Get("Content-Type"))
+}
+
+func TestWithTransaction_Panic(t *testing.T) {
+	db := SetupGormTestDB(t)
+	defer func() {
+		r := recover()
+		assert.NotNil(t, r)
+		assert.Equal(t, "test panic", r)
+	}()
+
+	WithTransaction(t, db, func(tx *gorm.DB) {
+		assert.NotNil(t, tx)
+		panic("test panic")
+	})
+}
