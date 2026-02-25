@@ -130,6 +130,11 @@ describe('object.logic', () => {
     it('should invert key and value', () => {
       expect(invert({ a: '1', b: '2' })).toEqual({ '1': 'a', '2': 'b' })
     })
+
+
+    it('should return empty for null', () => {
+      expect(invert(null)).toEqual({})
+    })
   })
 
   describe('clone', () => {
@@ -138,6 +143,10 @@ describe('object.logic', () => {
       const cloned = clone(obj)
       cloned.a.b = 2
       expect(obj.a.b).toBe(1)
+    })
+
+    it('should return input for null', () => {
+      expect(clone(null)).toBe(null)
     })
   })
 
@@ -159,12 +168,20 @@ describe('object.logic', () => {
     it('should return default for missing path', () => {
       expect(getPath({ a: 1 }, 'b.c', 'default')).toBe('default')
     })
+
+    it('should return default for null obj', () => {
+      expect(getPath(null, 'a.b', 'default')).toBe('default')
+    })
   })
 
   describe('setPath', () => {
     it('should set nested value', () => {
       const result = setPath({ a: { b: 1 } }, 'a.b', 2)
       expect(result.a.b).toBe(2)
+    })
+
+    it('should return obj for null', () => {
+      expect(setPath(null, 'a.b', 2)).toBe(null)
     })
   })
 })

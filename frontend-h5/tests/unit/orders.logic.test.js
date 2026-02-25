@@ -86,6 +86,43 @@ describe('orders logic', () => {
     expect(buildOrdersCsv([])).toBe('')
   })
 
+
+  it('returns empty csv for null/undefined list', () => {
+    expect(buildOrdersCsv(null)).toBe('')
+    expect(buildOrdersCsv(undefined)).toBe('')
+  })
+
+  it('escapes csv cells with special characters', () => {
+    const ordersWithSpecialChars = [
+      {
+        id: 1,
+        status: 'paid',
+        amount: 100,
+        rewardAmount: 0,
+        referrerId: null,
+        createdAt: '2026-02-13',
+        campaignName: '活动,A', // comma
+        phone: '138',
+        formData: { name: '张"三' }, // quote
+      },
+      {
+        id: 2,
+        status: 'paid',
+        amount: 100,
+        rewardAmount: 0,
+        referrerId: null,
+        createdAt: '2026-02-13',
+        campaignName: '活动\nB', // newline
+        phone: '139',
+        formData: {},
+      },
+    ]
+    const csv = buildOrdersCsv(ordersWithSpecialChars)
+    // Cells with commas, quotes, or newlines should be quoted
+    expect(csv).toContain('"活动,A"')
+    expect(csv).toContain('"张""三"') // escaped quote
+  })
+
   it('builds order detail items', () => {
     const items = getOrderDetailItems({
       id: 1,
@@ -99,5 +136,42 @@ describe('orders logic', () => {
     })
     expect(items.find((item) => item.label === '订单号')?.value).toBe(1)
     expect(items.find((item) => item.label === '订单状态')?.value).toBe('已支付')
+	expect(items.find((item) => item.label === '订单状态')?.value).toBe('已支付')
+  })
+
+  it('builds order detail items with missing fields', () => {
+    const items = getOrderDetailItems({
+      id: null,
+      campaignName: null,
+      phone: null,
+      status: 'pending',
+      amount: null,
+      rewardAmount: null,
+      referrerName: null,
+      referrerId: null,
+      createdAt: null,
+    })
+    expect(items.find((item) => item.label === '订单号')?.value).toBe('-')
+    expect(items.find((item) => item.label === '活动名称')?.value).toBe('-')
+    expect(items.find((item) => item.label === '手机号')?.value).toBe('-')
+    expect(items.find((item) => item.label === '订单金额')?.value).toBe('¥0.00')
+    expect(items.find((item) => item.label === '奖励金额')?.value).toBe('¥0.00')
+    expect(items.find((item) => item.label === '推荐人')?.value).toBe('-')
+    expect(items.find((item) => item.label === '创建时间')?.value).toBe('-')
+  })
+
+  it('builds order detail items with referrerId only', () => {
+    const items = getOrderDetailItems({
+      id: 1,
+      campaignName: '活动A',
+      phone: '13800000000',
+      status: 'paid',
+      amount: 100,
+      rewardAmount: 20,
+      referrerName: null,
+      referrerId: 123,
+      createdAt: '2026-02-13',
+    })
+    expect(items.find((item) => item.label === '推荐人')?.value).toBe(123)
   })
 })

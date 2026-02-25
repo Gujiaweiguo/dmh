@@ -25,6 +25,11 @@ describe('color.logic', () => {
     it('should return null for invalid hex', () => {
       expect(hexToRgb('invalid')).toBeNull()
     })
+
+    it('should return null for empty input', () => {
+      expect(hexToRgb('')).toBeNull()
+      expect(hexToRgb(null)).toBeNull()
+    })
   })
 
   describe('rgbToHex', () => {
@@ -37,6 +42,10 @@ describe('color.logic', () => {
     it('should convert hex to rgba', () => {
       expect(hexToRgba('#ff0000', 0.5)).toBe('rgba(255, 0, 0, 0.5)')
     })
+
+    it('should return empty string for invalid hex', () => {
+      expect(hexToRgba('invalid', 0.5)).toBe('')
+    })
   })
 
   describe('lighten', () => {
@@ -44,12 +53,20 @@ describe('color.logic', () => {
       const result = lighten('#000000', 50)
       expect(result).not.toBe('#000000')
     })
+
+    it('should return original hex for invalid input', () => {
+      expect(lighten('invalid', 50)).toBe('invalid')
+    })
   })
 
   describe('darken', () => {
     it('should darken color', () => {
       const result = darken('#ffffff', 50)
       expect(result).not.toBe('#ffffff')
+    })
+
+    it('should return original hex for invalid input', () => {
+      expect(darken('invalid', 50)).toBe('invalid')
     })
   })
 
@@ -72,6 +89,10 @@ describe('color.logic', () => {
     it('should return white for dark colors', () => {
       expect(getContrastColor('#000000')).toBe('#ffffff')
     })
+
+    it('should return black for invalid hex', () => {
+      expect(getContrastColor('invalid')).toBe('#000000')
+    })
   })
 
   describe('getRandomColor', () => {
@@ -85,6 +106,11 @@ describe('color.logic', () => {
     it('should mix two colors', () => {
       const result = mixColors('#000000', '#ffffff', 0.5)
       expect(result).toBeDefined()
+    })
+
+    it('should return empty string for invalid colors', () => {
+      expect(mixColors('invalid', '#ffffff')).toBe('')
+      expect(mixColors('#ffffff', 'invalid')).toBe('')
     })
   })
 

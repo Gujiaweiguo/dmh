@@ -140,11 +140,21 @@ describe('number.logic', () => {
     it('should floor value', () => {
       expect(floor(1.9)).toBe(1)
     })
+
+
+    it('should return 0 for NaN', () => {
+      expect(floor('invalid')).toBe(0)
+    })
   })
 
   describe('ceil', () => {
     it('should ceil value', () => {
       expect(ceil(1.1)).toBe(2)
+    })
+
+
+    it('should return 0 for NaN', () => {
+      expect(ceil('invalid')).toBe(0)
     })
   })
 

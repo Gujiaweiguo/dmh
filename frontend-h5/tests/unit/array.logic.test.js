@@ -52,6 +52,12 @@ describe('array.logic', () => {
       expect(result[0].val).toBe(3)
     })
 
+    it('should handle equal values', () => {
+      const data = [{ val: 1 }, { val: 1 }, { val: 1 }]
+      const result = sortBy(data, 'val')
+      expect(result).toHaveLength(3)
+    })
+
     it('should return empty array for non-array', () => {
       expect(sortBy(null, 'val')).toEqual([])
     })
@@ -176,6 +182,12 @@ describe('array.logic', () => {
       const shuffled = shuffle(arr)
       expect(shuffled).toHaveLength(5)
       expect(shuffled.sort()).toEqual(arr.sort())
+    })
+
+
+    it('should return empty array for non-array input', () => {
+      expect(shuffle(null)).toEqual([])
+      expect(shuffle('string')).toEqual([])
     })
   })
 })
