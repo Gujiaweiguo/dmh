@@ -1,14 +1,17 @@
 package material
 
 import (
+	"bytes"
 	"context"
+	"mime/multipart"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
 	"dmh/api/internal/svc"
 	"dmh/api/internal/types"
 	"dmh/model"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"gorm.io/driver/mysql"
@@ -183,6 +186,110 @@ func (suite *MaterialLogicTestSuite) TestGetMaterialList_OrderDesc() {
 	assert.NotNil(suite.T(), resp)
 	assert.Equal(suite.T(), "New.jpg", resp.Materials[0].Name)
 	assert.Equal(suite.T(), "Old.jpg", resp.Materials[1].Name)
+}
+
+// === UploadMaterial Tests ===
+
+func (suite *MaterialLogicTestSuite) TestUploadMaterial_ImageSuccess() {
+	ctx := context.Background()
+
+	// Create a test image file
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	// Add file field
+	part, _ := writer.CreateFormFile("file", "test.jpg")
+	part.Write([]byte("fake image content"))
+	writer.Close()
+
+	// Create request
+	req := httptest.NewRequest(http.MethodPost, "/api/material", body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	l := NewUploadMaterialLogic(ctx, suite.svcCtx)
+	uploadReq := &types.UploadMaterialReq{
+		Type: "image",
+	}
+
+	resp, err := l.UploadMaterial(uploadReq, req)
+	assert.NoError(suite.T(), err)
+	assert.NotNil(suite.T(), resp)
+	assert.Equal(suite.T(), "test.jpg", resp.Name)
+	assert.Equal(suite.T(), "image", resp.Type)
+	assert.NotEmpty(suite.T(), resp.Url)
+}
+
+func (suite *MaterialLogicTestSuite) TestUploadMaterial_TextSuccess() {
+	ctx := context.Background()
+
+	// Create a test text file
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	part, _ := writer.CreateFormFile("file", "test.txt")
+	part.Write([]byte("sample text content"))
+	writer.Close()
+
+	req := httptest.NewRequest(http.MethodPost, "/api/material", body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	l := NewUploadMaterialLogic(ctx, suite.svcCtx)
+	uploadReq := &types.UploadMaterialReq{
+		Type: "text",
+	}
+
+	resp, err := l.UploadMaterial(uploadReq, req)
+	assert.NoError(suite.T(), err)
+	assert.NotNil(suite.T(), resp)
+	assert.Equal(suite.T(), "test.txt", resp.Name)
+	assert.Equal(suite.T(), "text", resp.Type)
+	assert.NotEmpty(suite.T(), resp.Id) // Text materials stored in DB
+}
+
+func (suite *MaterialLogicTestSuite) TestUploadMaterial_DefaultType() {
+	ctx := context.Background()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	part, _ := writer.CreateFormFile("file", "default.png")
+	part.Write([]byte("image data"))
+	writer.Close()
+
+	req := httptest.NewRequest(http.MethodPost, "/api/material", body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	l := NewUploadMaterialLogic(ctx, suite.svcCtx)
+	uploadReq := &types.UploadMaterialReq{
+		Type: "", // Empty type should default to "image"
+	}
+
+	resp, err := l.UploadMaterial(uploadReq, req)
+	assert.NoError(suite.T(), err)
+	assert.NotNil(suite.T(), resp)
+	assert.Equal(suite.T(), "image", resp.Type) // Should default to image
+}
+
+func (suite *MaterialLogicTestSuite) TestUploadMaterial_NoFile() {
+	ctx := context.Background()
+
+	// Create request without file
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	writer.Close()
+
+	req := httptest.NewRequest(http.MethodPost, "/api/material", body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	l := NewUploadMaterialLogic(ctx, suite.svcCtx)
+	uploadReq := &types.UploadMaterialReq{
+		Type: "image",
+	}
+
+	resp, err := l.UploadMaterial(uploadReq, req)
+	assert.Error(suite.T(), err)
+	assert.Nil(suite.T(), resp)
+	assert.Contains(suite.T(), err.Error(), "no file uploaded")
 }
 
 func TestMaterialLogicTestSuite(t *testing.T) {

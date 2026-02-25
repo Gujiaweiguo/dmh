@@ -64,12 +64,11 @@ jobs:
           go test -p 1 $(go list ./... | grep -v -E 'dmh/test/integration|dmh/test/performance') -coverprofile=coverage.out -covermode=atomic
           COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
           echo "Backend coverage: ${COVERAGE}%"
-          if (( $(echo "$COVERAGE < 76" | bc -l) )); then
-            echo "::error::Backend coverage ${COVERAGE}% is below 76% threshold"
+          if (( $(echo "$COVERAGE < 78" | bc -l) )); then
+            echo "::error::Backend coverage ${COVERAGE}% is below 78% threshold"
             exit 1
           fi
-          echo "✓ Backend coverage ${COVERAGE}% meets 76% threshold"
-
+          echo "✓ Backend coverage ${COVERAGE}% meets 78% threshold"
   frontend-unit:
     name: Frontend Unit Tests
     runs-on: ubuntu-latest
@@ -96,26 +95,24 @@ jobs:
           npm run test:cov 2>&1 | tee /tmp/admin-coverage.log
           PCT=$(grep -E "All files\s*\|" /tmp/admin-coverage.log | tail -1 | awk -F'|' '{gsub(/ /,"",$2); print $2}' | tr -d '%' || true)
           echo "Frontend Admin coverage: ${PCT}%"
-          if echo "$PCT" | grep -Eq '^[0-9]+(\.[0-9]+)?$' && [ "${PCT%.*}" -ge 70 ]; then
-            echo "✓ Frontend Admin coverage ${PCT}% meets 70% threshold"
+          if echo "$PCT" | grep -Eq '^[0-9]+(\.[0-9]+)?$' && [ "${PCT%.*}" -ge 80 ]; then
+            echo "✓ Frontend Admin coverage ${PCT}% meets 80% threshold"
           else
-            echo "::error::Frontend Admin coverage ${PCT}% is below 70% threshold"
+            echo "::error::Frontend Admin coverage ${PCT}% is below 80% threshold"
             exit 1
           fi
-
       - name: Run H5 unit tests with coverage
         working-directory: frontend-h5
         run: |
           npm run test:cov 2>&1 | tee /tmp/h5-coverage.log
           PCT=$(grep -E "All files\s*\|" /tmp/h5-coverage.log | tail -1 | awk -F'|' '{gsub(/ /,"",$2); print $2}' | tr -d '%' || true)
           echo "Frontend H5 coverage: ${PCT}%"
-          if echo "$PCT" | grep -Eq '^[0-9]+(\.[0-9]+)?$' && [ "${PCT%.*}" -ge 44 ]; then
-            echo "✓ Frontend H5 coverage ${PCT}% meets 44% threshold"
+          if echo "$PCT" | grep -Eq '^[0-9]+(\.[0-9]+)?$' && [ "${PCT%.*}" -ge 70 ]; then
+            echo "✓ Frontend H5 coverage ${PCT}% meets 70% threshold"
           else
-            echo "::error::Frontend H5 coverage ${PCT}% is below 44% threshold"
+            echo "::error::Frontend H5 coverage ${PCT}% is below 70% threshold"
             exit 1
           fi
-
   lint:
     name: Lint Check
     runs-on: ubuntu-latest

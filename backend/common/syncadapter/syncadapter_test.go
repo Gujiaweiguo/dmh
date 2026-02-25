@@ -496,3 +496,101 @@ func TestClose_WithDB(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
+
+func TestAsyncSyncOrder_Success(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("failed to create sqlmock: %v", err)
+	}
+	defer db.Close()
+
+	mock.ExpectExec("INSERT INTO external_orders").
+		WillReturnResult(sqlmock.NewResult(1, 1))
+
+	adapter := &SyncAdapter{
+		db:      db,
+		mapper:  NewFieldMapper(),
+		metrics: NewSyncMetrics(),
+		logger:  logx.WithContext(context.Background()),
+	}
+
+	data := &SyncOrderData{
+		OrderId:   123,
+		Phone:     "13800138000",
+		Amount:    100.0,
+		PayStatus: "paid",
+		CreatedAt: time.Now(),
+	}
+
+	// Call AsyncSyncOrder - this spawns a goroutine
+	adapter.AsyncSyncOrder(data)
+
+	// Wait for goroutine to complete
+	time.Sleep(100 * time.Millisecond)
+
+	// The goroutine should have called SyncOrder
+	assert.NoError(t, mock.ExpectationsWereMet())
+
+	stats := adapter.metrics.GetStats()
+	assert.Equal(t, int64(1), stats["success_syncs"])
+}
+
+func TestAsyncSyncOrder_Error(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("failed to create sqlmock: %v", err)
+	}
+	defer db.Close()
+
+	mock.ExpectExec("INSERT INTO external_orders").
+		WillReturnError(sql.ErrConnDone)
+
+	adapter := &SyncAdapter{
+		db:      db,
+		mapper:  NewFieldMapper(),
+		metrics: NewSyncMetrics(),
+		logger:  logx.WithContext(context.Background()),
+	}
+
+	data := &SyncOrderData{
+		OrderId:   123,
+		Phone:     "13800138000",
+		Amount:    100.0,
+		PayStatus: "paid",
+		CreatedAt: time.Now(),
+	}
+
+	// Call AsyncSyncOrder
+	adapter.AsyncSyncOrder(data)
+
+	// Wait for goroutine to complete
+	time.Sleep(100 * time.Millisecond)
+
+	assert.NoError(t, mock.ExpectationsWereMet())
+
+	stats := adapter.metrics.GetStats()
+	assert.Equal(t, int64(1), stats["failed_syncs"])
+}
+
+func TestSyncAdapter_NewSyncAdapter_Success(t *testing.T) {
+	config := ExternalSyncConfig{
+		Type:     "mysql",
+		Host:     "localhost",
+		Port:     3306,
+		User:     "testuser",
+		Password: "testpass",
+		Database: "testdb",
+	}
+
+	adapter, err := NewSyncAdapter(config)
+	if err != nil {
+		t.Skipf("MySQL not available: %v", err)
+		return
+	}
+	defer adapter.Close()
+
+	assert.NotNil(t, adapter)
+	assert.NotNil(t, adapter.db)
+	assert.NotNil(t, adapter.mapper)
+	assert.NotNil(t, adapter.metrics)
+}

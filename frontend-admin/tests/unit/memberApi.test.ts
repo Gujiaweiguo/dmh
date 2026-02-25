@@ -119,4 +119,102 @@ describe('memberApi service', () => {
     expect(urlStr).toContain('brandId=99');
     expect(urlStr).toContain('status=pending');
   });
+
+  it('createExportRequest sends POST with body', async () => {
+    localStorage.setItem('dmh_token', 'token-member');
+    const payload = { brandId: 1, reason: 'test export', filters: 'status=active' };
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 1, ...payload }),
+    } as unknown as Response);
+
+    await memberApi.createExportRequest(payload);
+
+    const [url, options] = vi.mocked(fetch).mock.calls[0];
+    expect(url).toBe('/api/v1/members/export-requests');
+    expect((options as RequestInit).method).toBe('POST');
+    expect((options as RequestInit).body).toBe(JSON.stringify(payload));
+  });
+
+  it('approveExportRequest sends POST with approval data', async () => {
+    localStorage.setItem('dmh_token', 'token-member');
+    const payload = { approve: true, reason: 'approved' };
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ success: true }),
+    } as unknown as Response);
+
+    await memberApi.approveExportRequest(123, payload);
+
+    const [url, options] = vi.mocked(fetch).mock.calls[0];
+    expect(url).toBe('/api/v1/members/export-requests/123/approve');
+    expect((options as RequestInit).method).toBe('POST');
+    expect((options as RequestInit).body).toBe(JSON.stringify(payload));
+  });
+
+  it('getMember calls correct endpoint', async () => {
+    localStorage.setItem('dmh_token', 'token-member');
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 1, name: 'test' }),
+    } as unknown as Response);
+
+    await memberApi.getMember(1);
+
+    const [url] = vi.mocked(fetch).mock.calls[0];
+    expect(url).toBe('/api/v1/members/1');
+  });
+
+  it('addMemberTags sends POST with tagIds', async () => {
+    localStorage.setItem('dmh_token', 'token-member');
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ success: true }),
+    } as unknown as Response);
+
+    await memberApi.addMemberTags(1, [10, 20]);
+
+    const [url, options] = vi.mocked(fetch).mock.calls[0];
+    expect(url).toBe('/api/v1/members/1/tags');
+    expect((options as RequestInit).method).toBe('POST');
+    expect((options as RequestInit).body).toBe(JSON.stringify({ memberId: 1, tagIds: [10, 20] }));
+  });
+
+  it('previewMerge sends POST with merge data', async () => {
+    localStorage.setItem('dmh_token', 'token-member');
+    const payload = { sourceMemberId: 2, targetMemberId: 1, reason: 'duplicate' };
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ canMerge: true }),
+    } as unknown as Response);
+
+    await memberApi.previewMerge(payload);
+
+    const [url, options] = vi.mocked(fetch).mock.calls[0];
+    expect(url).toBe('/api/v1/members/merge/preview');
+    expect((options as RequestInit).method).toBe('POST');
+    expect((options as RequestInit).body).toBe(JSON.stringify(payload));
+  });
+
+  it('mergeMember sends POST with merge data', async () => {
+    localStorage.setItem('dmh_token', 'token-member');
+    const payload = { sourceMemberId: 2, targetMemberId: 1, reason: 'duplicate' };
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ success: true }),
+    } as unknown as Response);
+
+    await memberApi.mergeMember(payload);
+
+    const [url, options] = vi.mocked(fetch).mock.calls[0];
+    expect(url).toBe('/api/v1/members/merge');
+    expect((options as RequestInit).method).toBe('POST');
+    expect((options as RequestInit).body).toBe(JSON.stringify(payload));
+  });
 });

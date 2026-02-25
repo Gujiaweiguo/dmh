@@ -17,6 +17,7 @@ import (
 	"dmh/model"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/rest/pathvar"
 	"gorm.io/gorm"
 )
 
@@ -141,6 +142,14 @@ func TestDistributorHandler_ParseErrors(t *testing.T) {
 			handler:     GetDistributorSubordinatesHandler(nil),
 			method:      http.MethodGet,
 			url:         "/api/v1/distributors/invalid/subordinates",
+			body:        "",
+			contentType: "",
+		},
+		{
+			name:        "GetDistributorStatisticsHandler",
+			handler:     GetDistributorStatisticsHandler(nil),
+			method:      http.MethodGet,
+			url:         "/api/v1/distributors/invalid/statistics",
 			body:        "",
 			contentType: "",
 		},
@@ -736,5 +745,181 @@ func TestTrackDistributorLinkHandler_WithDB(t *testing.T) {
 
 	handler(resp, req)
 
+	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestGetBrandDistributorApplicationHandler_Success(t *testing.T) {
+	db := setupDistributorHandlerTestDB(t)
+	brand := createTestBrand(t, db, "Test Brand")
+	user := createTestUser(t, db, "applicant")
+
+	application := &model.DistributorApplication{
+		UserId:  user.Id,
+		BrandId: brand.Id,
+		Reason:  "Test reason",
+		Status:  "pending",
+	}
+	if err := db.Create(application).Error; err != nil {
+		t.Fatalf("Failed to create application: %v", err)
+	}
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetBrandDistributorApplicationHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/brands/%d/distributors/applications/%d", brand.Id, application.Id), nil)
+	req = pathvar.WithVars(req, map[string]string{"brandId": fmt.Sprintf("%d", brand.Id), "id": fmt.Sprintf("%d", application.Id)})
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestGetDistributorApplicationHandler_Success(t *testing.T) {
+	db := setupDistributorHandlerTestDB(t)
+	brand := createTestBrand(t, db, "Test Brand")
+	user := createTestUser(t, db, "applicant")
+
+	application := &model.DistributorApplication{
+		UserId:  user.Id,
+		BrandId: brand.Id,
+		Reason:  "Test reason",
+		Status:  "pending",
+	}
+	if err := db.Create(application).Error; err != nil {
+		t.Fatalf("Failed to create application: %v", err)
+	}
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetDistributorApplicationHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/distributors/applications/%d", application.Id), nil)
+	req = pathvar.WithVars(req, map[string]string{"id": fmt.Sprintf("%d", application.Id)})
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestGetDistributorSubordinatesHandler_Success(t *testing.T) {
+	db := setupDistributorHandlerTestDB(t)
+	brand := createTestBrand(t, db, "Test Brand")
+	user := createTestUser(t, db, "distributor")
+	subordinate := createTestUser(t, db, "subordinate")
+
+	distributor := &model.Distributor{
+		UserId:  user.Id,
+		BrandId: brand.Id,
+		Level:   1,
+		Status:  "active",
+	}
+	if err := db.Create(distributor).Error; err != nil {
+		t.Fatalf("Failed to create distributor: %v", err)
+	}
+
+	subDist := &model.Distributor{
+		UserId:      subordinate.Id,
+		BrandId:     brand.Id,
+		ParentId:    &distributor.Id,
+		Level:       2,
+		Status:      "active",
+	}
+	if err := db.Create(subDist).Error; err != nil {
+		t.Fatalf("Failed to create subordinate: %v", err)
+	}
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetDistributorSubordinatesHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/distributors/%d/subordinates?page=1&pageSize=10", user.Id), nil)
+	req = pathvar.WithVars(req, map[string]string{"id": fmt.Sprintf("%d", user.Id)})
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestGetDistributorStatisticsHandler_Success(t *testing.T) {
+	db := setupDistributorHandlerTestDB(t)
+	brand := createTestBrand(t, db, "Test Brand")
+	user := createTestUser(t, db, "distributor")
+
+	distributor := &model.Distributor{
+		UserId:  user.Id,
+		BrandId: brand.Id,
+		Level:   1,
+		Status:  "active",
+	}
+	if err := db.Create(distributor).Error; err != nil {
+		t.Fatalf("Failed to create distributor: %v", err)
+	}
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetDistributorStatisticsHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/distributor/statistics/%d", brand.Id), nil)
+	req = pathvar.WithVars(req, map[string]string{"brandId": fmt.Sprintf("%d", brand.Id)})
+	req.Header.Set("X-User-Id", fmt.Sprintf("%d", user.Id))
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestGetDistributorByCodeHandler_Success(t *testing.T) {
+	db := setupDistributorHandlerTestDB(t)
+	brand := createTestBrand(t, db, "Test Brand")
+	user := createTestUser(t, db, "distributor")
+
+	distributor := &model.Distributor{
+		UserId:  user.Id,
+		BrandId: brand.Id,
+		Level:   1,
+		Status:  "active",
+	}
+	if err := db.Create(distributor).Error; err != nil {
+		t.Fatalf("Failed to create distributor: %v", err)
+	}
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetDistributorByCodeHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/distributors/by-code/%d", distributor.Id), nil)
+	req = pathvar.WithVars(req, map[string]string{"code": fmt.Sprintf("%d", distributor.Id)})
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestGetDistributorRewardsHandler_Success(t *testing.T) {
+	db := setupDistributorHandlerTestDB(t)
+	brand := createTestBrand(t, db, "Test Brand")
+	user := createTestUser(t, db, "distributor")
+
+	distributor := &model.Distributor{
+		UserId:  user.Id,
+		BrandId: brand.Id,
+		Level:   1,
+		Status:  "active",
+	}
+	if err := db.Create(distributor).Error; err != nil {
+		t.Fatalf("Failed to create distributor: %v", err)
+	}
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetDistributorRewardsHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/distributors/%d/rewards?page=1&pageSize=10", user.Id), nil)
+	req = pathvar.WithVars(req, map[string]string{"id": fmt.Sprintf("%d", user.Id)})
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	// Verify no internal server error (empty rewards list is valid)
 	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
 }

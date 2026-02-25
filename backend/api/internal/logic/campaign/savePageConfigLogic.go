@@ -49,25 +49,20 @@ func (l *SavePageConfigLogic) SavePageConfig(req *types.PageConfigReq) (resp *ty
 	var existingConfig model.PageConfig
 	err = l.svcCtx.DB.Where("campaign_id = ? AND deleted_at IS NULL", campaignId).First(&existingConfig).Error
 
-	if err != nil && err.Error() != "record not found" {
-		l.Errorf("Failed to query page config: %v", err)
-		return nil, fmt.Errorf("Failed to query page config: %w", err)
-	}
-
 	// 转换为string类型
 	componentsStr := string(componentsJSON)
 	themeStr := string(themeJSON)
 
-	if err.Error() == "record not found" {
+	if err != nil {
 		// 创建新配置
 		newConfig := &model.PageConfig{
 			CampaignId: campaignId,
 			Components: componentsStr,
 			Theme:      themeStr,
 		}
-		if err := l.svcCtx.DB.Create(newConfig).Error; err != nil {
-			l.Errorf("Failed to create page config: %v", err)
-			return nil, fmt.Errorf("Failed to create page config: %w", err)
+		if createErr := l.svcCtx.DB.Create(newConfig).Error; createErr != nil {
+			l.Errorf("Failed to create page config: %v", createErr)
+			return nil, fmt.Errorf("Failed to create page config: %w", createErr)
 		}
 
 		resp = &types.PageConfigResp{
@@ -83,9 +78,9 @@ func (l *SavePageConfigLogic) SavePageConfig(req *types.PageConfigReq) (resp *ty
 		// 更新现有配置
 		existingConfig.Components = componentsStr
 		existingConfig.Theme = themeStr
-		if err := l.svcCtx.DB.Save(&existingConfig).Error; err != nil {
-			l.Errorf("Failed to update page config: %v", err)
-			return nil, fmt.Errorf("Failed to update page config: %w", err)
+		if saveErr := l.svcCtx.DB.Save(&existingConfig).Error; saveErr != nil {
+			l.Errorf("Failed to update page config: %v", saveErr)
+			return nil, fmt.Errorf("Failed to update page config: %w", saveErr)
 		}
 
 		resp = &types.PageConfigResp{

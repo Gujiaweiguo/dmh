@@ -13,6 +13,7 @@ import (
 	"dmh/model"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/rest/pathvar"
 	"gorm.io/gorm"
 )
 
@@ -473,4 +474,34 @@ func TestUpdateCampaignHandler_Success(t *testing.T) {
 	handler(resp, req)
 
 	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestSavePageConfigHandler_Success(t *testing.T) {
+	db := setupCampaignHandlerTestDB(t)
+
+	brand := &model.Brand{Name: "Test Brand", Status: "active"}
+	db.Create(brand)
+
+	campaign := &model.Campaign{
+		BrandId:    brand.Id,
+		Name:       "Test Campaign",
+		Status:     "active",
+		StartTime:  time.Now(),
+		EndTime:    time.Now().Add(24 * time.Hour),
+		FormFields: "[]",
+	}
+	db.Create(campaign)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := SavePageConfigHandler(svcCtx)
+
+	reqBody := `{"components":[],"theme":{"primaryColor":"#1890ff"}}`
+	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/campaigns/%d/page-config", campaign.Id), strings.NewReader(reqBody))
+	req.Header.Set("Content-Type", "application/json")
+	req = pathvar.WithVars(req, map[string]string{"id": fmt.Sprintf("%d", campaign.Id)})
+	resp := httptest.NewRecorder()
+
+	handler(resp, req)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
 }

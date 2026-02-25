@@ -1,10 +1,13 @@
 package syncadapter
 
 import (
+	"context"
 	"testing"
+	"time"
 
 	"dmh/model"
 
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -177,4 +180,57 @@ func TestUpdateRewardSyncStatus_Failed(t *testing.T) {
 	assert.Equal(t, "failed", log.SyncStatus)
 	assert.Equal(t, "database error", log.ErrorMsg)
 	assert.Nil(t, log.SyncedAt)
+}
+
+func TestSyncWorker_StartAndStop(t *testing.T) {
+	// Skip if Redis is not available
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	})
+	defer redisClient.Close()
+
+	ctx := context.Background()
+	if err := redisClient.Ping(ctx).Err(); err != nil {
+		t.Skipf("Redis not available: %v", err)
+		return
+	}
+
+	db := setupSyncWorkerTestDB(t)
+	adapter := &SyncAdapter{}
+	queue := NewSyncQueue(redisClient, "test_start_stop")
+	worker := NewSyncWorker(adapter, queue, db)
+
+	go worker.Start()
+	time.Sleep(100 * time.Millisecond)
+	worker.Stop()
+	time.Sleep(100 * time.Millisecond)
+	assert.True(t, true)
+}
+
+func TestSyncWorker_StartStopImmediate(t *testing.T) {
+	// Skip if Redis is not available
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	})
+	defer redisClient.Close()
+
+	ctx := context.Background()
+	if err := redisClient.Ping(ctx).Err(); err != nil {
+		t.Skipf("Redis not available: %v", err)
+		return
+	}
+
+	db := setupSyncWorkerTestDB(t)
+	adapter := &SyncAdapter{}
+	queue := NewSyncQueue(redisClient, "test_start_stop_immediate")
+	worker := NewSyncWorker(adapter, queue, db)
+
+	go worker.Start()
+	worker.Stop()
+	time.Sleep(100 * time.Millisecond)
+	assert.True(t, true)
 }

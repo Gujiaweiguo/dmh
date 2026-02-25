@@ -36,30 +36,9 @@ func main() {
 
 	// 在注册其他路由之前，先注册静态文件路由
 	server.AddRoute(rest.Route{
-		Method: http.MethodGet,
-		Path:   "/api/v1/posters/:filename",
-		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-			pathParts := strings.Split(r.URL.Path, "/")
-
-			filename := pathParts[len(pathParts)-1]
-
-			if filename == "" {
-				http.Error(w, "Invalid filename", http.StatusBadRequest)
-				return
-			}
-
-			filePath := filepath.Join("/opt/data/posters", filename)
-
-			if _, err := os.Stat(filePath); os.IsNotExist(err) {
-				http.Error(w, "File not found", http.StatusNotFound)
-				return
-			}
-
-			w.Header().Set("Content-Type", "image/png")
-			w.Header().Set("Cache-Control", "public, max-age=86400")
-			http.ServeFile(w, r, filePath)
-		}),
+		Method:  http.MethodGet,
+		Path:    "/api/v1/posters/:filename",
+		Handler: servePosterFile,
 	})
 
 	handler.RegisterHandlers(server, ctx)
@@ -117,4 +96,27 @@ func applyEnvOverrides(c *config.Config) {
 	}
 
 	c.Mysql.DataSource = cfg.FormatDSN()
+}
+
+// servePosterFile serves poster files from /opt/data/posters directory
+func servePosterFile(w http.ResponseWriter, r *http.Request) {
+	pathParts := strings.Split(r.URL.Path, "/")
+
+	filename := pathParts[len(pathParts)-1]
+
+	if filename == "" {
+		http.Error(w, "Invalid filename", http.StatusBadRequest)
+		return
+	}
+
+	filePath := filepath.Join("/opt/data/posters", filename)
+
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		http.Error(w, "File not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "image/png")
+	w.Header().Set("Cache-Control", "public, max-age=86400")
+	http.ServeFile(w, r, filePath)
 }

@@ -98,4 +98,66 @@ describe('campaignApi service', () => {
 
     await expect(campaignApi.deleteCampaign(9)).rejects.toThrow('Failed to delete campaign: 403 forbidden');
   });
+
+  it('createCampaign throws readable error on failure', async () => {
+    localStorage.setItem('dmh_token', 'token-abc');
+    vi.mocked(fetch).mockResolvedValue({
+      ok: false,
+      status: 400,
+      text: async () => 'invalid data',
+    } as Response);
+
+    await expect(campaignApi.createCampaign({
+      name: 'Test',
+      description: 'test',
+      formFields: [],
+      rewardRule: 0,
+      startTime: '2026-01-01',
+      endTime: '2026-01-02',
+    })).rejects.toThrow('Failed to create campaign: 400 invalid data');
+  });
+
+  it('getCampaign fetches single campaign by id', async () => {
+    localStorage.setItem('dmh_token', 'token-abc');
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ id: 1, name: 'Campaign 1' }),
+    } as Response);
+
+    const result = await campaignApi.getCampaign(1);
+
+    const [url, options] = vi.mocked(fetch).mock.calls[0];
+    expect(url).toBe('/api/v1/campaigns/1');
+    expect((options as RequestInit).headers).toHaveProperty('Authorization');
+    expect(result).toEqual({ id: 1, name: 'Campaign 1' });
+  });
+
+  it('getCampaign throws readable error on failure', async () => {
+    localStorage.setItem('dmh_token', 'token-abc');
+    vi.mocked(fetch).mockResolvedValue({
+      ok: false,
+      status: 404,
+      text: async () => 'not found',
+    } as Response);
+
+    await expect(campaignApi.getCampaign(999)).rejects.toThrow('Failed to fetch campaign: 404 not found');
+  });
+
+  it('updateCampaign throws readable error on failure', async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: false,
+      status: 400,
+      text: async () => 'validation failed',
+    } as Response);
+
+    await expect(campaignApi.updateCampaign(1, {
+      name: 'Test',
+      description: 'test',
+      formFields: [],
+      rewardRule: 0,
+      startTime: '2026-01-01',
+      endTime: '2026-01-02',
+      status: 'active',
+    })).rejects.toThrow('Failed to update campaign: 400 validation failed');
+  });
 });

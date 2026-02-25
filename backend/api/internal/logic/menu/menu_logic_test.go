@@ -272,3 +272,313 @@ func TestConfigRoleMenusLogic(t *testing.T) {
 	db.Model(&model.RoleMenu{}).Where("role_id = ?", 1).Count(&count)
 	assert.Equal(t, int64(2), count)
 }
+
+func TestCreateMenu_WithParentId(t *testing.T) {
+	db := setupMenuTestDB(t)
+
+	parent := &model.Menu{
+		ID:       1,
+		Name:     "Parent Menu",
+		Code:     "parent",
+		Path:     "/parent",
+		Type:     "menu",
+		Platform: "admin",
+		Status:   "active",
+	}
+	db.Create(parent)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewCreateMenuLogic(context.Background(), svcCtx)
+
+	req := &types.CreateMenuReq{
+		Name:     "Child Menu",
+		Code:     "child",
+		Path:     "/child",
+		ParentId: 1,
+		Sort:     1,
+		Type:     "button",
+		Platform: "admin",
+	}
+
+	resp, err := logic.CreateMenu(req)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, int64(1), resp.ParentId)
+}
+
+func TestGetMenu_NotFound(t *testing.T) {
+	db := setupMenuTestDB(t)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewGetMenuLogic(context.Background(), svcCtx)
+
+	resp, err := logic.GetMenu(99999)
+
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+}
+
+func TestGetMenu_WithParentId(t *testing.T) {
+	db := setupMenuTestDB(t)
+
+	parentID := int64(1)
+	menu := &model.Menu{
+		ID:       2,
+		Name:     "Child Menu",
+		Code:     "child",
+		Path:     "/child",
+		Type:     "button",
+		Platform: "admin",
+		Status:   "active",
+		ParentID: &parentID,
+	}
+	db.Create(menu)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewGetMenuLogic(context.Background(), svcCtx)
+
+	resp, err := logic.GetMenu(2)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, int64(1), resp.ParentId)
+}
+
+func TestUpdateMenu_NotFound(t *testing.T) {
+	db := setupMenuTestDB(t)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewUpdateMenuLogic(context.Background(), svcCtx)
+
+	req := &types.UpdateMenuReq{
+		Name: "Updated Name",
+	}
+
+	resp, err := logic.UpdateMenu(99999, req)
+
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+}
+
+func TestUpdateMenu_AllFields(t *testing.T) {
+	db := setupMenuTestDB(t)
+
+	menu := &model.Menu{
+		ID:       1,
+		Name:     "Original",
+		Code:     "original",
+		Path:     "/original",
+		Icon:     "original-icon",
+		Sort:     1,
+		Type:     "menu",
+		Platform: "admin",
+		Status:   "active",
+	}
+	db.Create(menu)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewUpdateMenuLogic(context.Background(), svcCtx)
+
+	req := &types.UpdateMenuReq{
+		Name:     "Updated",
+		Code:     "updated",
+		Path:     "/updated",
+		Icon:     "updated-icon",
+		Sort:     2,
+		Type:     "button",
+		Platform: "h5",
+		Status:   "disabled",
+		ParentId: 0,
+	}
+
+	resp, err := logic.UpdateMenu(1, req)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, "Updated", resp.Name)
+	assert.Equal(t, "updated", resp.Code)
+	assert.Equal(t, "/updated", resp.Path)
+}
+
+func TestDeleteMenu_Error(t *testing.T) {
+	db := setupMenuTestDB(t)
+
+	// Create a parent menu with child
+	parent := &model.Menu{
+		ID:       1,
+		Name:     "Parent",
+		Code:     "parent",
+		Path:     "/parent",
+		Type:     "menu",
+		Platform: "admin",
+		Status:   "active",
+	}
+	child := &model.Menu{
+		ID:       2,
+		Name:     "Child",
+		Code:     "child",
+		Path:     "/child",
+		Type:     "button",
+		Platform: "admin",
+		Status:   "active",
+		ParentID: &[]int64{1}[0],
+	}
+	db.Create(parent)
+	db.Create(child)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewDeleteMenuLogic(context.Background(), svcCtx)
+
+	resp, err := logic.DeleteMenu(1)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+
+	// Both parent and child should be deleted
+	var count int64
+	db.Model(&model.Menu{}).Where("id IN ?", []int64{1, 2}).Count(&count)
+	assert.Equal(t, int64(0), count)
+}
+
+func TestGetMenus_WithStatusFilter(t *testing.T) {
+	db := setupMenuTestDB(t)
+
+	menus := []model.Menu{
+		{ID: 1, Name: "Active Menu", Code: "active1", Path: "/active1", Type: "menu", Platform: "admin", Status: "active"},
+		{ID: 2, Name: "Disabled Menu", Code: "disabled1", Path: "/disabled1", Type: "menu", Platform: "admin", Status: "disabled"},
+	}
+	db.Create(&menus)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewGetMenusLogic(context.Background(), svcCtx)
+
+	resp, err := logic.GetMenus(&types.GetMenusReq{
+		Platform: "admin",
+		Status:   "active",
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Len(t, resp.Menus, 1)
+	assert.Equal(t, "Active Menu", resp.Menus[0].Name)
+}
+
+func TestGetMenus_WithTypeFilter(t *testing.T) {
+	db := setupMenuTestDB(t)
+
+	menus := []model.Menu{
+		{ID: 1, Name: "Menu Item", Code: "menu1", Path: "/menu1", Type: "menu", Platform: "admin", Status: "active"},
+		{ID: 2, Name: "Button Item", Code: "button1", Path: "/button1", Type: "button", Platform: "admin", Status: "active"},
+	}
+	db.Create(&menus)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewGetMenusLogic(context.Background(), svcCtx)
+
+	resp, err := logic.GetMenus(&types.GetMenusReq{
+		Platform: "admin",
+		Type:     "button",
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	// Buttons with no parent are not included in root menus
+}
+
+func TestGetMenus_EmptyResult(t *testing.T) {
+	db := setupMenuTestDB(t)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewGetMenusLogic(context.Background(), svcCtx)
+
+	resp, err := logic.GetMenus(&types.GetMenusReq{
+		Platform: "nonexistent",
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Len(t, resp.Menus, 0)
+	assert.Equal(t, int64(0), resp.Total)
+}
+
+func TestConfigRoleMenus_EmptyMenuIds(t *testing.T) {
+	db := setupMenuTestDB(t)
+
+	role := &model.Role{
+		ID:   1,
+		Name: "Test Role",
+		Code: "test",
+	}
+	db.Create(role)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewConfigRoleMenusLogic(context.Background(), svcCtx)
+
+	req := &types.RoleMenuReq{
+		RoleId:  1,
+		MenuIds: []int64{},
+	}
+
+	resp, err := logic.ConfigRoleMenus(req)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+
+	var count int64
+	db.Model(&model.RoleMenu{}).Where("role_id = ?", 1).Count(&count)
+	assert.Equal(t, int64(0), count)
+}
+
+func TestConfigRoleMenus_ReplaceExisting(t *testing.T) {
+	db := setupMenuTestDB(t)
+
+	role := &model.Role{ID: 1, Name: "Role", Code: "role"}
+	menu1 := &model.Menu{ID: 1, Name: "Menu 1", Code: "m1", Path: "/m1", Type: "menu", Platform: "admin", Status: "active"}
+	menu2 := &model.Menu{ID: 2, Name: "Menu 2", Code: "m2", Path: "/m2", Type: "menu", Platform: "admin", Status: "active"}
+	menu3 := &model.Menu{ID: 3, Name: "Menu 3", Code: "m3", Path: "/m3", Type: "menu", Platform: "admin", Status: "active"}
+	db.Create(role)
+	db.Create(menu1)
+	db.Create(menu2)
+	db.Create(menu3)
+
+	// First config with menu 1, 2
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewConfigRoleMenusLogic(context.Background(), svcCtx)
+	req := &types.RoleMenuReq{RoleId: 1, MenuIds: []int64{1, 2}}
+	resp, err := logic.ConfigRoleMenus(req)
+	assert.NoError(t, err)
+
+	var count int64
+	db.Model(&model.RoleMenu{}).Where("role_id = ?", 1).Count(&count)
+	assert.Equal(t, int64(2), count)
+
+	// Replace with menu 3 only
+	req2 := &types.RoleMenuReq{RoleId: 1, MenuIds: []int64{3}}
+	resp, err = logic.ConfigRoleMenus(req2)
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+
+	db.Model(&model.RoleMenu{}).Where("role_id = ?", 1).Count(&count)
+	assert.Equal(t, int64(1), count)
+}
+
+func TestGetUserMenus_NoRoles(t *testing.T) {
+	db := setupMenuTestDB(t)
+
+	user := &model.User{
+		Id:       1,
+		Username: "noroleuser",
+		Phone:    "13800138001",
+	}
+	db.Create(user)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	logic := NewGetUserMenusLogic(context.Background(), svcCtx)
+
+	resp, err := logic.GetUserMenus(1, "admin")
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Len(t, resp.Menus, 0)
+}

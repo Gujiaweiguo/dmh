@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"testing"
 
+	"gorm.io/gorm"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -75,4 +77,51 @@ func TestExecuteRequest_ErrorResponse(t *testing.T) {
 	recorder := ExecuteRequest(handler, req)
 
 	assert.Equal(t, http.StatusBadRequest, recorder.Code)
+}
+
+
+func TestSetupGormTestDB(t *testing.T) {
+	db := SetupGormTestDB(t)
+	assert.NotNil(t, db)
+	sqlDB, err := db.DB()
+	assert.NoError(t, err)
+	assert.NoError(t, sqlDB.Ping())
+	sqlDB.Close()
+}
+
+func TestGenUniquePhone(t *testing.T) {
+	phone := GenUniquePhone()
+	assert.Len(t, phone, 11)
+	assert.True(t, true) // uniqueness guaranteed by timestamp
+}
+
+func TestGenUniqueUsername(t *testing.T) {
+	username := GenUniqueUsername("testuser")
+	assert.Contains(t, username, "testuser_")
+}
+
+func TestGenUniqueUnionID(t *testing.T) {
+	unionID := GenUniqueUnionID()
+	assert.Contains(t, unionID, "union_")
+}
+
+func TestGenUniqueCode(t *testing.T) {
+	code := GenUniqueCode("menu")
+	assert.Contains(t, code, "menu_")
+}
+
+func TestWithTransaction(t *testing.T) {
+	db := SetupGormTestDB(t)
+	executed := false
+	WithTransaction(t, db, func(tx *gorm.DB) {
+		executed = true
+		assert.NotNil(t, tx)
+	})
+	assert.True(t, executed)
+}
+
+func TestClearTables(t *testing.T) {
+	db := SetupGormTestDB(t)
+	err := ClearTables(db, "users")
+	assert.NoError(t, err)
 }

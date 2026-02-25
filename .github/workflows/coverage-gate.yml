@@ -51,11 +51,11 @@ jobs:
           COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
           echo "Backend coverage: ${COVERAGE}%"
           echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
-          if (( $(echo "$COVERAGE < 76" | bc -l) )); then
-            echo "::error::Backend coverage ${COVERAGE}% is below 76% threshold"
+          if (( $(echo "$COVERAGE < 78" | bc -l) )); then
+            echo "::error::Backend coverage ${COVERAGE}% is below 78% threshold"
             exit 1
           fi
-          echo "✓ Backend coverage ${COVERAGE}% meets 76% threshold"
+          echo "✓ Backend coverage ${COVERAGE}% meets 78% threshold"
     outputs:
       coverage: ${{ steps.coverage.outputs.coverage }}
 
@@ -75,10 +75,10 @@ jobs:
           npm run test:cov 2>&1 | tee /tmp/admin-coverage.log
           PCT=$(grep -E "All files\s*\|" /tmp/admin-coverage.log | tail -1 | awk -F'|' '{gsub(/ /,"",$2); print $2}' | tr -d '%' || true)
           echo "Frontend Admin coverage: ${PCT}%"
-          if echo "$PCT" | grep -Eq '^[0-9]+(\.[0-9]+)?$' && [ "${PCT%.*}" -ge 70 ]; then
-            echo "✓ Frontend Admin coverage ${PCT}% meets 70% threshold"
+          if echo "$PCT" | grep -Eq '^[0-9]+(\.[0-9]+)?$' && [ "${PCT%.*}" -ge 80 ]; then
+            echo "✓ Frontend Admin coverage ${PCT}% meets 80% threshold"
           else
-            echo "::error::Frontend Admin coverage ${PCT}% is below 70% threshold"
+            echo "::error::Frontend Admin coverage ${PCT}% is below 80% threshold"
             exit 1
           fi
 
@@ -98,9 +98,29 @@ jobs:
           npm run test:cov 2>&1 | tee /tmp/h5-coverage.log
           PCT=$(grep -E "All files\s*\|" /tmp/h5-coverage.log | tail -1 | awk -F'|' '{gsub(/ /,"",$2); print $2}' | tr -d '%' || true)
           echo "Frontend H5 coverage: ${PCT}%"
-          if echo "$PCT" | grep -Eq '^[0-9]+(\.[0-9]+)?$' && [ "${PCT%.*}" -ge 44 ]; then
-            echo "✓ Frontend H5 coverage ${PCT}% meets 44% threshold"
+          if echo "$PCT" | grep -Eq '^[0-9]+(\.[0-9]+)?$' && [ "${PCT%.*}" -ge 70 ]; then
+            echo "✓ Frontend H5 coverage ${PCT}% meets 70% threshold"
           else
-            echo "::error::Frontend H5 coverage ${PCT}% is below 44% threshold"
+            echo "::error::Frontend H5 coverage ${PCT}% is below 70% threshold"
             exit 1
           fi
+
+  coverage-summary:
+    name: Coverage Summary
+    runs-on: ubuntu-latest
+    needs:
+      - backend-coverage
+      - frontend-admin-coverage
+      - frontend-h5-coverage
+    steps:
+      - name: Generate Summary
+        run: |
+          echo "## Coverage Gate Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Module | Threshold | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend | 78% | ${{ needs.backend-coverage.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend Admin | 80% | ${{ needs.frontend-admin-coverage.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend H5 | 70% | ${{ needs.frontend-h5-coverage.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All coverage gates passed" >> $GITHUB_STEP_SUMMARY

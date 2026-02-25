@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -16,6 +17,7 @@ import (
 	"dmh/model"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/rest/pathvar"
 	"gorm.io/gorm"
 )
 
@@ -43,6 +45,16 @@ func createTestBrandForHandler(t *testing.T, db *gorm.DB, name string) *model.Br
 		t.Fatalf("Failed to create test brand: %v", err)
 	}
 	return brand
+}
+
+// setupRequestWithBrandPathVars creates a request with brand-related path variables
+func setupRequestWithBrandPathVars(method, target string, body io.Reader, brandId int64, assetId ...int64) *http.Request {
+	req := httptest.NewRequest(method, target, body)
+	vars := map[string]string{"id": fmt.Sprintf("%d", brandId)}
+	if len(assetId) > 0 {
+		vars["assetId"] = fmt.Sprintf("%d", assetId[0])
+	}
+	return pathvar.WithVars(req, vars)
 }
 
 func TestBrandHandlersConstruct(t *testing.T) {
@@ -384,12 +396,13 @@ func TestGetBrandHandler_Success(t *testing.T) {
 	handler := GetBrandHandler(svcCtx)
 
 	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/brands/%d", brand.Id), nil)
-	req.SetPathValue("id", fmt.Sprintf("%d", brand.Id))
+	req = pathvar.WithVars(req, map[string]string{"id": fmt.Sprintf("%d", brand.Id)})
 	resp := httptest.NewRecorder()
 
 	handler(resp, req)
 
-	assert.NotEqual(t, http.StatusInternalServerError, resp.Code)
+	// Verify success response
+	assert.Equal(t, http.StatusOK, resp.Code)
 }
 
 // Additional body-parsing tests to improve coverage for GetBrandHandler

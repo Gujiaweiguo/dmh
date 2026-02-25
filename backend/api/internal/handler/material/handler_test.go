@@ -190,6 +190,220 @@ func TestUploadMaterialHandler(t *testing.T) {
 	assert.NotEmpty(t, resp.Url)
 }
 
+func TestUploadMaterialHandlerNoFile(t *testing.T) {
+	db := setupMaterialHandlerTestDB(t)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := UploadMaterialHandler(svcCtx)
+
+	// Request without multipart form data
+	body := &bytes.Buffer{}
+	req := httptest.NewRequest(http.MethodPost, "/material/upload?type=image", body)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rec := httptest.NewRecorder()
+
+	handler(rec, req)
+
+	assert.NotEqual(t, http.StatusOK, rec.Code)
+}
+
+func TestUploadMaterialHandlerNoType(t *testing.T) {
+	db := setupMaterialHandlerTestDB(t)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := UploadMaterialHandler(svcCtx)
+
+	body := &bytes.Buffer{}
+	writer := createMultipartFormData(t, body, "file", "test.txt", []byte("text content"))
+	req := httptest.NewRequest(http.MethodPost, "/material/upload", body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	rec := httptest.NewRecorder()
+
+	handler(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	var resp types.UploadMaterialResp
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("Failed to unmarshal response: %v", err)
+	}
+
+	assert.Equal(t, "image", resp.Type) // Default type is "image" when not specified
+}
+
+func TestUploadMaterialHandlerTextType(t *testing.T) {
+	db := setupMaterialHandlerTestDB(t)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := UploadMaterialHandler(svcCtx)
+
+	body := &bytes.Buffer{}
+	writer := createMultipartFormData(t, body, "file", "test.txt", []byte("text content"))
+	req := httptest.NewRequest(http.MethodPost, "/material/upload?type=text", body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	rec := httptest.NewRecorder()
+
+	handler(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	var resp types.UploadMaterialResp
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("Failed to unmarshal response: %v", err)
+	}
+
+	assert.Equal(t, "text", resp.Type)
+	assert.Equal(t, "test.txt", resp.Name)
+}
+
+func TestGetMaterialListHandlerPagination(t *testing.T) {
+	db := setupMaterialHandlerTestDB(t)
+
+	// Create 25 materials
+	for i := 0; i < 25; i++ {
+		_ = createTestMaterial(t, db, fmt.Sprintf("test_%d", i), "image")
+	}
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetMaterialListHandler(svcCtx)
+
+	// Test first page (page 1, pageSize 10)
+	req := httptest.NewRequest(http.MethodGet, "/material/list?page=1&pageSize=10", nil)
+	rec := httptest.NewRecorder()
+
+	handler(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	var resp types.MaterialListResp
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("Failed to unmarshal response: %v", err)
+	}
+
+	assert.Equal(t, int64(25), resp.Total)
+	assert.Len(t, resp.Materials, 10)
+
+	// Test second page
+	req = httptest.NewRequest(http.MethodGet, "/material/list?page=2&pageSize=10", nil)
+	rec = httptest.NewRecorder()
+
+	handler(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("Failed to unmarshal response: %v", err)
+	}
+
+	assert.Equal(t, int64(25), resp.Total)
+	assert.Len(t, resp.Materials, 10)
+}
+
+func TestGetMaterialListHandlerDefaultPagination(t *testing.T) {
+	db := setupMaterialHandlerTestDB(t)
+	_ = createTestMaterial(t, db, "test_image", "image")
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetMaterialListHandler(svcCtx)
+
+	// Request without page/pageSize parameters
+	req := httptest.NewRequest(http.MethodGet, "/material/list", nil)
+	rec := httptest.NewRecorder()
+
+	handler(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	var resp types.MaterialListResp
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("Failed to unmarshal response: %v", err)
+	}
+
+	assert.Equal(t, int64(1), resp.Total)
+	assert.Len(t, resp.Materials, 1)
+}
+
+func TestGetMaterialListHandlerInvalidPage(t *testing.T) {
+	db := setupMaterialHandlerTestDB(t)
+	_ = createTestMaterial(t, db, "test_image", "image")
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetMaterialListHandler(svcCtx)
+
+	// Request with negative page
+	req := httptest.NewRequest(http.MethodGet, "/material/list?page=-1&pageSize=10", nil)
+	rec := httptest.NewRecorder()
+
+	handler(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	var resp types.MaterialListResp
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("Failed to unmarshal response: %v", err)
+	}
+
+	// Should default to page 1
+	assert.Equal(t, int64(1), resp.Total)
+	assert.Len(t, resp.Materials, 1)
+}
+
+func TestGetMaterialListHandlerInvalidPageSize(t *testing.T) {
+	db := setupMaterialHandlerTestDB(t)
+	_ = createTestMaterial(t, db, "test_image", "image")
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := GetMaterialListHandler(svcCtx)
+
+	// Request with 0 pageSize
+	req := httptest.NewRequest(http.MethodGet, "/material/list?page=1&pageSize=0", nil)
+	rec := httptest.NewRecorder()
+
+	handler(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	var resp types.MaterialListResp
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("Failed to unmarshal response: %v", err)
+	}
+
+	// Should default to pageSize 20
+	assert.Equal(t, int64(1), resp.Total)
+	assert.Len(t, resp.Materials, 1)
+}
+
+func TestDeleteMaterialHandlerInvalidID(t *testing.T) {
+	db := setupMaterialHandlerTestDB(t)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := DeleteMaterialHandler(svcCtx)
+
+	// Request with non-numeric ID
+	req := httptest.NewRequest(http.MethodDelete, "/material/delete/invalid", nil)
+	rec := httptest.NewRecorder()
+
+	handler(rec, req)
+
+	assert.NotEqual(t, http.StatusOK, rec.Code)
+}
+
+func TestDeleteMaterialHandlerZeroID(t *testing.T) {
+	db := setupMaterialHandlerTestDB(t)
+
+	svcCtx := &svc.ServiceContext{DB: db}
+	handler := DeleteMaterialHandler(svcCtx)
+
+	// Request with ID = 0
+	req := httptest.NewRequest(http.MethodDelete, "/material/delete/0", nil)
+	rec := httptest.NewRecorder()
+
+	handler(rec, req)
+
+	assert.NotEqual(t, http.StatusOK, rec.Code)
+}
+
+
 func createMultipartFormData(t *testing.T, body *bytes.Buffer, fieldName, filename string, content []byte) *multipart.Writer {
 	t.Helper()
 	writer := multipart.NewWriter(body)

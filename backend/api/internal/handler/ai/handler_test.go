@@ -165,3 +165,17 @@ func TestGenerateCopywritingHandlerMissingTopic(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, rec.Code)
 }
+
+func TestGenerateCopywritingHandler_InvalidJSON(t *testing.T) {
+	svcCtx := &svc.ServiceContext{}
+	handler := GenerateCopywritingHandler(svcCtx)
+
+	req := httptest.NewRequest(http.MethodPost, "/ai/generate-copywriting", bytes.NewReader([]byte("{invalid json")))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+
+	handler(rec, req)
+
+	// Should return error for invalid JSON
+	assert.NotEqual(t, http.StatusOK, rec.Code)
+}

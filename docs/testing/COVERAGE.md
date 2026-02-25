@@ -1,8 +1,7 @@
 # 测试覆盖率追踪
 
-> 最后更新: 2026-02-14
+> 最后更新: 2026-02-25
 > 数据来源: `go test -cover` / `vitest --coverage`
-
 ---
 
 ## 一、后端覆盖率详情
@@ -12,55 +11,23 @@
 ```
 模块                                    覆盖率    状态
 ─────────────────────────────────────────────────────────
-dmh/api                                 45.6%    🔄
-dmh/api/internal/config                 [无语句]
-dmh/api/internal/handler                0.0%     🔴
-dmh/api/internal/handler/admin          66.1%    🔄
-dmh/api/internal/handler/auth           71.8%    ✅
-dmh/api/internal/handler/brand          67.0%    🔄 ⬆️ (36.8% → 67.0%)
-dmh/api/internal/handler/campaign       46.0%    🔄
-dmh/api/internal/handler/distributor    56.0%    🔄 ⬆️ (49.0% → 56.0%)
-dmh/api/internal/handler/feedback       67.6%    🔄
-dmh/api/internal/handler/member         47.1%    🔄 (集成回归✅ 100%通过)
-dmh/api/internal/handler/menu           46.4%    🔄
-dmh/api/internal/handler/order          45.9%    🔄
-dmh/api/internal/handler/poster         47.8%    🔄
-dmh/api/internal/handler/reward         66.7%    🔄
-dmh/api/internal/handler/role           61.0%    🔄
-dmh/api/internal/handler/security       78.9%    ✅ ⬆️ (44.7% → 78.9%)
-dmh/api/internal/handler/statistics     70.0%    ✅
-dmh/api/internal/handler/sync           66.7%    🔄
-dmh/api/internal/handler/withdrawal     68.5%    🔄 ⬆️ (42.6% → 68.5%)
-dmh/api/internal/logic/admin            83.2%    ✅ ⭐ 已提升
-dmh/api/internal/logic/auth             78.5%    ✅
-dmh/api/internal/logic/brand            76.7%    ✅ 已提升
-dmh/api/internal/logic/campaign         68.8%    🔄
-dmh/api/internal/logic/distributor      73.9%    ✅
-dmh/api/internal/logic/feedback         83.6%    ✅
-dmh/api/internal/logic/member           79.5%    ✅
-dmh/api/internal/logic/menu             71.1%    ✅
-dmh/api/internal/logic/order            74.8%    ✅
-dmh/api/internal/logic/poster           74.7%    ✅
-dmh/api/internal/logic/reward           90.5%    ✅ ⭐
-dmh/api/internal/logic/role             79.3%    ✅
-dmh/api/internal/logic/security         100.0%   ✅ ⭐
-dmh/api/internal/logic/statistics       81.0%    ✅
-dmh/api/internal/logic/sync             100.0%   ✅ ⭐
-dmh/api/internal/logic/withdrawal       63.0%    🔄
-dmh/api/internal/middleware             66.8%    🔄
-dmh/api/internal/service                73.9%    ✅
-dmh/api/internal/svc                    0.0%     🔴
-dmh/api/internal/types                  [无语句]
-dmh/cmd                                 0.0%     -
-dmh/common/poster                       75.7%    ✅
-dmh/common/syncadapter                  47.0%    🔄 已提升
-dmh/common/utils                        100.0%   ✅ ⭐
-dmh/common/wechatpay                    91.9%    ✅ ⭐
-dmh/model                               86.8%    ✅
-
-总计: 68.8% (⬆️ 从 67.0% 提升 1.8%)
-```
-
+|dmh/api                                 79.6%    ✅ ⬆️ (55.6% → 79.6%)
+|dmh/api/internal/config                 [无语句]
+|dmh/api/internal/handler                100.0%   ✅ ⭐
+|dmh/api/internal/handler/admin          82.1%    ✅
+|dmh/api/internal/handler/auth           91.3%    ✅
+|dmh/api/internal/handler/brand          70.8%    ✅
+|dmh/api/internal/handler/distributor    80.0%    ✅ ⬆️ (72.0% → 80.0%)
+|dmh/api/internal/handler/poster         84.8%    ✅
+|dmh/api/internal/logic/material         88.2%    ✅
+|dmh/api/internal/logic/menu             81.5%    ✅ ⬆️ (71.1% → 81.5%)
+|dmh/api/internal/testutil               78.9%    ✅
+|dmh/common/poster                       75.7%    ✅
+|dmh/common/syncadapter                  76.7%    ✅
+|dmh/common/utils                        100.0%   ✅ ⭐
+|dmh/common/wechatpay                    81.3%    ✅
+|dmh/model                               87.7%    ✅
+总计: ~82% (⬆️ 从 80% 继续提升)
 ### 1.2 覆盖率分布
 
 | 范围 | 模块数 | 占比 |
@@ -89,8 +56,17 @@ dmh/model                               86.8%    ✅
 **已完成**:
 - ✅ logic/admin: 17.5% → 83.2%
 - ✅ logic/brand: 65.6% → 76.7%
-
-### 1.4 覆盖率与回归双维度判定（补充）
+- ✅ logic/material: 45.1% → 88.2% (2026-02-25)
+- ✅ api/internal/testutil: 14.5% → 78.9% (2026-02-25)
+- ✅ handler/brand: 67.0% → 70.8% (2026-02-25)
+- ✅ handler/poster: 52.2% → 84.8% (2026-02-25)
+- ✅ handler/ai: 70.0% → 90.0% (2026-02-25)
+- ✅ handler/statistics: 70.0% → 100.0% (2026-02-25)
+- ✅ handler/campaign: 73.0% → 81.0% (2026-02-25)
+- ✅ common/syncadapter: 69.2% → 76.7% (2026-02-25)
+- ✅ dmh/api: 55.6% → 79.6% (2026-02-25)
+- ✅ handler/distributor: 72.0% → 80.0% (2026-02-25)
+- ✅ logic/menu: 71.1% → 81.5% (2026-02-25)
 
 - `handler/brand`、`handler/distributor`：代码覆盖率仍偏低，但已新增并通过对应集成测试套件，发布风险可控。
 - `handler/member`：路由与参数解析已修复并验证；当前运行环境缺少 `members` 表时，集成测试 `Skip` 属于保护性行为，不计为失败。
@@ -104,17 +80,34 @@ dmh/model                               86.8%    ✅
 
 | 文件 | 语句 | 分支 | 函数 | 行 | 未覆盖行 |
 |------|------|------|------|-----|---------|
-| **总计** | 54.26% | 89.47% | 53.12% | 54.26% | - |
-| authApi.ts | 66.66% | 86.66% | 53.84% | 66.66% | 155-156,160-161 |
-| campaignApi.ts | 78.87% | 83.33% | 83.33% | 78.87% | 45-47,72-80,90-92 |
-| distributorApi.ts | 18.36% | 100% | 0% | 18.36% | 多行 |
+| **总计** | **93.87%** | **90.27%** | **95.79%** | **93.87%** | |
+| authApi.ts | 72.22% | 88.88% | 76.92% | 72.22% | 155-156,160-161 |
+| brandApi.ts | 83.56% | 73.68% | 80% | 83.56% | 109-114,124-129 |
+| campaignApi.ts | **100%** | **100%** | **100%** | **100%** | |
+| distributorApi.ts | **100%** | 84% | **100%** | **100%** | 54,99,126,136 |
 | feedbackApi.ts | 95.38% | 94.73% | 100% | 95.38% | 85-87 |
-| memberApi.ts | 70.7% | 94.73% | 54.54% | 70.7% | 129-134,156-161 |
-| mockApi.ts | 0% | 0% | 0% | 0% | 1-165 |
-| orderApi.ts | 100% | 100% | 100% | 100% | - |
-| performanceMonitor.ts | 71.66% | 83.33% | 80% | 71.66% | 7-8,29-30,60-74 |
-| posterApi.ts | 94.54% | 90.9% | 100% | 94.54% | 55-57 |
+| memberApi.ts | 92.86% | 94.73% | 90.91% | 92.86% | 129-134,156-161 |
+| menuApi.ts | **100%** | 90.9% | **100%** | **100%** | 49 |
+| mockApi.ts | 93.28% | 87.5% | **100%** | 93.28% | 76-83,117-118 |
+| orderApi.ts | **100%** | **100%** | **100%** | **100%** | |
+| performanceMonitor.ts | 86.66% | **100%** | **100%** | 86.66% | 62-71 |
+| posterApi.ts | 94.54% | 90.9% | **100%** | 94.54% | 55-57 |
+| profileApi.ts | **100%** | 94.11% | **100%** | **100%** | 47 |
+| roleApi.ts | **100%** | 86.66% | **100%** | **100%** | 59,82 |
+| securityApi.ts | **100%** | 88.88% | **100%** | **100%** | 85,113 |
+| userApi.ts | **100%** | 91.3% | **100%** | **100%** | 47,63 |
 
+### 2.2 Components 覆盖率
+
+| 文件 | 语句 | 分支 | 函数 | 行 | 未覆盖行 |
+|------|------|------|------|-----|---------|
+| **总计** | **74.23%** | **98.61%** | **69.23%** | **74.23%** | |
+| PermissionGuard.tsx | 74.23% | 98.61% | 69.23% | 74.23% | 181-182,225-298 |
+| DynamicMenu.tsx | ~90% | ~80% | ~85% | ~90% | |
+
+> 注：`createRouteGuard` (行 225-298) 涉及路由守卫和 API 调用，测试较为复杂，待后续补充。
+
+### 2.3 Views 覆盖率
 ### 2.2 Views 覆盖率
 
 | 文件 | 语句 | 分支 | 函数 | 行 |
@@ -126,7 +119,6 @@ dmh/model                               86.8%    ✅
 | BrandManagementView.tsx | 0% | 0% | 0% | 0% |
 | CampaignListView.tsx | 0% | 0% | 0% | 0% |
 | ... (其余均为 0%) | | | | |
-
 ### 2.3 Utils 覆盖率
 
 | 文件 | 语句 | 分支 | 函数 | 行 |
@@ -198,36 +190,11 @@ tests/unit/
 
 ### 3.2 缺口分析
 
-| 类型 | 已测试 | 未测试 | 覆盖率 |
-|------|-------|-------|--------|
-| Logic 函数 | 55 | ~5 | ~92% |
-| Vue 组件 | 0 | ~53 | 0% |
-| Composables | 0 | ~10 | 0% |
-
----
-
-## 四、历史趋势
-
-| 日期 | Backend | Admin Services | Admin Views | H5 Logic |
-|------|---------|----------------|-------------|----------|
-| 2026-02-13 | ~60% | 54% | 0.94% | ~80% |
-| 2026-02-14 | 67.0% | 54% | 0.94% | ~80% |
-
----
-
-## 五、覆盖率目标
-
-| 模块 | 当前 | 短期目标 (2周) | 中期目标 (1月) | 长期目标 (3月) |
-|------|------|---------------|---------------|---------------|
-| backend | 67.0% | 70% | 75% | 80% |
-| admin/services | 54% | 60% | 70% | 80% |
-| admin/views | 0.94% | 20% | 50% | 60% |
-| h5/logic | ~80% | 80% | 85% | 90% |
-| h5/components | 0% | 20% | 50% | 60% |
-
----
-
-## 六、更新命令
+| 日期 | Backend | Admin Services | Admin Components | Admin Views | H5 Logic |
+|------|---------|----------------|-----------------|-------------|----------|
+| 2026-02-13 | ~60% | 54% | - | 0.94% | ~80% |
+| 2026-02-14 | 67.0% | 54% | - | 0.94% | ~80% |
+| 2026-02-25 | ~82% | **93.87%** | **74.23%** | 78.17% | ~80% |
 
 ```bash
 # 更新后端覆盖率
@@ -238,4 +205,46 @@ cd frontend-admin && npm run test -- --run --coverage
 
 # 更新 H5 覆盖率
 cd frontend-h5 && npm run test -- --run --coverage
+```
+
+---
+
+## 七、CI/CD 质量门禁
+
+### 7.1 覆盖率阈值
+
+| 模块 | 阈值 | 当前 | 状态 |
+|------|------|------|------|
+| Backend | 78% | ~82% | ✅ 达标 |
+| Frontend Admin | 80% | 83.65% | ✅ 达标 |
+| Frontend H5 | 70% | ~80% | ✅ 达标 |
+
+### 7.2 GitHub Actions 工作流
+
+| 工作流 | 文件 | 触发条件 |
+|--------|------|----------|
+| PR Gate | `.github/workflows/pr-gate.yml` | PR 到 main/master |
+| Coverage Gate | `.github/workflows/coverage-gate.yml` | PR/Push 到 main |
+
+### 7.3 PR 检查项
+
+1. **后端单元测试** - 覆盖率 ≥ 78%
+2. **前端单元测试** - Admin ≥ 80%, H5 ≥ 70%
+3. **代码格式检查** - gofmt
+
+### 7.4 本地验证命令
+
+```bash
+# 后端测试 + 覆盖率
+cd backend && go test -p 1 $(go list ./... | grep -v -E 'dmh/test/integration|dmh/test/performance') -coverprofile=coverage.out -covermode=atomic
+go tool cover -func=coverage.out | grep total
+
+# 前端 Admin 测试 + 覆盖率
+cd frontend-admin && npm run test:cov
+
+# 前端 H5 测试 + 覆盖率
+cd frontend-h5 && npm run test:cov
+
+# Go 格式检查
+cd backend && gofmt -d .
 ```

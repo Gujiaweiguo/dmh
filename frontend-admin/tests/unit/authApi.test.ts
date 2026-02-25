@@ -75,4 +75,23 @@ describe('authApi', () => {
     manager.value = true;
     expect(listener).toHaveBeenCalledTimes(2);
   });
+
+  it('isPlatformAdmin returns true when user is platform_admin', () => {
+    localStorage.setItem('dmh_user_role', 'platform_admin');
+    expect(authApi.isPlatformAdmin()).toBe(true);
+  });
+
+  it('isPlatformAdmin returns false when user is not platform_admin', () => {
+    localStorage.setItem('dmh_user_role', 'brand_admin');
+    expect(authApi.isPlatformAdmin()).toBe(false);
+  });
+
+  it('getUsername returns stored username', () => {
+    localStorage.setItem('dmh_username', 'testuser');
+    expect(authApi.getUsername()).toBe('testuser');
+  });
+
+  it('getUsername returns null when no username stored', () => {
+    expect(authApi.getUsername()).toBeNull();
+  });
 });

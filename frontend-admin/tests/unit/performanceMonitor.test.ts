@@ -49,15 +49,40 @@ describe('performanceMonitor', () => {
 		expect(fn).toHaveBeenCalledWith('b');
 	});
 
-	it('throttle limits calls', () => {
-		vi.useFakeTimers();
-		const fn = vi.fn();
-		const throttled = PerformanceMonitor.throttle(fn, 100);
-		throttled();
-		throttled();
-		expect(fn).toHaveBeenCalledTimes(1);
-		vi.advanceTimersByTime(100);
-		throttled();
-		expect(fn).toHaveBeenCalledTimes(2);
-	});
+  it('throttle limits calls', () => {
+    vi.useFakeTimers();
+    const fn = vi.fn();
+    const throttled = PerformanceMonitor.throttle(fn, 100);
+    throttled();
+    throttled();
+    expect(fn).toHaveBeenCalledTimes(1);
+    vi.advanceTimersByTime(100);
+    throttled();
+    expect(fn).toHaveBeenCalledTimes(2);
+  });
+
+  it('logApiRequest warns on slow requests', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    PerformanceMonitor.logApiRequest('/slow-api', 600, true);
+    expect(warnSpy).toHaveBeenCalledWith('[SLOW API] /slow-api took 600ms');
+    warnSpy.mockRestore();
+  });
+
+  it('measureRender warns on slow renders', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    (globalThis as unknown as { performance: MockPerformance }).performance.now = vi.fn()
+      .mockReturnValueOnce(0)
+      .mockReturnValueOnce(150);
+    const result = PerformanceMonitor.measureRender('SlowComp', () => 'done');
+    expect(result).toBe('done');
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('[SLOW RENDER] SlowComp'));
+    warnSpy.mockRestore();
+  });
+
+  it('init adds load event listener', () => {
+    const addEventListenerSpy = vi.spyOn(window, 'addEventListener');
+    PerformanceMonitor.init();
+    expect(addEventListenerSpy).toHaveBeenCalledWith('load', expect.any(Function));
+    addEventListenerSpy.mockRestore();
+  });
 });
