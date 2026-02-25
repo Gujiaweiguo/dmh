@@ -116,3 +116,52 @@ func TestNewServiceContextWithInvalidDSN(t *testing.T) {
 		t.Fatal("services should still be initialized when db init fails")
 	}
 }
+
+// Test with memory storage (no Redis)
+func TestNewServiceContext_MemoryStorage(t *testing.T) {
+	c := config.Config{}
+	c.Mysql.DataSource = "root:Admin168@tcp(127.0.0.1:3306)/dmh_test?charset=utf8mb4&parseTime=true&loc=Local"
+	c.Redis.Host = "" // No Redis
+	c.RateLimit.PosterGenerate.Storage = "memory"
+	c.RateLimit.PosterGenerate.MaxRequests = 10
+	c.RateLimit.PosterGenerate.WindowDuration = 60
+	c.RateLimit.Default.Storage = "memory"
+	c.RateLimit.Default.MaxRequests = 100
+	c.RateLimit.Default.WindowDuration = 60
+	c.WeChatPay.CacheTTL = 60
+	c.WeChatPay.HTTPTimeoutMs = 1000
+	c.WeChatPay.MockEnabled = true
+
+	s := NewServiceContext(c)
+	if s == nil {
+		t.Fatal("service context should not be nil")
+	}
+	if s.PosterRateLimiter == nil || s.DefaultRateLimiter == nil {
+		t.Fatal("rate limiters should be initialized with memory storage")
+	}
+}
+
+// Test with Redis config but empty host
+func TestNewServiceContext_RedisConfiguredButEmpty(t *testing.T) {
+	c := config.Config{}
+	c.Mysql.DataSource = "root:Admin168@tcp(127.0.0.1:3306)/dmh_test?charset=utf8mb4&parseTime=true&loc=Local"
+	c.Redis.Host = "" // Empty host should fallback to memory
+	c.RateLimit.PosterGenerate.Storage = "redis"
+	c.RateLimit.PosterGenerate.MaxRequests = 5
+	c.RateLimit.PosterGenerate.WindowDuration = 60
+	c.RateLimit.Default.Storage = "redis"
+	c.RateLimit.Default.MaxRequests = 100
+	c.RateLimit.Default.WindowDuration = 60
+	c.WeChatPay.CacheTTL = 60
+	c.WeChatPay.HTTPTimeoutMs = 1000
+	c.WeChatPay.MockEnabled = true
+
+	s := NewServiceContext(c)
+	if s == nil {
+		t.Fatal("service context should not be nil")
+	}
+	// Should fallback to memory when Redis is not configured
+	if s.PosterRateLimiter == nil {
+		t.Fatal("poster rate limiter should be initialized")
+	}
+}

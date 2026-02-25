@@ -5,7 +5,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -103,7 +105,7 @@ func TestGetUserBrandIDs_Success(t *testing.T) {
 
 	result, err := GetUserBrandIDs(ctx)
 	assert.NoError(t, err)
-	assert.Empty(t, result) // 返回空数组（scaffold实现）
+	assert.Empty(t, result)
 }
 
 func TestGetUserBrandIDs_NotFound(t *testing.T) {
@@ -118,7 +120,7 @@ func TestCanAccessBrand_Success(t *testing.T) {
 	ctx := context.WithValue(context.Background(), "brandIds", brandIDs)
 
 	result := CanAccessBrand(ctx, 2)
-	assert.False(t, result) // scaffold实现只检查平台管理员
+	assert.False(t, result)
 }
 
 func TestCanAccessBrand_Failure(t *testing.T) {
@@ -151,4 +153,109 @@ func TestRefreshToken_InvalidToken(t *testing.T) {
 	newToken, err := m.RefreshToken("invalid_token")
 	assert.Error(t, err)
 	assert.Empty(t, newToken)
+}
+
+func TestValidateToken_Success(t *testing.T) {
+	m := NewAuthMiddleware("test-secret")
+	token, err := m.GenerateToken(7, "tester", []string{"participant"}, nil)
+	require.NoError(t, err)
+
+	claims, err := m.validateToken(token)
+	assert.NoError(t, err)
+	assert.NotNil(t, claims)
+	assert.Equal(t, int64(7), claims.UserID)
+	assert.Equal(t, "tester", claims.Username)
+}
+
+func TestValidateToken_InvalidSignature(t *testing.T) {
+	m := NewAuthMiddleware("test-secret")
+	token, err := m.GenerateToken(7, "tester", []string{"participant"}, nil)
+	require.NoError(t, err)
+
+	// Use wrong secret to validate
+	m2 := NewAuthMiddleware("wrong-secret")
+	claims, err := m2.validateToken(token)
+	assert.Error(t, err)
+	assert.Nil(t, claims)
+}
+
+func TestValidateToken_ExpiredToken(t *testing.T) {
+	m := NewAuthMiddleware("test-secret")
+
+	// Manually create an expired token
+	expiredClaims := &JWTClaims{
+		UserID:   7,
+		Username: "tester",
+		Roles:    []string{"participant"},
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(-1 * time.Hour)),
+		},
+	}
+	expiredToken := jwt.NewWithClaims(jwt.SigningMethodHS256, expiredClaims)
+	tokenString, _ := expiredToken.SignedString([]byte(m.jwtSecret))
+
+	claims, err := m.validateToken(tokenString)
+	assert.Error(t, err)
+	assert.Nil(t, claims)
+}
+
+func TestValidateToken_InvalidUserID(t *testing.T) {
+	m := NewAuthMiddleware("test-secret")
+
+	claims := &JWTClaims{
+		UserID:   0,
+		Username: "tester",
+		Roles:    []string{"participant"},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, _ := token.SignedString([]byte(m.jwtSecret))
+
+	result, err := m.validateToken(tokenString)
+	assert.Error(t, err)
+	assert.Nil(t, result)
+}
+
+func TestShouldRefreshToken_ShouldRefresh(t *testing.T) {
+	m := NewAuthMiddleware("test-secret")
+
+	claims := &JWTClaims{
+		UserID:   7,
+		Username: "tester",
+		Roles:    []string{"participant"},
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(20 * time.Minute)),
+		},
+	}
+
+	result := m.shouldRefreshToken(claims)
+	assert.True(t, result)
+}
+
+func TestShouldRefreshToken_ShouldNotRefresh(t *testing.T) {
+	m := NewAuthMiddleware("test-secret")
+
+	claims := &JWTClaims{
+		UserID:   7,
+		Username: "tester",
+		Roles:    []string{"participant"},
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(60 * time.Minute)),
+		},
+	}
+
+	result := m.shouldRefreshToken(claims)
+	assert.False(t, result)
+}
+
+func TestShouldRefreshToken_NoExpiration(t *testing.T) {
+	m := NewAuthMiddleware("test-secret")
+
+	claims := &JWTClaims{
+		UserID:   7,
+		Username: "tester",
+		Roles:    []string{"participant"},
+	}
+
+	result := m.shouldRefreshToken(claims)
+	assert.False(t, result)
 }
