@@ -17,8 +17,12 @@ import (
 const testDSN = "root:Admin168@tcp(127.0.0.1:3306)/dmh_test?charset=utf8mb4&parseTime=true&loc=Local&multiStatements=true"
 
 // SetupTestDB creates a *sql.DB connection for testing (legacy, uses database/sql).
+// In short mode (-short), skips the test to enable fast PR validation.
 func SetupTestDB(t *testing.T) *sql.DB {
 	t.Helper()
+	if testing.Short() {
+		t.Skip("Skipping database test in short mode")
+	}
 	db, err := sql.Open("mysql", testDSN)
 	if err != nil {
 		t.Fatalf("failed to open MySQL test DB: %v", err)
@@ -31,8 +35,12 @@ func SetupTestDB(t *testing.T) *sql.DB {
 
 // SetupGormTestDB creates a *gorm.DB connection for testing with relaxed sql_mode
 // to avoid "Invalid default value for 'created_at'" errors on MySQL 8.0+.
+// In short mode (-short), skips the test to enable fast PR validation.
 func SetupGormTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
+	if testing.Short() {
+		t.Skip("Skipping database test in short mode")
+	}
 	db, err := gorm.Open(mysql.Open(testDSN), &gorm.Config{})
 	if err != nil {
 		t.Fatalf("failed to open MySQL test DB with GORM: %v", err)

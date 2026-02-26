@@ -9,6 +9,10 @@ import (
 )
 
 func setupModelTestDB(t *testing.T) *gorm.DB {
+	t.Helper()
+	if testing.Short() {
+		t.Skip("Skipping database test in short mode")
+	}
 	dsn := "root:Admin168@tcp(127.0.0.1:3306)/dmh_test?charset=utf8mb4&parseTime=true&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -69,7 +73,6 @@ func setupModelTestDB(t *testing.T) *gorm.DB {
 
 	return db
 }
-
 // ========== User Model Tests ==========
 
 func TestUserCRUD(t *testing.T) {

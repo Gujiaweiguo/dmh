@@ -37,12 +37,16 @@ func GetMySQLTestConfig() *MySQLTestConfig {
 
 // SetupMySQLTestDB creates an isolated MySQL database for a test
 // Returns the database connection and the test database name
+// In short mode (-short), skips the test to enable fast PR validation.
 func SetupMySQLTestDB(t *testing.T) (*gorm.DB, string) {
+	t.Helper()
+	if testing.Short() {
+		t.Skip("Skipping database test in short mode")
+	}
 	config := GetMySQLTestConfig()
 
 	// Generate unique test database name
 	testDBName := generateTestDBName(t)
-
 	// Connect to base database to create test database
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local&multiStatements=true",
 		config.User, config.Password, config.Host, config.Port, config.BaseDB)
