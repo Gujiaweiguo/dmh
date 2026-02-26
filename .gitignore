@@ -119,3 +119,12 @@ backend/storage/posters/*.png
 backend/storage/posters/*.jpg
 backend/storage/posters/*.jpeg
 !backend/storage/posters/.gitkeep
+
+# ==================== Sisyphus AI Agent ====================
+# 保留计划和证据，忽略临时文件
+.sisyphus/notepads/
+.sisyphus/boulder.json
+.sisyphus/sessions/
+# 证据和计划可选择提交或忽略
+# .sisyphus/evidence/
+# .sisyphus/plans/
