@@ -158,7 +158,7 @@ const validateForm = (): boolean => {
     const rewards = distributionRewardsForm.value;
     const requiredLevels = ['level1', 'level2', 'level3'].slice(0, level);
     for (const key of requiredLevels) {
-      const value = Number((rewards as any)[key]);
+      const value = Number(rewards.toRaw()[key as keyof typeof rewards]);
       if (!Number.isFinite(value) || value < 0 || value > 100) {
         alert('分销奖励比例必须是 0-100 的数字');
         return false;

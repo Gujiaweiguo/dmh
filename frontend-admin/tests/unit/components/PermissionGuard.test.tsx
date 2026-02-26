@@ -625,7 +625,7 @@ describe('PermissionGuard', () => {
 
       const wrapper = mount(() => h(
         PermissionProvider,
-        { user: null as any },
+        { user: null as unknown as CurrentUser },
         () => h(Child)
       ))
 
@@ -642,7 +642,7 @@ describe('PermissionGuard', () => {
 
       const wrapper = mount(() => h(
         PermissionProvider,
-        { user: null as any },
+        { user: null as unknown as CurrentUser },
         () => h(Child)
       ))
 

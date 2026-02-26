@@ -100,7 +100,7 @@ export const PermissionGuard = defineComponent({
     }
   },
   setup(props, { slots }) {
-    const context = inject(PermissionContext) as any;
+    const context = inject(PermissionContext);;
     
     if (!context) {
       console.warn('PermissionGuard must be used within PermissionProvider');
@@ -160,7 +160,7 @@ export const PermissionButton = defineComponent({
     onClick: Function
   },
   setup(props, { slots }) {
-    const context = inject(PermissionContext) as any;
+    const context = inject(PermissionContext);;
     
     const hasAccess = computed(() => {
       if (!context) return false;
@@ -204,7 +204,7 @@ export const PermissionButton = defineComponent({
 
 // 使用权限的Hook
 export const usePermission = () => {
-  const context = inject(PermissionContext) as any;
+  const context = inject(PermissionContext);;
   
   if (!context) {
     console.warn('usePermission must be used within PermissionProvider');

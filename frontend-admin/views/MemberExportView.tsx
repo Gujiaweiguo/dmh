@@ -88,7 +88,7 @@ export default {
 
       loading.value = true;
       try {
-        await memberApi.createExportRequest(createForm.value as any);
+        await memberApi.createExportRequest(createForm.value as ExportRequest);
         alert('申请提交成功');
         showCreateDialog.value = false;
         createForm.value = {

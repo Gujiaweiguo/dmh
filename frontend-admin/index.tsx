@@ -44,7 +44,7 @@ const DashboardView = defineComponent({
       { label: '活跃活动', value: '12', icon: 'Target', color: 'bg-amber-600' },
       { label: '待处理提现', value: '5', icon: 'Clock', color: 'bg-rose-600' }
     ].map(stat => h('div', { class: 'bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm' }, [
-      h('div', { class: `w-12 h-12 ${stat.color} text-white rounded-2xl flex items-center justify-center mb-6` }, h((LucideIcons as any)[stat.icon], { size: 24 })),
+      h('div', { class: `w-12 h-12 ${stat.color} text-white rounded-2xl flex items-center justify-center mb-6` }, h((LucideIcons as Record<string, any>)[stat.icon], { size: 24 })),
       h('p', { class: 'text-[10px] font-black text-slate-400 uppercase tracking-widest' }, stat.label),
       h('p', { class: 'text-3xl font-black text-slate-900 mt-2' }, stat.value)
     ])));
@@ -464,7 +464,7 @@ const CampaignManagementView = defineComponent({
         { label: '已暂停', value: campaigns.value.filter(c => c.status === 'paused').length, icon: 'Pause', color: 'bg-amber-600' },
         { label: '总参与数', value: campaigns.value.reduce((sum, c) => sum + (c.participants || 0), 0), icon: 'Users', color: 'bg-purple-600' }
       ].map(stat => h('div', { class: 'bg-white p-6 rounded-3xl border border-slate-100 shadow-sm' }, [
-        h('div', { class: `w-12 h-12 ${stat.color} text-white rounded-2xl flex items-center justify-center mb-4` }, h((LucideIcons as any)[stat.icon], { size: 24 })),
+        h('div', { class: `w-12 h-12 ${stat.color} text-white rounded-2xl flex items-center justify-center mb-4` }, h((LucideIcons as Record<string, any>)[stat.icon], { size: 24 })),
         h('p', { class: 'text-[10px] font-black text-slate-400 uppercase tracking-widest' }, stat.label),
         h('p', { class: 'text-2xl font-black text-slate-900 mt-1' }, String(stat.value))
       ]))),
@@ -1024,7 +1024,7 @@ const AdminApp = defineComponent({
                   : 'text-slate-400 hover:text-white hover:bg-slate-800'
               }`
             }, [
-              h((LucideIcons as any)[item.icon], { size: 20 }),
+              h((LucideIcons as Record<string, any>)[item.icon], { size: 20 }),
               h('span', { class: 'font-bold text-sm' }, item.label)
             ])
           )),

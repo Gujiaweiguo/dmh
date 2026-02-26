@@ -191,7 +191,7 @@ export const WithdrawalApprovalView = () => {
 
 // 渲染提现审批视图
 export const renderWithdrawalApprovalView = (viewModel: ReturnType<typeof WithdrawalApprovalView>) => {
-  const { h } = (window as any).Vue || { h: () => null };
+  const { h } = (window as unknown as { Vue?: { h: typeof h } }).Vue || { h: () => null };
 
   return h('div', { class: 'space-y-6' }, [
     // 头部

@@ -66,12 +66,11 @@ class AuthApiService {
       throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
     }
 
-    const result = await response.json();
+    const result = await response.json() as { roles?: string[]; role?: string; token?: string; username?: string };
 
-    const roles: string[] = Array.isArray((result as any).roles)
-      ? (result as any).roles
-      : (typeof (result as any).role === 'string' ? [(result as any).role] : []);
-
+    const roles: string[] = Array.isArray(result.roles)
+      ? result.roles
+      : (typeof result.role === 'string' ? [result.role] : []);
     // 检查用户角色 - 只允许平台管理员登录管理后台
     if (!roles.includes('platform_admin')) {
       throw new Error('管理后台仅限平台管理员访问，请使用 H5 端登录');
@@ -109,15 +108,14 @@ class AuthApiService {
       throw new Error(`Registration failed: ${response.status} ${errorText}`);
     }
 
-    const result = await response.json();
+    const result = await response.json() as { roles?: string[]; role?: string; token?: string };
 
     // 保存token到localStorage
     if (result.token) {
       localStorage.setItem('dmh_token', result.token);
-      const roles: string[] = Array.isArray((result as any).roles)
-        ? (result as any).roles
-        : (typeof (result as any).role === 'string' ? [(result as any).role] : []);
-
+      const roles: string[] = Array.isArray(result.roles)
+        ? result.roles
+        : (typeof result.role === 'string' ? [result.role] : []);
       if (roles.length > 0) {
         localStorage.setItem('dmh_user_role', roles[0]);
       }

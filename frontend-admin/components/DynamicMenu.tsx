@@ -96,7 +96,7 @@ export const DynamicMenu = defineComponent({
       }
       
       // 检查角色
-      if (menu.role && !hasRole(menu.role as any)) {
+      if (menu.role && !hasRole(menu.role as UserRole)) {
         return false;
       }
       
@@ -124,7 +124,7 @@ export const DynamicMenu = defineComponent({
     // 获取图标组件
     const getIcon = (iconName?: string) => {
       if (!iconName) return null;
-      const IconComponent = (LucideIcons as any)[iconName];
+      const IconComponent = (LucideIcons as Record<string, DefineComponent>)[iconName];
       return IconComponent ? h(IconComponent, { size: 20 }) : null;
     };
 

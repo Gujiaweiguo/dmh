@@ -86,7 +86,7 @@ export const DistributorApprovalView = (props: { brandId?: number }) => {
 
 // 渲染审批视图
 export const renderDistributorApprovalView = (viewModel: ReturnType<typeof DistributorApprovalView>) => {
-  const { h } = (window as any).Vue || { h: () => null };
+  const { h } = (window as unknown as { Vue?: { h: typeof h } }).Vue || { h: () => null };
 
   return h('div', { class: 'space-y-6' }, [
     // 头部
