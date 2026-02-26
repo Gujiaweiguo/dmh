@@ -107,33 +107,63 @@ gofmt -w .
 
 ## Testing
 
-### Unit Tests
-- Co-located: `logic/foo_logic_test.go` next to `logic/foo_logic.go`
-- Framework: `github.com/stretchr/testify`
-- Pattern: Suite-based with `suite.Suite`
+### Test Commands Quick Reference
 
-### Integration Tests
-- Location: `test/integration/`
-- Requires: Running API at `localhost:8889`
-- Env vars: `DMH_INTEGRATION_BASE_URL`, `DMH_TEST_ADMIN_USERNAME`, `DMH_TEST_ADMIN_PASSWORD`
+| Scenario | Command | Duration | Notes |
+|----------|---------|----------|-------|
+| Fast verify (PR pre-check) | `go test -p 1 ./... -short` | <30s | Skips integration tests |
+| Full unit tests | `go test -p 1 ./...` | 2-3min | All unit tests |
+| Integration tests | `DMH_INTEGRATION_BASE_URL=http://localhost:8889 go test ./test/integration/... -v -count=1` | 5-10min | Requires running API |
+| Coverage report | `go test -p 1 ./... -coverprofile=coverage.out -covermode=atomic && go tool cover -func=coverage.out` | 3-5min | Threshold: ≥78% |
+| Single test | `go test -v -run TestFunctionName ./path/to/package` | Varies | Debug specific test |
 
-### Database Isolation
-**IMPORTANT**: Always use `-p 1` flag when running tests:
+### Layered Test Strategy
+
+| Layer | Responsibility | Mock Strategy | Test Focus |
+|-------|----------------|---------------|------------|
+| **Handler** | HTTP parse/response | Mock Logic | Request parsing, response format, HTTP codes |
+| **Logic** | Business logic | Mock Repository | Business rules, edge cases, error handling |
+| **Repository** | Data access | Real MySQL8 | SQL correctness, transactions, constraints |
+
+### Test File Locations
+
+```
+backend/
+├── api/internal/
+│   ├── handler/
+│   │   └── *_handler_test.go     # Handler tests (mock logic)
+│   └── logic/
+│       └── *_logic_test.go       # Logic tests (mock repo or real DB)
+├── model/
+│   └── *_test.go                 # Model tests (real DB)
+└── test/
+    ├── integration/              # Integration tests (live API)
+    └── performance/              # Benchmark tests
+```
+
+### Database Isolation (CRITICAL)
+
+**MUST use `-p 1` flag**:
+
 ```bash
 go test -p 1 ./...
 ```
 
-Why? Integration tests share a common test database (`dmh_test`). Running tests in parallel causes:
+**Why**: Integration tests share `dmh_test` database. Parallel execution causes:
 - Primary key conflicts (`Duplicate entry 'X' for key 'users.PRIMARY'`)
 - Race conditions in test data setup
 
 ### Test Data Setup Pattern
-Use "delete-then-create" pattern for idempotent data initialization:
+
+Use "delete-then-create" for idempotent initialization:
+
 ```go
 // CORRECT: Delete first, then create (idempotent)
-suite.db.Exec("DELETE FROM users WHERE id IN (1,2,3)")
-for _, user := range users {
-    suite.db.Create(&user)
+func (s *UserRepoSuite) SetupTest() {
+    s.db.Exec("DELETE FROM users WHERE id IN (1, 2, 3)")
+    for _, user := range testUsers {
+        s.db.Create(&user)
+    }
 }
 
 // WRONG: Check-then-create (race condition)
@@ -142,10 +172,72 @@ if err := suite.db.Where("id = ?", user.Id).First(&existing).Error; err != nil {
 }
 ```
 
-### Coverage Target
-- Current: ~68%
-- Target: 70%+
+### SKIP Reason Tags
 
+When tests must skip due to environment issues, use standard tags:
+
+| Tag | Trigger |
+|-----|---------|
+| `API_UNAVAILABLE` | API service unreachable or timeout |
+| `MYSQL_UNAVAILABLE` | MySQL connection failed |
+| `REDIS_UNAVAILABLE` | Redis connection failed (dependency tests only) |
+| `LOGIN_FAILED` | Login endpoint returned non-200 |
+| `DATA_PREP_FAILED` | Test data preparation failed |
+
+Example:
+```go
+if !isAPIAvailable() {
+    t.Skip("SKIP: API_UNAVAILABLE - API service not running")
+}
+```
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DMH_INTEGRATION_BASE_URL` | `http://localhost:8889` | API base URL |
+| `DMH_TEST_ADMIN_USERNAME` | `admin` | Test admin username |
+| `DMH_TEST_ADMIN_PASSWORD` | `123456` | Test admin password |
+
+### Coverage Threshold
+
+- **Current**: ~68%
+- **Target**: ≥78%
+
+Check coverage:
+```bash
+go test -p 1 ./... -coverprofile=coverage.out -covermode=atomic
+go tool cover -func=coverage.out | tail -1
+```
+
+### Performance Test Split
+
+| Gate | Command | Duration | Notes |
+|------|---------|----------|-------|
+| PR Smoke | `go test -short -bench=. -benchtime=100ms ./test/performance/...` | <1s | No backend needed |
+| Nightly Full | `go test -v ./test/performance/...` | ~1min | Requires backend |
+
+### Test Anti-Patterns
+
+| Avoid | Reason | Correct Approach |
+|-------|--------|------------------|
+| Business logic in handlers | Breaks layering | Put in Logic layer |
+| Integration tests with mock data | Loses integration value | Use real database |
+| Shared mutable state between tests | Test interference | Independent init/cleanup per test |
+| Check-then-create pattern | Race condition | Delete-then-create (idempotent) |
+| `t.Skip()` to hide failures | Hides real defects | Fix or mark as known issue |
+| Infinite retries for flaky tests | Masks instability | Root cause analysis, fix or isolate |
+
+### Pre-Commit Checklist
+
+Before committing:
+
+- [ ] `go test -p 1 ./... -short` passes
+- [ ] Coverage ≥78%
+- [ ] No `t.Skip()` hiding failures
+- [ ] No business logic in handlers
+- [ ] Integration tests use real DB (not mocks)
+- [ ] Test data is idempotent (delete-then-create)
 ## Database Migrations
 
 ```bash

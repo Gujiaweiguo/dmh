@@ -68,6 +68,10 @@ DMH/
 | 未经测试的集成代码 | 集成测试必须通过 |
 | 在 `frontend-admin` 使用 `.vue` | 优先使用 `.tsx`（现有文件可保留） |
 | OpenSpec 场景格式错误 | 必须使用 `#### Scenario:` 格式（4个#） |
+| 使用 `t.Skip()` 掩盖失败 | 必须修复或明确标记原因（SkipReason） |
+| 在 Handler 测试中 mock DB | 应该 mock Logic，不直接 mock DB |
+| 并行运行 DB 测试 | 必须使用 `go test -p 1` 隔离 |
+| 跳过 slow test 但不检查 | PR 前必须确认 `-short` 通过 |
 
 ### 3.2 代码入口
 
@@ -304,90 +308,70 @@ go test ./test/integration/... -v -count=1
    - Nginx 配置：`deploy/nginx/conf.d/default.conf`
    - 后端配置：`deploy/dmh-api.yaml`
 
-## 9. 常用测试命令
+## 9. 测试执行规范
 
-**后端单元测试**：
+### 9.1 测试命令速查表
+
+**后端测试**：
+
+| 场景 | 命令 | 耗时 | 说明 |
+|------|------|------|------|
+| 快速验证 | `go test -p 1 ./... -short` | <30s | 跳过集成测试，PR 预检 |
+| 提交前验证 | `go test -p 1 ./...` | 2-3min | 全量单元测试 |
+| 集成测试 | `DMH_INTEGRATION_BASE_URL=http://localhost:8889 go test ./test/integration/... -v -count=1` | 5-10min | 需运行 API |
+| 覆盖率 | `go test -p 1 ./... -coverprofile=coverage.out -covermode=atomic` | 3-5min | 生成报告 |
+
+**前端测试**：
+
+| 场景 | 命令 | 耗时 | 说明 |
+|------|------|------|------|
+| Admin 单元测试 | `cd frontend-admin && npm run test` | <1min | Vitest |
+| Admin 覆盖率 | `cd frontend-admin && npm run test:cov` | 1-2min | ≥80% 阈值 |
+| Admin E2E | `cd frontend-admin && npm run test:e2e` | 5-10min | Playwright |
+| H5 单元测试 | `cd frontend-h5 && npm run test` | <1min | Vitest |
+| H5 覆盖率 | `cd frontend-h5 && npm run test:cov` | 1-2min | ≥70% 阈值 |
+| H5 E2E | `cd frontend-h5 && npm run test:e2e` | 5-10min | Playwright |
+
+### 9.2 测试分层职责
+
+**后端分层测试策略**：
+
+| 层级 | 职责 | Mock 策略 | 测试重点 |
+|------|------|-----------|----------|
+| **Handler** | HTTP 解析与响应 | Mock Logic | 请求参数解析、响应格式、HTTP 状态码 |
+| **Logic** | 业务逻辑 | Mock Repository | 业务规则、边界条件、错误处理 |
+| **Repository** | 数据访问 | 真实 MySQL8 | SQL 正确性、事务、数据一致性 |
+
+### 9.3 数据库隔离要求
+
+**必须使用 `-p 1` 标志**：
+
 ```bash
-cd backend
-go test ./...
+go test -p 1 ./...
 ```
 
-**后端集成测试**：
-```bash
-cd backend
-export DMH_INTEGRATION_BASE_URL=http://localhost:8889
-go test ./test/integration/... -v -count=1
-```
+**原因**：
+- 集成测试共享 `dmh_test` 测试数据库
+- 并行运行会导致主键冲突和竞态条件
+- `-p 1` 强制串行执行，确保隔离
 
-## 10. 常见问题 (Troubleshooting)
+### 9.4 SKIP 原因标签
 
-### 数据库连接失败
-**错误**: `Error 1045: Access denied for user 'root'@'localhost'`
+当测试因环境问题跳过时，使用标准标签：
 
-**解决**:
-```bash
-# 检查 MySQL 容器
- docker ps | grep mysql8
+| 标签 | 触发条件 |
+|------|----------|
+| `API_UNAVAILABLE` | API 服务不可达或超时 |
+| `MYSQL_UNAVAILABLE` | MySQL 连接失败 |
+| `REDIS_UNAVAILABLE` | Redis 连接失败（仅依赖测试） |
+| `LOGIN_FAILED` | 登录接口返回非 200 |
+| `DATA_PREP_FAILED` | 测试数据准备失败 |
 
-# 检查配置密码
-cat backend/api/etc/dmh-api.yaml
+### 9.5 提交前检查清单
 
-# 重新初始化
-make db-init  # 或 ./dmh.sh init
-```
+- [ ] `go test -p 1 ./... -short` 通过（后端快速验证）
+- [ ] 覆盖率达标（后端 ≥78%，Admin ≥80%，H5 ≥70%）
+- [ ] 无 `t.Skip()` 掩盖失败
+- [ ] Handler 无业务逻辑
+- [ ] 集成测试使用真实数据库（非 mock）
 
-### 前端依赖安装失败
-**错误**: `Error: Cannot find module 'xxx'`
-
-**解决**:
-```bash
-cd frontend-admin  # 或 frontend-h5
-rm -rf node_modules package-lock.json
-npm install
-```
-
-### Go 依赖下载慢
-**解决**:
-```bash
-# 设置代理
-go env -w GOPROXY=https://goproxy.cn,direct
-go mod download
-```
-
-### 端口被占用
-**错误**: `bind: address already in use`
-
-**解决**:
-```bash
-# 查看占用
-lsof -i :8889  # 后端
-lsof -i :3000  # Admin
-lsof -i :3100  # H5
-
-# 停止服务
-make down  # 或 ./dmh.sh stop
-```
-
-**前端单元测试（管理后台）**：
-```bash
-cd frontend-admin
-npm run test
-```
-
-**前端 E2E 测试（管理后台）**：
-```bash
-cd frontend-admin
-npm run test:e2e
-```
-
-**前端单元测试（H5）**：
-```bash
-cd frontend-h5
-npm run test
-```
-
-**前端 E2E 测试（H5）**：
-```bash
-cd frontend-h5
-npm run test:e2e
-```
