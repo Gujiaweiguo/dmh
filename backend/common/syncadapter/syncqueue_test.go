@@ -1,6 +1,8 @@
 package syncadapter
 
 import (
+	"context"
+	"sync"
 	"testing"
 	"time"
 
@@ -8,32 +10,69 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewSyncQueue(t *testing.T) {
-	redisClient := redis.NewClient(&redis.Options{
+var (
+	redisAvailableOnce sync.Once
+	redisIsAvailable   bool
+)
+
+// checkRedisAvailable 快速检查 Redis 是否可用（超时 500ms）
+// 使用 sync.Once 确保只检查一次
+func checkRedisAvailable() bool {
+	redisAvailableOnce.Do(func() {
+		client := redis.NewClient(&redis.Options{
+			Addr:         "localhost:6379",
+			Password:     "",
+			DB:           0,
+			DialTimeout:  500 * time.Millisecond,
+			ReadTimeout:  500 * time.Millisecond,
+			WriteTimeout: 500 * time.Millisecond,
+		})
+		defer client.Close()
+
+		ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+		defer cancel()
+
+		_, err := client.Ping(ctx).Result()
+		redisIsAvailable = err == nil
+	})
+	return redisIsAvailable
+}
+
+// skipIfNoRedis 跳过 Redis 不可用的测试
+func skipIfNoRedis(t *testing.T) *redis.Client {
+	if !checkRedisAvailable() {
+		t.Skip("Redis not available")
+		return nil
+	}
+	return redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
 		Password: "",
 		DB:       0,
 	})
+}
+
+func TestNewSyncQueue(t *testing.T) {
+	redisClient := skipIfNoRedis(t)
+	if redisClient == nil {
+		return
+	}
+	defer redisClient.Close()
 
 	queue := NewSyncQueue(redisClient, "test_queue")
 
 	assert.NotNil(t, queue)
 	assert.Equal(t, "test_queue", queue.key)
 	assert.NotNil(t, queue.redis)
-
-	redisClient.Close()
 }
 
 func TestSyncQueue_Enqueue(t *testing.T) {
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
-	})
+	redisClient := skipIfNoRedis(t)
+	if redisClient == nil {
+		return
+	}
 	defer redisClient.Close()
 
 	queue := NewSyncQueue(redisClient, "test_enqueue")
-
 	queue.Clear()
 
 	task := &SyncTask{
@@ -45,10 +84,7 @@ func TestSyncQueue_Enqueue(t *testing.T) {
 	}
 
 	err := queue.Enqueue(task)
-	if err != nil {
-		t.Skipf("Redis not available: %v", err)
-		return
-	}
+	assert.NoError(t, err)
 
 	length, err := queue.Length()
 	assert.NoError(t, err)
@@ -56,11 +92,10 @@ func TestSyncQueue_Enqueue(t *testing.T) {
 }
 
 func TestSyncQueue_Dequeue(t *testing.T) {
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
-	})
+	redisClient := skipIfNoRedis(t)
+	if redisClient == nil {
+		return
+	}
 	defer redisClient.Close()
 
 	queue := NewSyncQueue(redisClient, "test_dequeue")
@@ -74,10 +109,7 @@ func TestSyncQueue_Dequeue(t *testing.T) {
 	}
 
 	err := queue.Enqueue(task)
-	if err != nil {
-		t.Skipf("Redis not available: %v", err)
-		return
-	}
+	assert.NoError(t, err)
 
 	dequeuedTask, err := queue.Dequeue(5 * time.Second)
 	assert.NoError(t, err)
@@ -88,47 +120,36 @@ func TestSyncQueue_Dequeue(t *testing.T) {
 }
 
 func TestSyncQueue_Dequeue_Timeout(t *testing.T) {
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
-	})
+	redisClient := skipIfNoRedis(t)
+	if redisClient == nil {
+		return
+	}
 	defer redisClient.Close()
 
 	queue := NewSyncQueue(redisClient, "test_dequeue_timeout")
 
 	err := queue.Clear()
-	if err != nil {
-		t.Skipf("Redis not available: %v", err)
-		return
-	}
+	assert.NoError(t, err)
 
 	task, err := queue.Dequeue(2 * time.Second)
 	if err == redis.Nil {
 		return
 	}
-	if err != nil {
-		t.Skipf("Unexpected error: %v", err)
-		return
-	}
+	assert.NoError(t, err)
 	assert.Nil(t, task)
 }
 
 func TestSyncQueue_Length(t *testing.T) {
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
-	})
+	redisClient := skipIfNoRedis(t)
+	if redisClient == nil {
+		return
+	}
 	defer redisClient.Close()
 
 	queue := NewSyncQueue(redisClient, "test_length")
 
 	err := queue.Clear()
-	if err != nil {
-		t.Skipf("Redis not available: %v", err)
-		return
-	}
+	assert.NoError(t, err)
 
 	length, err := queue.Length()
 	assert.NoError(t, err)
@@ -142,11 +163,10 @@ func TestSyncQueue_Length(t *testing.T) {
 }
 
 func TestSyncQueue_Clear(t *testing.T) {
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
-	})
+	redisClient := skipIfNoRedis(t)
+	if redisClient == nil {
+		return
+	}
 	defer redisClient.Close()
 
 	queue := NewSyncQueue(redisClient, "test_clear")
@@ -155,10 +175,7 @@ func TestSyncQueue_Clear(t *testing.T) {
 	queue.Enqueue(&SyncTask{TaskId: "2", Type: "order"})
 
 	err := queue.Clear()
-	if err != nil {
-		t.Skipf("Redis not available: %v", err)
-		return
-	}
+	assert.NoError(t, err)
 
 	length, _ := queue.Length()
 	assert.Equal(t, int64(0), length)

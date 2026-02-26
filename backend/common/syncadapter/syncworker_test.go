@@ -1,13 +1,11 @@
 package syncadapter
 
 import (
-	"context"
 	"testing"
 	"time"
 
 	"dmh/model"
 
-	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -184,18 +182,11 @@ func TestUpdateRewardSyncStatus_Failed(t *testing.T) {
 
 func TestSyncWorker_StartAndStop(t *testing.T) {
 	// Skip if Redis is not available
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
-	})
-	defer redisClient.Close()
-
-	ctx := context.Background()
-	if err := redisClient.Ping(ctx).Err(); err != nil {
-		t.Skipf("Redis not available: %v", err)
+	redisClient := skipIfNoRedis(t)
+	if redisClient == nil {
 		return
 	}
+	defer redisClient.Close()
 
 	db := setupSyncWorkerTestDB(t)
 	adapter := &SyncAdapter{}
@@ -211,18 +202,11 @@ func TestSyncWorker_StartAndStop(t *testing.T) {
 
 func TestSyncWorker_StartStopImmediate(t *testing.T) {
 	// Skip if Redis is not available
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
-	})
-	defer redisClient.Close()
-
-	ctx := context.Background()
-	if err := redisClient.Ping(ctx).Err(); err != nil {
-		t.Skipf("Redis not available: %v", err)
+	redisClient := skipIfNoRedis(t)
+	if redisClient == nil {
 		return
 	}
+	defer redisClient.Close()
 
 	db := setupSyncWorkerTestDB(t)
 	adapter := &SyncAdapter{}
@@ -234,3 +218,4 @@ func TestSyncWorker_StartStopImmediate(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 	assert.True(t, true)
 }
+

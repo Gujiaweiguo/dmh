@@ -46,7 +46,13 @@ func BenchmarkVerifyOrder(b *testing.B) {
 }
 
 // TestConcurrentOrderCreation 测试并发订单创建
+// 注意：此测试需要 10 秒，仅在非 short 模式下运行
+// 运行方式：go test -v ./test/performance/...（不带 -short）
 func TestConcurrentOrderCreation(t *testing.T) {
+	if testing.Short() {
+		t.Skip("跳过长时间性能测试（使用 go test -v 不带 -short 来运行）")
+	}
+
 	concurrency := 100
 	duration := 10 * time.Second
 
@@ -103,6 +109,10 @@ func TestDatabaseConnectionPool(t *testing.T) {
 
 // TestMemoryLeak 测试内存泄漏
 func TestMemoryLeak(t *testing.T) {
+	if testing.Short() {
+		t.Skip("跳过内存泄漏测试")
+	}
+
 	// 运行多次，检查内存是否持续增长
 	iterations := 100
 
@@ -121,3 +131,4 @@ func TestMemoryLeak(t *testing.T) {
 
 	fmt.Printf("内存泄漏测试完成: %d 次迭代\n", iterations)
 }
+

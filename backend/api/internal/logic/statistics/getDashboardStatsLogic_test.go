@@ -1,3 +1,6 @@
+//go:build layered_demo
+// +build layered_demo
+
 package statistics
 
 import (

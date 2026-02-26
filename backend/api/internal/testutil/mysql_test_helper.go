@@ -4,7 +4,6 @@ package testutil
 import (
 	"fmt"
 	"math/rand"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -264,16 +263,11 @@ func generateTestDBName(t *testing.T) string {
 	return fmt.Sprintf("t_%s_%s_%03d", testName, timestamp, suffix)
 }
 
-// getEnv returns environment variable value or default
-func getEnv(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return defaultValue
-}
+// getEnv is defined in env.go
 
 // SkipIfNoMySQL skips the test if MySQL is not available
 func SkipIfNoMySQL(t *testing.T) {
+	t.Helper()
 	config := GetMySQLTestConfig()
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local",
@@ -283,7 +277,7 @@ func SkipIfNoMySQL(t *testing.T) {
 		Logger: logger.Default.LogMode(logger.Silent),
 	})
 	if err != nil {
-		t.Skipf("MySQL not available, skipping test: %v", err)
+		t.Skipf("SKIP_REASON:%s | MySQL not available: %v", SkipReasonMySQLUnavailable, err)
 		return
 	}
 
