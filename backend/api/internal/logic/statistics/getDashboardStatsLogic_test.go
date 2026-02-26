@@ -11,7 +11,6 @@ import (
 	"dmh/model"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/thanh4/utl"
 )
 
 func setupStatsTestDB(t *testing.T) {

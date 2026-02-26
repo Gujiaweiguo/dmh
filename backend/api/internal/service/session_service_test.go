@@ -194,7 +194,8 @@ func (suite *SessionServiceTestSuite) TestUpdateSessionActivity() {
 	originalExpiresAt := session.ExpiresAt
 	originalLastActiveAt := session.LastActiveAt
 
-	// 等待一秒确保时间差异
+	// 等待确保时间差异（10ms足够数据库时间精度）
+	time.Sleep(10 * time.Millisecond)
 	time.Sleep(1 * time.Second)
 
 	// 更新会话活跃时间

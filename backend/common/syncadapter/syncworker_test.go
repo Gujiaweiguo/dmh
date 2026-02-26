@@ -203,9 +203,9 @@ func TestSyncWorker_StartAndStop(t *testing.T) {
 	worker := NewSyncWorker(adapter, queue, db)
 
 	go worker.Start()
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(50 * time.Millisecond)
 	worker.Stop()
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(50 * time.Millisecond)
 	assert.True(t, true)
 }
 
@@ -231,6 +231,6 @@ func TestSyncWorker_StartStopImmediate(t *testing.T) {
 
 	go worker.Start()
 	worker.Stop()
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(50 * time.Millisecond)
 	assert.True(t, true)
 }

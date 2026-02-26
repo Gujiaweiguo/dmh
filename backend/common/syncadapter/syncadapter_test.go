@@ -526,7 +526,7 @@ func TestAsyncSyncOrder_Success(t *testing.T) {
 	adapter.AsyncSyncOrder(data)
 
 	// Wait for goroutine to complete
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(50 * time.Millisecond)
 
 	// The goroutine should have called SyncOrder
 	assert.NoError(t, mock.ExpectationsWereMet())
@@ -564,7 +564,7 @@ func TestAsyncSyncOrder_Error(t *testing.T) {
 	adapter.AsyncSyncOrder(data)
 
 	// Wait for goroutine to complete
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(50 * time.Millisecond)
 
 	assert.NoError(t, mock.ExpectationsWereMet())
 
